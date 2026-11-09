@@ -58,7 +58,7 @@ catalog:
   # table in node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping
   # any of the three. 0.63.0 ships against typescript 7.0.2, oxlint 1.89.0
   # and tsgolint 7.0.2004, exactly what vite-plus 1.4.0 carries.
-  "@effect/tsgo": 0.67.3
+  "@effect/tsgo": 0.67.5
   # The Effect lint rules (`effect/*`) `vp check` runs, as an oxlint JS plugin
   # (`configs.recommended` in vite.config.ts). Runs inside vite-plus's oxlint
   # but takes `@oxlint/plugins` as a caret range, so Dependabot proposes it on
