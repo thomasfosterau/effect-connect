@@ -99,6 +99,8 @@ updates:
           - "alchemy"
           - "@alchemy.run/*"
         update-types: ["major", "minor", "patch"]
+    assignees:
+      - thomasfosterau
   - package-ecosystem: "github-actions"
     # `/` covers .github/workflows only; the local composite action lists its
     # own directory, or its pins drift from the workflows'.
@@ -116,6 +118,8 @@ updates:
       include: "scope"
     cooldown:
       default-days: 1
+    assignees:
+      - thomasfosterau
   # The dev container's features (.devcontainer/devcontainer.json) and their
   # lockfile. The base image tag is not a feature: it is the catalog's
   # `vite-plus` pin, moved by hand on the toolchain PR.
@@ -131,3 +135,5 @@ updates:
       prefix: "chore"
     cooldown:
       default-days: 1
+    assignees:
+      - thomasfosterau
