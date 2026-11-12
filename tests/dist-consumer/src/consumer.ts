@@ -10,7 +10,10 @@ import * as Effect from "effect/Effect";
 import type * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
-import type * as HttpClient from "effect/http/HttpClient";
+import * as HttpClient from "effect/http/HttpClient";
+import type * as HttpClientError from "effect/http/HttpClientError";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
+import type * as HttpClientResponse from "effect/http/HttpClientResponse";
 import {
   ChatSendError,
   ChatService,
@@ -40,6 +43,7 @@ import {
   WhatsAppValidationError,
   type WhatsAppMessage,
   type WhatsAppSendResult,
+  refuseRedirects,
 } from "@thomasfosterau/effect-connect";
 import * as Resend from "@thomasfosterau/effect-connect-resend";
 import type * as Cloudflare from "@alchemy.run/cloudflare";
@@ -97,6 +101,26 @@ export const resolved: Layer.Layer<EmailService> = Resend.resolveTransport({
 export const noop: Layer.Layer<EmailService> = Resend.noop;
 export const resendPayload: Resend.ResendSendPayload = Resend.toResendPayload(message);
 
+// ── refuseRedirects: every call shape 0.2.0 accepted still compiles ─────────
+
+/** A request as a provider executes it. */
+const executed = Effect.flatMap(HttpClient.HttpClient, (http) =>
+  http.execute(HttpClientRequest.get("https://api.example.test/send")),
+);
+
+/** Called directly on a request: the same type 0.2.0 answered. */
+export const refusedDirect = refuseRedirects(executed);
+
+/** Point-free in a pipe, the shape every provider uses: the response and the error still infer. */
+export const refusedPiped = executed.pipe(
+  refuseRedirects,
+  Effect.mapError((error) => error.reason._tag),
+  Effect.map((response) => response.status),
+);
+
+/** On an effect that answers no response (0.2.0 took any effect): still accepted. */
+export const pinnedOnly = refuseRedirects(Effect.succeed("not a response"));
+
 // ── alchemy-cloudflare ────────────────────────────────────────────────────
 
 export const resendBindings: Alchemy.ResendBindings = Alchemy.resendBindings({
@@ -108,6 +132,18 @@ export const resendBindings: Alchemy.ResendBindings = Alchemy.resendBindings({
  * failing one names itself in the error.
  */
 export type Checks = [
+  /** _refuseRedirectsKeepsARequestsType */ Assert<
+    Equals<
+      typeof refusedDirect,
+      Effect.Effect<
+        HttpClientResponse.HttpClientResponse,
+        HttpClientError.HttpClientError,
+        HttpClient.HttpClient
+      >
+    >
+  >,
+  /** _refuseRedirectsInfersInAPipe */ Assert<Equals<Effect.Success<typeof refusedPiped>, number>>,
+  /** _refuseRedirectsTakesAnyEffect */ Assert<Equals<Effect.Success<typeof pinnedOnly>, string>>,
   /** _resultIdIsOption */ Assert<Equals<EmailSendResult["id"], Option.Option<string>>>,
   /** _sendSucceedsWithResult */ Assert<Equals<Effect.Success<typeof sent>, EmailSendResult>>,
   /** _sendFailsWithSendError */ Assert<Equals<Effect.Error<typeof sent>, EmailSendError>>,

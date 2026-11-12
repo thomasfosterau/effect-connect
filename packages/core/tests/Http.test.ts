@@ -7,6 +7,7 @@
 import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
@@ -74,6 +75,13 @@ const redirecting = (answer: (body: ReadableStream<Uint8Array>) => Response) => 
   };
 };
 
+/** The headers of the response a failure retains (a marker when it retains none). */
+const retainedHeaders = (error: HttpClientError.HttpClientError) =>
+  Match.value(error.reason).pipe(
+    Match.tag("StatusCodeError", (reason) => ({ ...reason.response.headers })),
+    Match.orElse((reason) => ({ unexpected: reason._tag })),
+  );
+
 /** What every refused redirect must look like, whatever the runtime answered. */
 const expectRefused = (
   error: HttpClientError.HttpClientError,
@@ -85,6 +93,9 @@ const expectRefused = (
   // The status alone: no method, no request URL, nothing from `Location`.
   expect(describeHttpError(error)).toBe(`redirect refused (${String(status)})`);
   expect(describeHttpErrorWithoutUrl(error, [])).toBe(`redirect refused (${String(status)})`);
+  // The response the error keeps has the status and no header: `Location` is
+  // text the answering host chose, and a logged cause chain must not carry it.
+  expect(retainedHeaders(error)).toStrictEqual({});
   // One request (the redirect is not followed), and its body is cancelled unread.
   expect(probe.requests).toHaveLength(1);
   expect(probe.requests[0]?.redirect).toBe("manual");

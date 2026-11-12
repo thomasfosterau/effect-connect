@@ -48,6 +48,41 @@ const discardBody = (response: HttpClientResponse.HttpClientResponse): Effect.Ef
     },
   );
 
+/** Whether a value an effect answered is an `HttpClientResponse`. */
+const isResponse = (value: unknown): value is HttpClientResponse.HttpClientResponse =>
+  P.hasProperty(value, HttpClientResponse.TypeId);
+
+/**
+ * The response a refusal carries: the same status and request, and nothing
+ * else. A redirect's `Location` (and any other header) is text the answering
+ * host chose, so it must not ride along in an error's cause chain into a log.
+ * An opaque redirect (status `0`) exposes no headers to begin with, and a
+ * `Response` cannot be constructed with that status, so it is kept as it is.
+ */
+const withoutHeaders = (
+  response: HttpClientResponse.HttpClientResponse,
+): HttpClientResponse.HttpClientResponse =>
+  response.status === 0
+    ? response
+    : HttpClientResponse.fromWeb(response.request, new Response(null, { status: response.status }));
+
+/** Cancel a refused response's body, then fail with its status alone. */
+const refuse = (
+  response: HttpClientResponse.HttpClientResponse,
+): Effect.Effect<never, HttpClientError.HttpClientError> =>
+  Effect.andThen(
+    discardBody(response),
+    Effect.fail(
+      new HttpClientError.HttpClientError({
+        reason: new HttpClientError.StatusCodeError({
+          request: response.request,
+          response: withoutHeaders(response),
+          description: REDIRECT_REFUSED,
+        }),
+      }),
+    ),
+  );
+
 /**
  * Run a request with redirects refused: `redirect: "manual"` is pinned on the
  * underlying `fetch`, and a response that is a redirect fails instead of
@@ -67,39 +102,30 @@ const discardBody = (response: HttpClientResponse.HttpClientResponse): Effect.Ef
  * `0`). Either fails with an `HttpClientError` whose reason is a
  * `StatusCodeError` described as `redirect refused`. The redirect is never
  * followed and its body and `Location` are never read: the body is
- * cancelled, and the message carries the status alone.
+ * cancelled, the message carries the status alone, and the response the
+ * error holds keeps the status and drops every header.
  *
  * Layered over whatever `FetchHttpClient.RequestInit` the consumer already
  * provides, so a `credentials` or `cache` setting survives; only `redirect`
  * is pinned. A non-fetch `HttpClient` never reads the option, and its 3xx
- * answers are refused the same way.
+ * answers are refused the same way. An effect that answers something other
+ * than an `HttpClientResponse` has only the option pinned: there is no
+ * response to inspect, so it never fails with the `HttpClientError` its type
+ * admits.
  *
  * @since 0.1.0
  */
-export const refuseRedirects = <R>(
-  effect: Effect.Effect<HttpClientResponse.HttpClientResponse, HttpClientError.HttpClientError, R>,
-): Effect.Effect<HttpClientResponse.HttpClientResponse, HttpClientError.HttpClientError, R> =>
+export const refuseRedirects = <A, E, R>(
+  effect: Effect.Effect<A, E, R>,
+): Effect.Effect<A, E | HttpClientError.HttpClientError, R> =>
   Effect.flatMap(Effect.serviceOption(FetchHttpClient.RequestInit), (existing) =>
     effect.pipe(
       Effect.provideService(FetchHttpClient.RequestInit, {
         ...Option.getOrElse(existing, () => ({})),
         redirect: "manual",
       }),
-      Effect.filterOrElse(
-        (response) => !isRedirect(response),
-        (response) =>
-          Effect.andThen(
-            discardBody(response),
-            Effect.fail(
-              new HttpClientError.HttpClientError({
-                reason: new HttpClientError.StatusCodeError({
-                  request: response.request,
-                  response,
-                  description: REDIRECT_REFUSED,
-                }),
-              }),
-            ),
-          ),
+      Effect.tap((answer) =>
+        isResponse(answer) && isRedirect(answer) ? refuse(answer) : Effect.void,
       ),
     ),
   );
