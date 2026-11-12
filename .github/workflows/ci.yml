@@ -1,29 +1,37 @@
 name: CI
 
-# ONE job, ONE required check: the pipeline's task graph lives in
-# vite.config.ts (the root `check` task), not in GitHub Actions `needs:`.
-# Copied in shape from the effect-drizzle-ext library.
+# ONE workflow, ONE command: `vp run ci`, the root task in vite.config.ts that
+# runs every gate in order (format + lint, type gates, unit and workerd
+# tests, builds, audit). It runs once per Node.js version in the matrix, and
+# the `ci` job at the end is the single check a ruleset requires.
 
 on:
   pull_request:
-    branches: [trunk]
-    types: [opened, reopened, synchronize, ready_for_review]
   push:
     branches: [trunk]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/trunk' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# No permissions by default; the single job grants only read access.
+# No permissions by default; each job grants only what it needs. No job uses a
+# secret, so a Dependabot or fork pull request runs it safely.
 permissions: {}
 
 jobs:
-  ci:
+  test:
+    name: ci (node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # The current LTS line and the newest Current release. Both must
+        # satisfy the root `engines.node`.
+        node: [lts, latest]
     env:
       # A modest ceiling for every Node process in the pipeline. NODE_OPTIONS
       # is inherited by every child, including each vitest fork.
@@ -32,25 +40,52 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup
-      - name: Restore the Vite+ task cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # Vite+, Node.js at the matrix version and the pnpm that package.json's
+      # `packageManager` pins, with the pnpm store cache.
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          path: node_modules/.vite/task-cache
-          key: vp-task-v1-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            vp-task-v1-${{ runner.os }}-
+          node-version: ${{ matrix.node }}
+          cache: true
+          run-install: false
+      # The install is RETRIED, deliberately: pnpm's linker has an upstream
+      # race on a cold store that cannot be reproduced on demand. Retrying is
+      # safe because the install is idempotent against the committed lockfile;
+      # a deterministic failure (lockfile drift) fails all three attempts.
+      - name: Install dependencies
+        run: |
+          for attempt in 1 2 3; do
+            if vp install --frozen-lockfile; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::vp install failed after 3 attempts"
+              exit 1
+            fi
+            delay=$((attempt * 15))
+            echo "::warning::vp install failed (attempt ${attempt}/3); retrying in ${delay}s"
+            sleep "$delay"
+          done
       - name: Toolchain versions
         run: node --version && pnpm --version && vp --version
-      - name: Format and lint
-        run: vp check
-      # Includes every package's docgen: each JSDoc `@example` is type-checked
-      # and executed.
-      - name: Type gates (packages + emitted declarations + doc examples)
-        run: vp run --concurrency-limit 2 check
-      - name: Unit tests
-        run: vp run -r test:unit
-      - name: Build
-        run: vp run -r build
-      - name: Audit
-        run: pnpm audit --audit-level high
+      - name: CI
+        run: vp run ci
+
+  # The one stable check name for required-check rulesets, whatever the
+  # matrix holds.
+  ci:
+    name: ci
+    needs: [test]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Every matrix job succeeded
+        env:
+          RESULT: ${{ needs.test.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "::error::the ci matrix finished with: $RESULT"
+            exit 1
+          fi

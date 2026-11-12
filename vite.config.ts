@@ -177,6 +177,18 @@ export default defineConfig({
   },
   run: {
     tasks: {
+      // The whole pipeline, in order, stopping at the first failure. It is the
+      // one command CI runs (.github/workflows/ci.yml, once per Node.js
+      // version in its matrix), so a local `vp run ci` and CI are the same
+      // thing: format + lint, the type gates (packages, emitted declarations,
+      // doc examples), the unit suites and the workerd runtime test, the
+      // builds, then the dependency audit (the one step that needs the
+      // network).
+      ci: {
+        command:
+          "vp check && vp run --concurrency-limit 2 check && vp run -r test:unit && vp run -r build && pnpm audit --audit-level high",
+        cache: false,
+      },
       // The CI typecheck gate, as one task: every package's `check`, the
       // dist-consumer check that type-checks a consumer fixture against the
       // EMITTED declarations, and every package's `docgen` (which type-checks

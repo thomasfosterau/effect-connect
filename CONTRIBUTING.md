@@ -4,7 +4,7 @@ Maintained by Thomas Foster, with a workflow meant to be approachable for both h
 
 ## Setup
 
-Use Node 22.19+, 24.11+ or 26+ (an even-numbered release line; the root `engines.node` is `^22.19.0 || ^24.11.0 || >=26`, the strictest `engines.node` across the dev tree in `pnpm-lock.yaml`, set by `@babel/*` 8 and `undici` 8 via `@effect/docgen`, and `vite-plus`). pnpm does not enforce it, so an older Node fails at runtime rather than at install. CI runs the latest Node. The published packages carry their own, lower `engines`.
+Use Node 22.19+, 24.11+ or 26+ (an even-numbered release line; the root `engines.node` is `^22.19.0 || ^24.11.0 || >=26`, the strictest `engines.node` across the dev tree in `pnpm-lock.yaml`, set by `@babel/*` 8 and `undici` 8 via `@effect/docgen`, and `vite-plus`). pnpm does not enforce it, so an older Node fails at runtime rather than at install. CI runs the current LTS and the latest Node. The published packages carry their own, lower `engines`.
 
 `pnpm install` (pnpm 11, pinned by `packageManager`) installs dependencies, the Vite+ git hooks and the Effect-patched `tsc` / `oxlint` (the root `prepare` script). Branching, changesets and the PR rules are in [AGENTS.md](AGENTS.md#branches-and-pull-requests): squash-merge with a conventional prefix (`feat:`, `fix:`, `docs:`, `chore:`).
 
@@ -16,7 +16,7 @@ Hooks are managed by Vite+; the editable [.vite-hooks/pre-commit](.vite-hooks/pr
 
 ## CI expectations
 
-[ci.yml](.github/workflows/ci.yml) runs one job: steps 1–5 of the gates in [AGENTS.md → Verification](AGENTS.md#verification) (the last is `pnpm audit --audit-level high`). Step 6, the fallow audit, is local-only (the pre-PR checklist; a Claude Code session's PreToolUse hook also runs it). [release.yml](.github/workflows/release.yml) runs changesets/action on `trunk`: it opens the "Version Packages" PR while unreleased changesets exist and publishes the packages once it merges, via npm trusted publishing (OIDC) — see [PUBLISHING.md](PUBLISHING.md).
+[ci.yml](.github/workflows/ci.yml) runs one command, `vp run ci`: steps 1–5 of the gates in [AGENTS.md → Verification](AGENTS.md#verification) (the last is `pnpm audit --audit-level high`), in order, stopping at the first failure. It runs in a matrix over two Node.js versions, `lts` and `latest` (jobs `ci (node lts)` and `ci (node latest)`), and a final job named `ci` passes only when both do: that is the one check a ruleset requires. Both versions must satisfy the root `engines.node`. Step 6, the fallow audit, is local-only (the pre-PR checklist; a Claude Code session's PreToolUse hook also runs it). [release.yml](.github/workflows/release.yml) runs changesets/action on `trunk`: it opens the "Version Packages" PR while unreleased changesets exist and publishes the packages once it merges, via npm trusted publishing (OIDC) — see [PUBLISHING.md](PUBLISHING.md).
 
 ## Pre-PR checklist
 
@@ -30,6 +30,7 @@ Hooks are managed by Vite+; the editable [.vite-hooks/pre-commit](.vite-hooks/pr
 Invoke tools through `vp` (`vp exec <bin>` for a package binary, `vp run <task>` rather than bare `pnpm run`). CI installs with `pnpm install --frozen-lockfile`.
 
 - `pnpm install` — dependencies, the Vite+ git hooks and the tsgo patch.
+- `vp run ci` — the whole pipeline CI runs, in order: `vp check`, `vp run check`, `vp run -r test:unit`, `vp run -r build`, `pnpm audit --audit-level high`. Run it before pushing.
 - `vp check` — format + lint (Oxfmt + Oxlint, type-aware through oxlint-tsgolint, with `@enfect/oxlint`'s `recommended` Effect rules and `@effect/tsgo`'s preset; every rule is at `error`, with no warn tier; a rule is relaxed only in `vite.config.ts`, with its reason). `vp check --fix` autofixes.
 - `vp run check` — the type gate: every package's `check`, the dist-consumer declaration check (which builds `dist/`) and every package's docgen. `vp run --filter ./packages/core check` runs one package's type check.
 - `vp run -r test:unit` — unit tests (every network seam stubbed), and `tests/workerd`: a send run inside the real Workers runtime (`workerd`) against a stub origin, with no network. `vp test run tests/some.test.ts` (from inside the package) runs a single file.
