@@ -51,7 +51,8 @@
     "@thomasfosterau/effect-connect-resend": "workspace:^",
     "@types/node": "catalog:",
     "alchemy": "catalog:",
-    "effect": "catalog:"
+    "effect": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@alchemy.run/cloudflare": "catalog:alchemy-peers",
