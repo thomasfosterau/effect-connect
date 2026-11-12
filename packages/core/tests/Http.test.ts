@@ -4,7 +4,7 @@
  * this suite pins the helpers on their own.
  */
 
-import { describe, expect, it } from "@effect/vitest";
+import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
@@ -49,30 +49,31 @@ describe("refuseRedirects", () => {
   );
   const execute = Effect.flatMap(HttpClient.HttpClient, (client) => client.execute(request));
 
-  it.effect("pins redirect: error over the consumer's own RequestInit", () =>
-    Effect.gen(function* () {
-      yield* refuseRedirects(execute).pipe(
-        Effect.provide(http),
-        Effect.provideService(FetchHttpClient.RequestInit, {
-          credentials: "omit",
-          redirect: "follow",
-        }),
-      );
-      expect(inits.at(-1)?.redirect).toBe("error");
-      expect(inits.at(-1)?.credentials).toBe("omit");
-    }),
-  );
+  layer(http)((it) => {
+    it.effect("pins redirect: error over the consumer's own RequestInit", () =>
+      Effect.gen(function* () {
+        yield* refuseRedirects(execute).pipe(
+          Effect.provideService(FetchHttpClient.RequestInit, {
+            credentials: "omit",
+            redirect: "follow",
+          }),
+        );
+        expect(inits.at(-1)?.redirect).toBe("error");
+        expect(inits.at(-1)?.credentials).toBe("omit");
+      }),
+    );
 
-  it.effect("pins it when the consumer provides no RequestInit", () =>
-    Effect.gen(function* () {
-      yield* refuseRedirects(execute).pipe(Effect.provide(http));
-      expect(inits.at(-1)?.redirect).toBe("error");
-    }),
-  );
+    it.effect("pins it when the consumer provides no RequestInit", () =>
+      Effect.gen(function* () {
+        yield* refuseRedirects(execute);
+        expect(inits.at(-1)?.redirect).toBe("error");
+      }),
+    );
+  });
 });
 
 describe("isSuccessStatus", () => {
-  it("is true for 2xx only", () => {
+  test("is true for 2xx only", () => {
     expect([199, 200, 204, 299, 300, 404].map(isSuccessStatus)).toEqual([
       false,
       true,
@@ -85,14 +86,14 @@ describe("isSuccessStatus", () => {
 });
 
 describe("httpErrorStatus / describeHttpError", () => {
-  it("reads the status of a StatusCodeError", () => {
+  test("reads the status of a StatusCodeError", () => {
     const error = new HttpClientError.HttpClientError({
       reason: new HttpClientError.StatusCodeError({ request, response: responseOf(null, 503) }),
     });
     expect(httpErrorStatus(error)).toStrictEqual(Option.some(503));
   });
 
-  it("is none for a transport failure, described by the transport's own message", () => {
+  test("is none for a transport failure, described by the transport's own message", () => {
     const error = new HttpClientError.HttpClientError({
       reason: new HttpClientError.TransportError({
         request,
@@ -107,12 +108,12 @@ describe("httpErrorStatus / describeHttpError", () => {
 describe("redactSecrets / describeHttpErrorWithoutUrl", () => {
   const secretRequest = HttpClientRequest.post("https://hooks.example.test/services/T1/B2/s3cr3t");
 
-  it("replaces every occurrence of each non-empty secret", () => {
+  test("replaces every occurrence of each non-empty secret", () => {
     expect(redactSecrets("a s3cr3t b s3cr3t", ["s3cr3t", ""])).toBe("a [redacted] b [redacted]");
     expect(redactSecrets("untouched", [])).toBe("untouched");
   });
 
-  it("never carries the request URL, which Effect's own message does", () => {
+  test("never carries the request URL, which Effect's own message does", () => {
     const error = new HttpClientError.HttpClientError({
       reason: new HttpClientError.StatusCodeError({
         request: secretRequest,
@@ -124,7 +125,7 @@ describe("redactSecrets / describeHttpErrorWithoutUrl", () => {
     expect(describeHttpErrorWithoutUrl(error, ["s3cr3t"])).toBe("StatusCodeError");
   });
 
-  it("keeps a transport's own message, redacting the secrets in it", () => {
+  test("keeps a transport's own message, redacting the secrets in it", () => {
     const error = new HttpClientError.HttpClientError({
       reason: new HttpClientError.TransportError({
         request: secretRequest,
@@ -136,7 +137,7 @@ describe("redactSecrets / describeHttpErrorWithoutUrl", () => {
     );
   });
 
-  it("names the failure's kind for a transport failure without an Error cause", () => {
+  test("names the failure's kind for a transport failure without an Error cause", () => {
     const error = new HttpClientError.HttpClientError({
       reason: new HttpClientError.TransportError({ request: secretRequest, cause: "opaque" }),
     });
@@ -146,59 +147,59 @@ describe("redactSecrets / describeHttpErrorWithoutUrl", () => {
 
 describe("executeWithSecretUrl", () => {
   const url = "https://hooks.example.test/services/T1/B2/s3cr3t";
-  const run = (respond: () => Promise<Response>) => {
-    const inits: Array<RequestInit> = [];
+  const inits: Array<RequestInit> = [];
+  /** `FetchHttpClient` over a `fetch` that records its `RequestInit` and answers `respond()`. */
+  const answering = (respond: () => Promise<Response>) => {
     const fetch: typeof globalThis.fetch = async (_input, init) => {
       inits.push(init ?? {});
       return respond();
     };
-    const effect = Effect.flatMap(HttpClient.HttpClient, (http) =>
-      executeWithSecretUrl(http, HttpClientRequest.post(url), {
-        label: "Vendor",
-        secrets: [url, "/services/T1/B2/s3cr3t"],
-        onFailure: (message, status) => ({ message, status }),
-      }),
-    ).pipe(
-      Effect.provide(
-        FetchHttpClient.layer.pipe(Layer.provide(Layer.succeed(FetchHttpClient.Fetch, fetch))),
-      ),
-    );
-    return { inits, effect };
+    return FetchHttpClient.layer.pipe(Layer.provide(Layer.succeed(FetchHttpClient.Fetch, fetch)));
   };
+  const execute = Effect.flatMap(HttpClient.HttpClient, (http) =>
+    executeWithSecretUrl(http, HttpClientRequest.post(url), {
+      label: "Vendor",
+      secrets: [url, "/services/T1/B2/s3cr3t"],
+      onFailure: (message, status) => ({ message, status }),
+    }),
+  );
 
-  it.effect("answers a 2xx response, with redirects refused", () => {
-    const { inits, effect } = run(async () => new Response("ok"));
-    return Effect.gen(function* () {
-      const response = yield* effect;
-      expect(response.status).toBe(200);
-      expect(inits[0].redirect).toBe("error");
-    });
-  });
-
-  it.effect("fails a non-2xx with the status and the redacted, truncated body", () => {
-    const { effect } = run(async () => new Response(`bad ${url}`, { status: 403 }));
-    return Effect.gen(function* () {
-      expect(yield* Effect.flip(effect)).toStrictEqual({
-        message: "Vendor rejected the request: 403 bad [redacted]",
-        status: Option.some(403),
-      });
-    });
-  });
-
-  it.effect("fails a transport failure with no status and no URL", () => {
-    const { effect } = run(() =>
-      Promise.reject(new StubFailure({ message: `could not reach ${url}` })),
+  layer(answering(async () => new Response("ok")))((it) => {
+    it.effect("answers a 2xx response, with redirects refused", () =>
+      Effect.gen(function* () {
+        const response = yield* execute;
+        expect(response.status).toBe(200);
+        expect(inits.at(-1)?.redirect).toBe("error");
+      }),
     );
-    return Effect.gen(function* () {
-      expect(yield* Effect.flip(effect)).toStrictEqual({
-        message: "Vendor was unreachable: could not reach [redacted]",
-        status: Option.none(),
-      });
-    });
   });
+
+  layer(answering(async () => new Response(`bad ${url}`, { status: 403 })))((it) => {
+    it.effect("fails a non-2xx with the status and the redacted, truncated body", () =>
+      Effect.gen(function* () {
+        expect(yield* Effect.flip(execute)).toStrictEqual({
+          message: "Vendor rejected the request: 403 bad [redacted]",
+          status: Option.some(403),
+        });
+      }),
+    );
+  });
+
+  layer(answering(() => Promise.reject(new StubFailure({ message: `could not reach ${url}` }))))(
+    (it) => {
+      it.effect("fails a transport failure with no status and no URL", () =>
+        Effect.gen(function* () {
+          expect(yield* Effect.flip(execute)).toStrictEqual({
+            message: "Vendor was unreachable: could not reach [redacted]",
+            status: Option.none(),
+          });
+        }),
+      );
+    },
+  );
 });
 
-describe("rejectionMessage", () => {
+describeWrapped("rejectionMessage", (it) => {
   it.effect("names the status and a truncated body", () =>
     Effect.gen(function* () {
       const message = yield* rejectionMessage(

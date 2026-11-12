@@ -71,16 +71,6 @@ export default defineConfig({
       ],
     },
     overrides: [
-      // A test body IS the entry point that provides the layers under test,
-      // which is exactly the place this rule says `Effect.provide` belongs.
-      // (The `effect/*` rules all hold in tests: each suite runs its effects
-      // through `@effect/vitest`'s `it.effect`, #104.)
-      {
-        files: ["**/tests/**/*.ts"],
-        rules: {
-          "effecttsgo/strict-effect-provide": "off",
-        },
-      },
       // The exact type-equality idiom (`(<T>() => T extends A ? 1 : 2) extends
       // …`) needs the phantom `T` this rule reports; there is no equivalent
       // without it. Only the compile-time assertion suites use it.
