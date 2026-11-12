@@ -1,5 +1,15 @@
 # @thomasfosterau/effect-connect
 
+## 0.2.0
+
+### Minor Changes
+
+- [#142](https://github.com/thomasfosterau/effect-connect/pull/142) [`5fffc73`](https://github.com/thomasfosterau/effect-connect/commit/5fffc730f652e3e92479dbf39b20d40dec0df419) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - Every error class (`EmailSendError`, `EmailValidationError`, and the SMS, WhatsApp and chat equivalents) is now nominally branded (`Schema.TaggedError<Self, { readonly brand: unique symbol }>`). A plain object with the same fields is no longer assignable to the error type: construct the error with `new`. Runtime behaviour and the encoded form are unchanged.
+
+### Patch Changes
+
+- [#139](https://github.com/thomasfosterau/effect-connect/pull/139) [`a36997e`](https://github.com/thomasfosterau/effect-connect/commit/a36997ee7d23b7c8c12758a68012c6b12089f496) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - The published tarballs now include `CHANGELOG.md`, so the release notes can be read from `node_modules`.
+
 ## 0.1.0
 
 ### Minor Changes

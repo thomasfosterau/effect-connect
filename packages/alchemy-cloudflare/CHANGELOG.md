@@ -1,5 +1,11 @@
 # @thomasfosterau/effect-connect-alchemy-cloudflare
 
+## 0.2.0
+
+### Patch Changes
+
+- [#139](https://github.com/thomasfosterau/effect-connect/pull/139) [`a36997e`](https://github.com/thomasfosterau/effect-connect/commit/a36997ee7d23b7c8c12758a68012c6b12089f496) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - The published tarballs now include `CHANGELOG.md`, so the release notes can be read from `node_modules`.
+
 ## 0.1.0
 
 ### Minor Changes
