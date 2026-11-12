@@ -209,18 +209,18 @@ export const executeWithSecretUrl = <E>(
         httpErrorStatus(error),
       ),
     ),
-    Effect.flatMap((response) =>
-      isSuccessStatus(response.status)
-        ? Effect.succeed(response)
-        : Effect.flatMap(
-            rejectionMessage(response, `${options.label} rejected the request`),
-            (message) =>
-              Effect.fail(
-                options.onFailure(
-                  redactSecrets(message, options.secrets),
-                  Option.some(response.status),
-                ),
+    Effect.filterOrElse(
+      (response) => isSuccessStatus(response.status),
+      (response) =>
+        Effect.flatMap(
+          rejectionMessage(response, `${options.label} rejected the request`),
+          (message) =>
+            Effect.fail(
+              options.onFailure(
+                redactSecrets(message, options.secrets),
+                Option.some(response.status),
               ),
-          ),
+            ),
+        ),
     ),
   );
