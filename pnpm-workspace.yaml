@@ -42,7 +42,7 @@ catalog:
   # Its `@effect/platform-node` dependency has a non-optional `redis` peer, so
   # pnpm auto-installs `redis` and `@redis/*`: unused, dev-only, and accepted
   # by the owner on #52.
-  "@effect/docgen": 4.1.2
+  "@effect/docgen": 4.1.4
   "@effect/language-service": ^0.87.5
   # Effect Language Service as a native (TypeScript-Go) binary — the TS7 side
   # of the 6/7 split. `effect-tsgo patch` overwrites the native `tsc` binary
@@ -77,7 +77,7 @@ catalog:
   # `effect` version, like `@effect/docgen`, and moved by the `effect`
   # Dependabot group (`@effect/*`). Its `vitest` peer (>=5 <6) must admit the
   # vitest vite-plus carries.
-  "@effect/vitest": 4.1.2
+  "@effect/vitest": 4.1.4
   # `@alchemy.run/cloudflare` and `alchemy`: the dev copies of
   # effect-connect-alchemy-cloudflare's required peers (`catalogs.alchemy-peers`
   # below), whose published types are written against
@@ -91,7 +91,7 @@ catalog:
   # must admit the `effect` pin below. Move `catalogs.alchemy-peers` with them.
   "@alchemy.run/cloudflare": 2.0.0-beta.85
   alchemy: 2.0.0-beta.85
-  effect: 4.1.2
+  effect: 4.1.4
   fallow: 3.41.0
   # Exists only for `@effect/docgen`, which requires it as a peer and spawns
   # the `tsx` binary itself to run the compiled examples. Scripts run
