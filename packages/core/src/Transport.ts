@@ -25,9 +25,11 @@ import * as Str from "effect/String";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import type * as HttpClient from "effect/http/HttpClient";
 
-/* oxlint-disable effect/prefer-option-over-null -- a Cloudflare-materialised Worker `env`: an unbound secret arrives as a missing key (or a stage binds `null`), and a stage can bind it as a plain string or a `Redacted`. These types name that shape once; `boundString` / `boundSecret` are the adapters onto `Option`. */
 /**
- * A plain Worker `env` binding as it arrives: a string, or absent.
+ * A plain Worker `env` binding as it arrives: a string, or absent. A
+ * Cloudflare-materialised `env` leaves an unbound value as a missing key (or
+ * a stage binds `null`), so this is the native nullable shape;
+ * {@link boundString} is the adapter onto `Option`.
  *
  * @since 0.1.0
  */
@@ -35,12 +37,11 @@ export type EnvBinding = string | null | undefined;
 
 /**
  * A secret Worker `env` binding as it arrives: a plain string, an already
- * `Redacted` one, or absent.
+ * `Redacted` one, or absent. {@link boundSecret} is the adapter onto `Option`.
  *
  * @since 0.1.0
  */
 export type EnvSecretBinding = string | Redacted.Redacted | null | undefined;
-/* oxlint-enable effect/prefer-option-over-null */
 
 /**
  * A plain binding as `some` when present and non-blank, else `none`.
