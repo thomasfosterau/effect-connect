@@ -4,7 +4,7 @@ effect-connect publishes an Effect-native messaging abstraction (email, SMS, Wha
 
 The three published packages are described in [README.md](README.md): `@thomasfosterau/effect-connect` (`packages/core`), `@thomasfosterau/effect-connect-resend` (`packages/resend`) and `@thomasfosterau/effect-connect-alchemy-cloudflare` (`packages/alchemy-cloudflare`). The core carries no provider vocabulary. Alchemy packages split per Alchemy provider: another provider is a package of its own.
 
-The SendGrid provider (the port of the archived `thomasfosterau/effect-sendgrid`) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
+The SendGrid provider (the port of `thomasfosterau/effect-sendgrid`, a repository that no longer exists) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
 
 Each package's `AGENTS.md` carries its boundary, invariants and terms; read it before touching that package.
 
@@ -42,7 +42,7 @@ Before you report work as done, run the gates below in order and quote each comm
 5. `pnpm audit --audit-level high` (network)
 6. `vp run test:coverage && vp exec fallow audit --format json --quiet --explain --gate-marker agent --base origin/trunk` (a Claude Code session's PreToolUse hook also runs the audit on `git commit` / `git push`, but never refreshes the coverage map)
 
-Steps 1–5 are what CI runs, in that order ([ci.yml](.github/workflows/ci.yml): no secrets, read-only token, actions pinned to commit SHAs, `persist-credentials: false`; the Release job alone holds `id-token: write` and never runs for Dependabot; `uvx zizmor --offline .github` audits the workflows, configured in `.github/zizmor.yml`); step 6 is local-only. A warm tree hides a missing peer: for CI parity, `rm -rf node_modules packages/*/node_modules tests/*/node_modules && pnpm install --frozen-lockfile` first. A required peer of a dependency must be a declared dependency, or a fresh runner fails where a warm local tree passes.
+Steps 1–5 are what CI runs, in that order ([ci.yml](.github/workflows/ci.yml): no secrets, read-only token, actions pinned to commit SHAs (`voidzero-dev/setup-vp`, which sets up Vite+, Node.js and pnpm, to an exact release tag), `persist-credentials: false`; the Release job alone holds `id-token: write` and never runs for Dependabot; `uvx zizmor --offline .github` audits the workflows, configured in `.github/zizmor.yml`); step 6 is local-only. A warm tree hides a missing peer: for CI parity, `rm -rf node_modules packages/*/node_modules tests/*/node_modules && pnpm install --frozen-lockfile` first. A required peer of a dependency must be a declared dependency, or a fresh runner fails where a warm local tree passes.
 
 ## Branches and pull requests
 
@@ -71,7 +71,7 @@ Read the installed package before writing Effect code: `node_modules/effect/dist
 
 ## Documentation surfaces
 
-`README.md` at the root is the landing page and the package overview; each package `README.md` is the API reference consumers read on npm; this file and each package `AGENTS.md` carry agent guidance (the package ones: boundary, invariants and terms); `CONTRIBUTING.md` carries human setup, commands and procedures; `PUBLISHING.md` and `SECURITY.md` carry the release pipeline and its one-time setup. `.claude/CLAUDE.md` holds only what is specific to Claude Code (hooks, settings, worktree location, session limits) and imports this file, `CONTRIBUTING.md` and `README.md`; each package `CLAUDE.md` imports its `AGENTS.md`. Write guidance once, in the file that owns it. No committed `docs/` tree (`packages/*/docs/` is docgen's gitignored output); decisions go in issue comments.
+`README.md` at the root is the landing page and the package overview; each package `README.md` is a short landing page (what it is, install, one example, an entry-point table, absolute links) that consumers read on npm; `docs/*.md` at the root carries the detail (usage, API tables, testing, errors), with relative links between pages; this file and each package `AGENTS.md` carry agent guidance (the package ones: boundary, invariants and terms); `CONTRIBUTING.md` carries human setup, commands and procedures; `PUBLISHING.md` and `SECURITY.md` carry the release pipeline and its one-time setup. `.claude/CLAUDE.md` holds only what is specific to Claude Code (hooks, settings, worktree location, session limits) and imports this file, `CONTRIBUTING.md` and `README.md`; each package `CLAUDE.md` imports its `AGENTS.md`. Write guidance once, in the file that owns it. `packages/*/docs/` is still docgen's gitignored output, not the root `docs/`; decisions go in issue comments. Links in a package README are absolute (`https://github.com/thomasfosterau/effect-connect/blob/trunk/…`), because npm renders it outside the repository; the root `docs/` is not shipped in any package.
 
 ---
 
