@@ -42,7 +42,7 @@ catalog:
   # Its `@effect/platform-node` dependency has a non-optional `redis` peer, so
   # pnpm auto-installs `redis` and `@redis/*`: unused, dev-only, and accepted
   # by the owner on #52.
-  "@effect/docgen": 4.1.2
+  "@effect/docgen": 4.1.4
   "@effect/language-service": ^0.87.5
   # Effect Language Service as a native (TypeScript-Go) binary — the TS7 side
   # of the 6/7 split. `effect-tsgo patch` overwrites the native `tsc` binary
@@ -56,9 +56,9 @@ catalog:
   # (UnsupportedTargetPackageVersionError) on anything else, failing
   # `pnpm install` itself rather than a later task. Read the `components`
   # table in node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping
-  # any of the three. 0.63.0 ships against typescript 7.0.2, oxlint 1.89.0
-  # and tsgolint 7.0.2004, exactly what vite-plus 1.4.0 carries.
-  "@effect/tsgo": 0.67.5
+  # any of the three. 0.67.5 ships against typescript 7.0.2, oxlint 1.91.0
+  # and tsgolint 7.0.2005, exactly what vite-plus 1.5.1 carries.
+  "@effect/tsgo": 0.67.7
   # The Effect lint rules (`effect/*`) `vp check` runs, as an oxlint JS plugin
   # (`configs.recommended` in vite.config.ts). Runs inside vite-plus's oxlint
   # but takes `@oxlint/plugins` as a caret range, so Dependabot proposes it on
@@ -77,7 +77,7 @@ catalog:
   # `effect` version, like `@effect/docgen`, and moved by the `effect`
   # Dependabot group (`@effect/*`). Its `vitest` peer (>=5 <6) must admit the
   # vitest vite-plus carries.
-  "@effect/vitest": 4.1.2
+  "@effect/vitest": 4.1.4
   # `@alchemy.run/cloudflare` and `alchemy`: the dev copies of
   # effect-connect-alchemy-cloudflare's required peers (`catalogs.alchemy-peers`
   # below), whose published types are written against
@@ -91,7 +91,7 @@ catalog:
   # must admit the `effect` pin below. Move `catalogs.alchemy-peers` with them.
   "@alchemy.run/cloudflare": 2.0.0-beta.85
   alchemy: 2.0.0-beta.85
-  effect: 4.1.2
+  effect: 4.1.4
   fallow: 3.42.0
   # Exists only for `@effect/docgen`, which requires it as a peer and spawns
   # the `tsx` binary itself to run the compiled examples. Scripts run
@@ -116,8 +116,8 @@ catalog:
   # before bumping. 1.x moved to vitest 5 and moved a task's `env` / `input`
   # / `output` under `cache` (vite.package.ts). 1.0.1 or later is required:
   # 1.0.0 and older bundle a launch-editor with GHSA-587h-7wmj-h5pm (high).
-  vite-plus: 1.5.1
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite-plus: 1.6.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.1
   vitest: 5.1.0
 
 # Peer ranges the PUBLISHED packages declare. Kept as a named catalog so the

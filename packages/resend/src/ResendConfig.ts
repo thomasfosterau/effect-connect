@@ -33,7 +33,6 @@ export interface ResendConfigInput {
   /** The API key. Wrap with `Redacted.make(...)` or read it via `Config.redacted(...)`. */
   readonly apiKey: Redacted.Redacted;
   /** The API host, without a trailing slash. Defaults to {@link DEFAULT_BASE_URL}. */
-  // oxlint-disable-next-line effect/prefer-option-over-null -- a consumer-facing config input: an omitted key IS the default, and asking every caller to spell `Option.none()` for it buys nothing
   readonly baseUrl?: string;
 }
 

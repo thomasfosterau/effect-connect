@@ -42,7 +42,10 @@ export const truncateUpstreamBody = (body: string): string => body.slice(0, UPST
  *
  * @since 0.1.0
  */
-export class EmailSendError extends Schema.TaggedError<EmailSendError>()("EmailSendError", {
+export class EmailSendError extends Schema.TaggedError<
+  EmailSendError,
+  { readonly brand: unique symbol }
+>()("EmailSendError", {
   provider: Schema.String,
   message: Schema.String,
   status: Schema.OptionFromOptionalKey(Schema.Int),
@@ -55,13 +58,13 @@ export class EmailSendError extends Schema.TaggedError<EmailSendError>()("EmailS
  *
  * @since 0.1.0
  */
-export class EmailValidationError extends Schema.TaggedError<EmailValidationError>()(
-  "EmailValidationError",
-  {
-    message: Schema.String,
-    issues: Schema.Array(Schema.String),
-  },
-) {}
+export class EmailValidationError extends Schema.TaggedError<
+  EmailValidationError,
+  { readonly brand: unique symbol }
+>()("EmailValidationError", {
+  message: Schema.String,
+  issues: Schema.Array(Schema.String),
+}) {}
 
 /**
  * An SMS provider failed to send. The same shape as {@link EmailSendError}:
@@ -73,7 +76,10 @@ export class EmailValidationError extends Schema.TaggedError<EmailValidationErro
  *
  * @since 0.1.0
  */
-export class SmsSendError extends Schema.TaggedError<SmsSendError>()("SmsSendError", {
+export class SmsSendError extends Schema.TaggedError<
+  SmsSendError,
+  { readonly brand: unique symbol }
+>()("SmsSendError", {
   provider: Schema.String,
   message: Schema.String,
   status: Schema.OptionFromOptionalKey(Schema.Int),
@@ -86,13 +92,13 @@ export class SmsSendError extends Schema.TaggedError<SmsSendError>()("SmsSendErr
  *
  * @since 0.1.0
  */
-export class SmsValidationError extends Schema.TaggedError<SmsValidationError>()(
-  "SmsValidationError",
-  {
-    message: Schema.String,
-    issues: Schema.Array(Schema.String),
-  },
-) {}
+export class SmsValidationError extends Schema.TaggedError<
+  SmsValidationError,
+  { readonly brand: unique symbol }
+>()("SmsValidationError", {
+  message: Schema.String,
+  issues: Schema.Array(Schema.String),
+}) {}
 
 /**
  * A WhatsApp provider failed to send. The same shape as {@link SmsSendError}:
@@ -104,15 +110,15 @@ export class SmsValidationError extends Schema.TaggedError<SmsValidationError>()
  *
  * @since 0.1.0
  */
-export class WhatsAppSendError extends Schema.TaggedError<WhatsAppSendError>()(
-  "WhatsAppSendError",
-  {
-    provider: Schema.String,
-    message: Schema.String,
-    status: Schema.OptionFromOptionalKey(Schema.Int),
-    cause: Schema.optionalKey(Schema.Defect()),
-  },
-) {}
+export class WhatsAppSendError extends Schema.TaggedError<
+  WhatsAppSendError,
+  { readonly brand: unique symbol }
+>()("WhatsAppSendError", {
+  provider: Schema.String,
+  message: Schema.String,
+  status: Schema.OptionFromOptionalKey(Schema.Int),
+  cause: Schema.optionalKey(Schema.Defect()),
+}) {}
 
 /**
  * An untrusted value did not decode as a `WhatsAppMessage`
@@ -120,13 +126,13 @@ export class WhatsAppSendError extends Schema.TaggedError<WhatsAppSendError>()(
  *
  * @since 0.1.0
  */
-export class WhatsAppValidationError extends Schema.TaggedError<WhatsAppValidationError>()(
-  "WhatsAppValidationError",
-  {
-    message: Schema.String,
-    issues: Schema.Array(Schema.String),
-  },
-) {}
+export class WhatsAppValidationError extends Schema.TaggedError<
+  WhatsAppValidationError,
+  { readonly brand: unique symbol }
+>()("WhatsAppValidationError", {
+  message: Schema.String,
+  issues: Schema.Array(Schema.String),
+}) {}
 
 /**
  * A chat provider failed to post. The same shape as {@link EmailSendError}:
@@ -139,7 +145,10 @@ export class WhatsAppValidationError extends Schema.TaggedError<WhatsAppValidati
  *
  * @since 0.1.0
  */
-export class ChatSendError extends Schema.TaggedError<ChatSendError>()("ChatSendError", {
+export class ChatSendError extends Schema.TaggedError<
+  ChatSendError,
+  { readonly brand: unique symbol }
+>()("ChatSendError", {
   provider: Schema.String,
   message: Schema.String,
   status: Schema.OptionFromOptionalKey(Schema.Int),
@@ -152,10 +161,10 @@ export class ChatSendError extends Schema.TaggedError<ChatSendError>()("ChatSend
  *
  * @since 0.1.0
  */
-export class ChatValidationError extends Schema.TaggedError<ChatValidationError>()(
-  "ChatValidationError",
-  {
-    message: Schema.String,
-    issues: Schema.Array(Schema.String),
-  },
-) {}
+export class ChatValidationError extends Schema.TaggedError<
+  ChatValidationError,
+  { readonly brand: unique symbol }
+>()("ChatValidationError", {
+  message: Schema.String,
+  issues: Schema.Array(Schema.String),
+}) {}

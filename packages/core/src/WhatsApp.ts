@@ -145,7 +145,6 @@ export type WhatsAppSendResult = typeof WhatsAppSendResult.Type;
  * @since 0.1.0
  */
 export const decodeWhatsAppMessage = (
-  // oxlint-disable-next-line effect/no-unknown-parameters -- this IS the I/O boundary: the whole point of the function is to run the schema over unparsed input
   input: unknown,
 ): Effect.Effect<WhatsAppMessage, WhatsAppValidationError> =>
   Schema.decodeUnknownEffect(WhatsAppMessage, { errors: "all" })(input).pipe(
