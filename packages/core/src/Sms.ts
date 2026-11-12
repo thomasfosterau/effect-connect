@@ -5,7 +5,7 @@
  * Provider-agnostic on purpose, as the email model is: a provider maps this
  * shape onto its wire format (Twilio's form-encoded `Messages` resource) and
  * provider-only concepts (a Twilio Messaging Service SID) stay in that
- * provider's configuration — see the package `CLAUDE.md`.
+ * provider's configuration — see the package `AGENTS.md`.
  *
  * @module Sms
  * @since 0.1.0

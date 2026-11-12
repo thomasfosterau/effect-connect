@@ -6,7 +6,7 @@
  * and an optional display name, the subset Slack's and Discord's incoming
  * webhooks both accept. Vendor-only shapes (Slack Block Kit, Discord embeds,
  * either vendor's mention syntax) stay out of the core — see the package
- * `CLAUDE.md`. The destination channel is not part of the message: an
+ * `AGENTS.md`. The destination channel is not part of the message: an
  * incoming webhook is bound to one channel, so it lives in the provider's
  * configuration (the webhook URL).
  *

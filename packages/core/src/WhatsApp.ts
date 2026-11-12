@@ -9,7 +9,7 @@
  * consumer says which it means and a provider maps each onto its wire format
  * (Twilio's `Body`, or `ContentSid` + `ContentVariables`). Provider-only
  * concepts (a Twilio Content SID's `HX…` shape, a Messaging Service) stay in
- * that provider — see the package `CLAUDE.md`.
+ * that provider — see the package `AGENTS.md`.
  *
  * Numbers reuse the SMS model's `PhoneNumber` (E.164): a WhatsApp address is
  * a phone number, and a provider adds its own channel prefix (`whatsapp:`).

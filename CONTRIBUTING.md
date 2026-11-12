@@ -16,25 +16,24 @@ Hooks are managed by Vite+; the editable [.vite-hooks/pre-commit](.vite-hooks/pr
 
 ## CI expectations
 
-[ci.yml](.github/workflows/ci.yml) runs one job: steps 1–5 of the gates in [AGENTS.md → Verification](AGENTS.md#verification) (the last is `pnpm audit --audit-level high`). Step 6, the fallow audit, is local-only (the PreToolUse hook and the pre-PR checklist). [release.yml](.github/workflows/release.yml) runs changesets/action on `trunk`: it opens the "Version Packages" PR while unreleased changesets exist and publishes the packages once it merges, via npm trusted publishing (OIDC) — see [PUBLISHING.md](PUBLISHING.md).
+[ci.yml](.github/workflows/ci.yml) runs one job: steps 1–5 of the gates in [AGENTS.md → Verification](AGENTS.md#verification) (the last is `pnpm audit --audit-level high`). Step 6, the fallow audit, is local-only (the pre-PR checklist; a Claude Code session's PreToolUse hook also runs it). [release.yml](.github/workflows/release.yml) runs changesets/action on `trunk`: it opens the "Version Packages" PR while unreleased changesets exist and publishes the packages once it merges, via npm trusted publishing (OIDC) — see [PUBLISHING.md](PUBLISHING.md).
 
 ## Pre-PR checklist
 
 1. Run the gates in [AGENTS.md → Verification](AGENTS.md#verification) and note each result in the PR.
 2. A changeset (`pnpm changeset`) for every change to a published package's behaviour.
 3. `git fetch origin trunk && git rebase origin/trunk`.
-4. Docs: the package `README.md` for any exported change; the package `CLAUDE.md` for a new term or invariant.
+4. Docs: the package `README.md` for any exported change; the package `AGENTS.md` for a new term or invariant.
 
-## Running individual checks
+## Commands
 
-```sh
-vp check --fix                           # format + lint, autofix
-vp run check                             # the whole type gate (includes building dist/ and docgen)
-vp run --filter ./packages/core check    # one package's type check
-vp run -r test:unit                      # unit tests
-vp test run tests/some.test.ts           # single file (from inside the package)
-vp run -r build                          # emit dist/
-vp run -r docgen                         # type-check + run every JSDoc @example; require @since on every export
-vp run test:coverage                     # all suites, writes coverage/coverage-final.json for fallow
-vp run fallow:audit                      # change-set review (run test:coverage first)
-```
+Invoke tools through `vp` (`vp exec <bin>` for a package binary, `vp run <task>` rather than bare `pnpm run`). CI installs with `pnpm install --frozen-lockfile`.
+
+- `pnpm install` — dependencies, the Vite+ git hooks and the tsgo patch.
+- `vp check` — format + lint (Oxfmt + Oxlint, type-aware through oxlint-tsgolint, with `@enfect/oxlint`'s `recommended` Effect rules and `@effect/tsgo`'s preset; a rule is relaxed only in `vite.config.ts`, with its reason). `vp check --fix` autofixes.
+- `vp run check` — the type gate: every package's `check`, the dist-consumer declaration check (which builds `dist/`) and every package's docgen. `vp run --filter ./packages/core check` runs one package's type check.
+- `vp run -r test:unit` — unit tests (every network seam stubbed). `vp test run tests/some.test.ts` (from inside the package) runs a single file.
+- `vp run test:coverage` — every package's suite in one run, writing the Istanbul map `coverage/coverage-final.json` that `fallow audit` reads for its CRAP scores. Run it before the fallow audit (`vp run fallow:audit`).
+- `vp run -r build` — `vp pack` (tsdown) emits each package's `dist/`.
+- `vp run -r docgen` — docgen on its own: type-checks and runs every JSDoc `@example` and requires `@since` on every export; writes the gitignored API docs to `packages/*/docs/`.
+- `pnpm changeset` — add a changeset.
