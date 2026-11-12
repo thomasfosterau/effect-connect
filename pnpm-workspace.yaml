@@ -92,7 +92,7 @@ catalog:
   "@alchemy.run/cloudflare": 2.0.0-beta.85
   alchemy: 2.0.0-beta.85
   effect: 4.1.4
-  fallow: 3.41.0
+  fallow: 3.42.0
   # Exists only for `@effect/docgen`, which requires it as a peer and spawns
   # the `tsx` binary itself to run the compiled examples. Scripts run
   # TypeScript with `vpx`, never `tsx`.
