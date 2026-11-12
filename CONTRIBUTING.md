@@ -30,7 +30,7 @@ Hooks are managed by Vite+; the editable [.vite-hooks/pre-commit](.vite-hooks/pr
 Invoke tools through `vp` (`vp exec <bin>` for a package binary, `vp run <task>` rather than bare `pnpm run`). CI installs with `pnpm install --frozen-lockfile`.
 
 - `pnpm install` — dependencies, the Vite+ git hooks and the tsgo patch.
-- `vp check` — format + lint (Oxfmt + Oxlint, type-aware through oxlint-tsgolint, with `@enfect/oxlint`'s `recommended` Effect rules and `@effect/tsgo`'s preset; a rule is relaxed only in `vite.config.ts`, with its reason). `vp check --fix` autofixes.
+- `vp check` — format + lint (Oxfmt + Oxlint, type-aware through oxlint-tsgolint, with `@enfect/oxlint`'s `recommended` Effect rules and `@effect/tsgo`'s preset; every rule is at `error`, with no warn tier; a rule is relaxed only in `vite.config.ts`, with its reason). `vp check --fix` autofixes.
 - `vp run check` — the type gate: every package's `check`, the dist-consumer declaration check (which builds `dist/`) and every package's docgen. `vp run --filter ./packages/core check` runs one package's type check.
 - `vp run -r test:unit` — unit tests (every network seam stubbed). `vp test run tests/some.test.ts` (from inside the package) runs a single file.
 - `vp run test:coverage` — every package's suite in one run, writing the Istanbul map `coverage/coverage-final.json` that `fallow audit` reads for its CRAP scores. Run it before the fallow audit (`vp run fallow:audit`).
