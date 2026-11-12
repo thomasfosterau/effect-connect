@@ -99,7 +99,7 @@ describe("decodeWhatsAppMessage", () => {
 describe("WhatsAppSendResult", () => {
   it("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(WhatsAppSendResult)({ id: Option.none() })).toEqual({});
-    expect(Schema.decodeUnknownSync(WhatsAppSendResult)({ id: "SM1" }).id).toStrictEqual(
+    expect(Schema.decodeSync(WhatsAppSendResult)({ id: "SM1" }).id).toStrictEqual(
       Option.some("SM1"),
     );
   });

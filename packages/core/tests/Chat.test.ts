@@ -59,9 +59,7 @@ describe("decodeChatMessage", () => {
 describe("ChatSendResult", () => {
   it("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(ChatSendResult)({ id: Option.none() })).toEqual({});
-    expect(Schema.decodeUnknownSync(ChatSendResult)({ id: "1" }).id).toStrictEqual(
-      Option.some("1"),
-    );
+    expect(Schema.decodeSync(ChatSendResult)({ id: "1" }).id).toStrictEqual(Option.some("1"));
   });
 });
 

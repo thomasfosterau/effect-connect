@@ -93,9 +93,7 @@ describe("decodeSmsMessage", () => {
 describe("SmsSendResult", () => {
   it("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(SmsSendResult)({ id: Option.none() })).toEqual({});
-    expect(Schema.decodeUnknownSync(SmsSendResult)({ id: "SM1" }).id).toStrictEqual(
-      Option.some("SM1"),
-    );
+    expect(Schema.decodeSync(SmsSendResult)({ id: "SM1" }).id).toStrictEqual(Option.some("SM1"));
   });
 });
 
