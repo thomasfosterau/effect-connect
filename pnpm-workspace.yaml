@@ -56,8 +56,8 @@ catalog:
   # (UnsupportedTargetPackageVersionError) on anything else, failing
   # `pnpm install` itself rather than a later task. Read the `components`
   # table in node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping
-  # any of the three. 0.63.0 ships against typescript 7.0.2, oxlint 1.89.0
-  # and tsgolint 7.0.2004, exactly what vite-plus 1.4.0 carries.
+  # any of the three. 0.67.5 ships against typescript 7.0.2, oxlint 1.91.0
+  # and tsgolint 7.0.2005, exactly what vite-plus 1.5.1 carries.
   "@effect/tsgo": 0.67.5
   # The Effect lint rules (`effect/*`) `vp check` runs, as an oxlint JS plugin
   # (`configs.recommended` in vite.config.ts). Runs inside vite-plus's oxlint
@@ -117,7 +117,7 @@ catalog:
   # / `output` under `cache` (vite.package.ts). 1.0.1 or later is required:
   # 1.0.0 and older bundle a launch-editor with GHSA-587h-7wmj-h5pm (high).
   vite-plus: 1.5.1
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.1
   vitest: 5.1.0
 
 # Peer ranges the PUBLISHED packages declare. Kept as a named catalog so the
@@ -166,6 +166,13 @@ overrides:
   # dev-only, via @changesets/cli, whose declared range still admits the
   # vulnerable versions. Remove once @changesets/cli requires 2.14.2 or later.
   "@changesets/cli>launch-editor": ^2.14.2
+  # TEMPORARY (#110): security floor for minimatch GHSA-g3hv-75wg-m249
+  # (moderate), dev-only, via @effect/docgen > ts-morph > @ts-morph/common,
+  # whose declared `^10.0.1` cannot reach the fix (11.0.1). Scoped to that one
+  # parent, so nothing else moves and nothing reaches the published packages;
+  # `vp run -r docgen` passes on it. Remove once @ts-morph/common requires
+  # minimatch 11.0.1 or later.
+  "@ts-morph/common>minimatch": ^11.0.1
   vite@*: "catalog:"
   vitest@*: "catalog:"
 nodeLinker: hoisted
