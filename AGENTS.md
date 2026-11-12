@@ -4,7 +4,7 @@ effect-connect publishes an Effect-native messaging abstraction (email, SMS, Wha
 
 The three published packages are described in [README.md](README.md): `@thomasfosterau/effect-connect` (`packages/core`), `@thomasfosterau/effect-connect-resend` (`packages/resend`) and `@thomasfosterau/effect-connect-alchemy-cloudflare` (`packages/alchemy-cloudflare`). The core carries no provider vocabulary. Alchemy packages split per Alchemy provider: another provider is a package of its own.
 
-The SendGrid provider (the port of the archived `thomasfosterau/effect-sendgrid`) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
+The SendGrid provider (the port of `thomasfosterau/effect-sendgrid`, a repository that no longer exists) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
 
 Each package's `AGENTS.md` carries its boundary, invariants and terms; read it before touching that package.
 
