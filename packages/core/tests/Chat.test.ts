@@ -81,16 +81,16 @@ describe("ChatService.layerRecording", () => {
 });
 
 describe("ChatSendError", () => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new ChatSendError({
+        Effect.fail(
+          new ChatSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(404),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("ChatSendError");
       expect(error.status).toStrictEqual(Option.some(404));

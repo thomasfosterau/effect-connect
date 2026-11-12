@@ -128,16 +128,16 @@ describe("WhatsAppService.layerRecording", () => {
 });
 
 describe("WhatsAppSendError", () => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new WhatsAppSendError({
+        Effect.fail(
+          new WhatsAppSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(400),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("WhatsAppSendError");
       expect(error.status).toStrictEqual(Option.some(400));
