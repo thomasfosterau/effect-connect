@@ -5,8 +5,11 @@
   // by hand on the toolchain PR that moves `vite-plus`.
   "image": "ghcr.io/voidzero-dev/vite-plus:1.4.0",
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers-extra/features/ripgrep:1": {},
+    // Both default to `"version": "latest"`, resolved through the GitHub API at
+    // build time (unauthenticated, so it flakes on a rate limit). Pinned;
+    // bump by hand. The other two features take no version.
+    "ghcr.io/devcontainers/features/github-cli:1": { "version": "2.89.0" },
+    "ghcr.io/devcontainers-extra/features/ripgrep:1": { "version": "15.2.0" },
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
     "ghcr.io/devcontainer-community/devcontainer-features/jq:1": {}
   },

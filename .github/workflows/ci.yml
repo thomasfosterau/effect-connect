@@ -40,15 +40,17 @@ jobs:
           key: vp-task-v1-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             vp-task-v1-${{ runner.os }}-
+      - name: Toolchain versions
+        run: node --version && pnpm --version && vp --version
       - name: Format and lint
-        run: pnpm exec vp check
+        run: vp check
       # Includes every package's docgen: each JSDoc `@example` is type-checked
       # and executed.
       - name: Type gates (packages + emitted declarations + doc examples)
-        run: pnpm exec vp run --concurrency-limit 2 check
+        run: vp run --concurrency-limit 2 check
       - name: Unit tests
-        run: pnpm exec vp run -r test:unit
+        run: vp run -r test:unit
       - name: Build
-        run: pnpm exec vp run -r build
+        run: vp run -r build
       - name: Audit
         run: pnpm audit --audit-level high

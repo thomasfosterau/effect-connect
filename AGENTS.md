@@ -1,16 +1,12 @@
 # AGENTS.md
 
-`CLAUDE.md` is a symlink to this file. effect-connect publishes an Effect-native messaging abstraction (email, SMS, WhatsApp and chat today, one service per channel) for the `thomasfosterau/website`, `gardeneria` and `preferenceflow` applications, and copies their toolchain (pnpm + Vite+, strict catalog, TypeScript 6/7 split, Effect oxlint preset, fallow) so it builds against what they run. A `#NNN` in a ported comment names an issue in the app it came from (website unless stated), not a ticket in this tracker.
+effect-connect publishes an Effect-native messaging abstraction (email, SMS, WhatsApp and chat today, one service per channel) for the `thomasfosterau/website`, `gardeneria` and `preferenceflow` applications, and copies their toolchain (pnpm + Vite+, strict catalog, TypeScript 6/7 split, Effect oxlint preset, fallow) so it builds against what they run. A `#NNN` in a ported comment names an issue in the app it came from (website unless stated), not a ticket in this tracker.
 
-| Package | Directory | Purpose |
-| --- | --- | --- |
-| `@thomasfosterau/effect-connect` | `packages/core` | Per-channel message schemas, the `EmailService`, `SmsService`, `WhatsAppService` and `ChatService` contracts, their errors, and the shared `effect/http` transport rules (`Http`). No provider vocabulary. |
-| `@thomasfosterau/effect-connect-resend` | `packages/resend` | Resend provider, no-op transport, Worker env resolver. |
-| `@thomasfosterau/effect-connect-alchemy-cloudflare` | `packages/alchemy-cloudflare` | Deploy-time bindings for Alchemy's Cloudflare provider: per-provider builders of the Worker `env` records the resolvers read, typed by the provider's `Cloudflare.InferEnv`. Imports only `effect` at runtime; `@alchemy.run/cloudflare` and `alchemy` (exact 2.0.0-beta.85) are required peers, used for types, and its `effect` peer is `^4.1.0` (`catalogs.alchemy-peers`), the range they require. Alchemy packages split per Alchemy provider: another provider is a package of its own. |
+The three published packages are described in [README.md](README.md): `@thomasfosterau/effect-connect` (`packages/core`), `@thomasfosterau/effect-connect-resend` (`packages/resend`) and `@thomasfosterau/effect-connect-alchemy-cloudflare` (`packages/alchemy-cloudflare`). The core carries no provider vocabulary. Alchemy packages split per Alchemy provider: another provider is a package of its own.
 
 The SendGrid provider (the port of the archived `thomasfosterau/effect-sendgrid`) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
 
-Each package's `CLAUDE.md` carries its boundary, invariants and terms; read it before touching that package.
+Each package's `AGENTS.md` carries its boundary, invariants and terms; read it before touching that package.
 
 ## Common pitfalls
 
@@ -33,15 +29,7 @@ Each package's `CLAUDE.md` carries its boundary, invariants and terms; read it b
 
 ## Commands
 
-- `pnpm install` — dependencies, the Vite+ git hooks (pre-commit runs `vp staged`: format + lint on staged files) and the tsgo patch. There is no pre-push hook.
-- `vp check` — format + lint (Oxfmt + Oxlint, type-aware through oxlint-tsgolint, with `@enfect/oxlint`'s `recommended` Effect rules and `@effect/tsgo`'s preset; a rule is relaxed only in `vite.config.ts`, with its reason). `vp run check` — the type gate: every package's `check`, the dist-consumer declaration check (which builds `dist/`) and every package's docgen. They are different commands.
-- `vp run -r test:unit` — unit tests (every network seam stubbed).
-- `vp run test:coverage` — every package's suite in one run, writing the Istanbul map `coverage/coverage-final.json` that `fallow audit` reads for its CRAP scores. Run it before the fallow audit.
-- `vp run -r build` — `vp pack` (tsdown) emits each package's `dist/`.
-- `vp run -r docgen` — run docgen on its own (see Conventions); writes the gitignored API docs to `packages/*/docs/`.
-- `pnpm changeset` — add a changeset.
-
-Invoke tools through `vp` (`vp exec <bin>` for a package binary, `vp run <task>` rather than bare `pnpm run`). CI installs with `pnpm install --frozen-lockfile`.
+The commands are listed in [CONTRIBUTING.md](CONTRIBUTING.md#commands). Invoke tools through `vp` (`vp exec <bin>` for a package binary, `vp run <task>` rather than bare `pnpm run`). `vp check` (format + lint) and `vp run check` (the type gate) are different commands.
 
 ## Verification
 
@@ -52,14 +40,14 @@ Before you report work as done, run the gates below in order and quote each comm
 3. `vp run -r test:unit`
 4. `vp run -r build`
 5. `pnpm audit --audit-level high` (network)
-6. `vp run test:coverage && vp exec fallow audit --format json --quiet --explain --gate-marker agent --base origin/trunk` (the PreToolUse hook also runs the audit on `git commit` / `git push`, but never refreshes the coverage map)
+6. `vp run test:coverage && vp exec fallow audit --format json --quiet --explain --gate-marker agent --base origin/trunk` (a Claude Code session's PreToolUse hook also runs the audit on `git commit` / `git push`, but never refreshes the coverage map)
 
-Steps 1–5 are what CI runs, in that order ([ci.yml](.github/workflows/ci.yml): no secrets, read-only token, actions pinned to commit SHAs, `persist-credentials: false`; the Release job alone holds `id-token: write` and never runs for Dependabot; `uvx zizmor --offline .github` audits the workflows, configured in `.github/zizmor.yml`); step 6 is local-only. A warm tree hides a missing peer: for CI parity, `rm -rf node_modules packages/*/node_modules tests/*/node_modules && pnpm install --frozen-lockfile` first. A required peer of a dependency must be a declared dependency, or a fresh runner fails where a warm local tree passes.
+Steps 1–5 are what CI runs, in that order ([ci.yml](.github/workflows/ci.yml): no secrets, read-only token, actions pinned to commit SHAs (`voidzero-dev/setup-vp`, which sets up Vite+, Node.js and pnpm, to an exact release tag), `persist-credentials: false`; the Release job alone holds `id-token: write` and never runs for Dependabot; `uvx zizmor --offline .github` audits the workflows, configured in `.github/zizmor.yml`); step 6 is local-only. A warm tree hides a missing peer: for CI parity, `rm -rf node_modules packages/*/node_modules tests/*/node_modules && pnpm install --frozen-lockfile` first. A required peer of a dependency must be a declared dependency, or a fresh runner fails where a warm local tree passes.
 
 ## Branches and pull requests
 
 - Branch off `trunk`; PR against `trunk`; squash-merge. Name branches `issue-<n>-<slug>`. Rebase onto `origin/trunk` before opening or updating a PR; never merge `trunk` into your branch (GitHub's Update-branch button merges).
-- Agent work uses git worktrees under `.claude/worktrees/`, one per branch, each with its own `pnpm install`. Start every command that targets a worktree with an explicit `cd`, and run `git log -1` before committing.
+- Agent work uses one git worktree per branch, each with its own `pnpm install`. Start every command that targets a worktree with an explicit `cd`, and run `git log -1` before committing.
 - Every change to a published package's behaviour carries a changeset (`pnpm changeset`); docs-, CI- and tooling-only changes need none. Never publish or version by hand: the Release workflow opens the "Version Packages" PR (`chore: version packages`) and the owner merges it. See [PUBLISHING.md](PUBLISHING.md).
 - These are standing approvals: open a PR once a branch has a pushed commit; watch it to merge or close (investigate CI failures and review comments, rebase when it goes conflicting); keep the PR body current with what the branch does.
 - GitHub writes go to `thomasfosterau/effect-connect` only; pass `-R thomasfosterau/effect-connect` whenever the cwd might be another checkout. Never write to the consuming applications or to any other repository without the owner's explicit approval for that action in the current session. Use the `gh` CLI for GitHub operations, even when GitHub MCP tools are available.
@@ -81,16 +69,9 @@ Read the installed package before writing Effect code: `node_modules/effect/dist
 - On the rc line the schema-backed error is `Schema.TaggedError<Self>()(tag, fields)`. Guides that say `Schema.TaggedErrorClass` describe the older beta line.
 - HTTP lives under `effect/http/*`; the rc line has no `effect/unstable/*` paths.
 
-## Agent sessions
-
-- The SessionStart hook (`.claude/hooks/session-start.sh`, also the devcontainer's `postCreateCommand`) installs the global Vite+ CLI at the catalog's `vite-plus` pin with the official installer (npm-provenance and SHA-512 checked; it needs `vite.plus` and `viteplus.dev` on the environment's allowlist), links `vp` and `vpx` into `~/.local/bin` (the CLI lives under `$VP_HOME` when set, as in the Vite+ container image, else `~/.local/share/vite-plus`), and syncs dependencies against the lockfile with `vp install --frozen-lockfile`. It removes the `fallow` / `tsx` shims and the walking `vp` shim earlier versions put there. Everything else goes through Vite+: `vp exec fallow …` for fallow, `vpx <file>.ts` for scripts (`tsx` is installed only because `@effect/docgen` requires it as a peer and runs it itself). If the installer can't run, `vp` falls back to this checkout's `node_modules` copy. The global `vp` delegates to each checkout's own `vite-plus`, worktrees included. It hydrates no secrets, and none are needed: every gate runs offline with the network seams stubbed.
-- A PostToolUse hook runs `vp fmt --write` on every TS/JS (including `.tsx`/`.jsx`/`.mjs`/`.cjs`), CSS, JSON or Markdown file you edit.
-- A PreToolUse hook (`.claude/hooks/fallow-gate.sh`) blocks `git commit` / `git push` when `fallow audit --base origin/trunk` fails. It runs only in this project and its `.claude/worktrees/<name>` checkouts (judged on the checkout's top level, so a commit from a subdirectory is still audited, and neither a repository nested inside a worktree nor a separate clone placed at a worktree path, which shares no git directory with this project, is trusted), with fallow as `vp exec fallow` (the checkout's own pinned copy); from any other tree it skips with a notice and runs none of that tree's tooling.
-- Won't run in an agent session: publishing (only the Release workflow's OIDC identity can).
-
 ## Documentation surfaces
 
-`README.md` at the root is the landing page; each package `README.md` is the API reference consumers read on npm; each package `CLAUDE.md` carries its boundary, invariants and terms; `CONTRIBUTING.md` carries human setup and procedures; `PUBLISHING.md` and `SECURITY.md` carry the release pipeline and its one-time setup. No committed `docs/` tree (`packages/*/docs/` is docgen's gitignored output); decisions go in issue comments.
+`README.md` at the root is the landing page and the package overview; each package `README.md` is the API reference consumers read on npm; this file and each package `AGENTS.md` carry agent guidance (the package ones: boundary, invariants and terms); `CONTRIBUTING.md` carries human setup, commands and procedures; `PUBLISHING.md` and `SECURITY.md` carry the release pipeline and its one-time setup. `.claude/CLAUDE.md` holds only what is specific to Claude Code (hooks, settings, worktree location, session limits) and imports this file, `CONTRIBUTING.md` and `README.md`; each package `CLAUDE.md` imports its `AGENTS.md`. Write guidance once, in the file that owns it. No committed `docs/` tree (`packages/*/docs/` is docgen's gitignored output); decisions go in issue comments.
 
 ---
 
