@@ -23,7 +23,7 @@ Hooks are managed by Vite+; the editable [.vite-hooks/pre-commit](.vite-hooks/pr
 1. Run the gates in [AGENTS.md → Verification](AGENTS.md#verification) and note each result in the PR.
 2. A changeset (`pnpm changeset`) for every change to a published package's behaviour.
 3. `git fetch origin trunk && git rebase origin/trunk`.
-4. Docs: the package `README.md` for any exported change; the package `AGENTS.md` for a new term or invariant.
+4. Docs: `docs/` for the detail of any exported change (and the package `README.md` entry-point table if an entry point is added or removed); the package `AGENTS.md` for a new term or invariant.
 
 ## Commands
 
