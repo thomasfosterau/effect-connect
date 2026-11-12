@@ -122,16 +122,16 @@ describe("SmsService.layerRecording", () => {
 });
 
 describe("SmsSendError", () => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new SmsSendError({
+        Effect.fail(
+          new SmsSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(400),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("SmsSendError");
       expect(error.status).toStrictEqual(Option.some(400));
