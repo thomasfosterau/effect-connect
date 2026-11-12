@@ -1,0 +1,16 @@
+{
+  "name": "@effect-connect/workerd",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runs a Resend send inside the real Cloudflare Workers runtime (workerd) against a stub origin, so a request option or API that Workers rejects fails the unit gate even though Node accepts it.",
+  "type": "module",
+  "scripts": {
+    "test:unit": "bash run.sh"
+  },
+  "devDependencies": {
+    "@thomasfosterau/effect-connect": "workspace:*",
+    "@thomasfosterau/effect-connect-resend": "workspace:*",
+    "effect": "catalog:",
+    "workerd": "catalog:"
+  }
+}

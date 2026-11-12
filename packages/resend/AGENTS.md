@@ -9,7 +9,7 @@ Imports the core only (`.fallowrc.json` zone `resend`, allowed: `core`). Never i
 ## Invariants
 
 - **Fixed literal host.** `DEFAULT_BASE_URL` is a compile-time constant; `baseUrl` exists for a stub server, never for request input (SEC-SSRF-001 in the apps).
-- **`redirect: "error"`** (the core's `refuseRedirects`) on the underlying fetch, layered over the consumer's own `FetchHttpClient.RequestInit` (only `redirect` is pinned). A 3xx from a hijacked `api.resend.com` must never hand the bearer token to the host it names (SEC-SECRET-001).
+- **Redirects are refused** (the core's `refuseRedirects`): `redirect: "manual"` on the underlying fetch, layered over the consumer's own `FetchHttpClient.RequestInit` (only `redirect` is pinned), and a 3xx answer fails as `EmailSendError` with its status, after one request, its body and `Location` unread. A 3xx from a hijacked `api.resend.com` must never hand the bearer token to the host it names (SEC-SECRET-001). Never `redirect: "error"`: Cloudflare Workers rejects that value on every request, a 200 included (#157). `tests/workerd` proves both under the real runtime.
 - **A non-2xx fails with the status and a truncated body** (the core's `rejectionMessage`); an unreadable body still fails with the status; the key never appears in a message.
 - **No retry.** The caller decides the policy.
 - **The no-op succeeds and logs the subject only** — never the recipient (PII), never the body (a verification URL _is_ the token). Every un-provisioned preview stage of the consuming apps runs on it. Safe only while the mail is advisory; a send that gates an account should fail loudly at boot instead.

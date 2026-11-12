@@ -7,6 +7,7 @@
 import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
@@ -38,6 +39,70 @@ const request = HttpClientRequest.get("https://api.example.test/send");
 const responseOf = (body: ConstructorParameters<typeof Response>[0], status: number) =>
   HttpClientResponse.fromWeb(request, new Response(body, { status }));
 
+/**
+ * `FetchHttpClient` over a `fetch` that answers `answer(body)`, where
+ * `body` is a stream that records every chunk read from it and every
+ * cancel, so a test can tell an unread, cancelled body from a drained one.
+ */
+const redirecting = (answer: (body: ReadableStream<Uint8Array>) => Response) => {
+  const requests: Array<RequestInit> = [];
+  const reads: Array<string> = [];
+  const cancels: Array<string> = [];
+  const answering: typeof globalThis.fetch = async (_input, init) => {
+    requests.push(init ?? {});
+    return answer(
+      new ReadableStream<Uint8Array>(
+        {
+          pull(controller) {
+            reads.push("chunk");
+            controller.enqueue(new TextEncoder().encode("https://elsewhere.example.test/next"));
+          },
+          cancel() {
+            cancels.push("cancelled");
+          },
+        },
+        { highWaterMark: 0 },
+      ),
+    );
+  };
+  return {
+    requests,
+    reads,
+    cancels,
+    http: FetchHttpClient.layer.pipe(
+      Layer.provide(Layer.succeed(FetchHttpClient.Fetch, answering)),
+    ),
+  };
+};
+
+/** The headers of the response a failure retains (a marker when it retains none). */
+const retainedHeaders = (error: HttpClientError.HttpClientError) =>
+  Match.value(error.reason).pipe(
+    Match.tag("StatusCodeError", (reason) => ({ ...reason.response.headers })),
+    Match.orElse((reason) => ({ unexpected: reason._tag })),
+  );
+
+/** What every refused redirect must look like, whatever the runtime answered. */
+const expectRefused = (
+  error: HttpClientError.HttpClientError,
+  status: number,
+  probe: ReturnType<typeof redirecting>,
+) => {
+  expect(error.reason._tag).toBe("StatusCodeError");
+  expect(httpErrorStatus(error)).toStrictEqual(Option.some(status));
+  // The status alone: no method, no request URL, nothing from `Location`.
+  expect(describeHttpError(error)).toBe(`redirect refused (${String(status)})`);
+  expect(describeHttpErrorWithoutUrl(error, [])).toBe(`redirect refused (${String(status)})`);
+  // The response the error keeps has the status and no header: `Location` is
+  // text the answering host chose, and a logged cause chain must not carry it.
+  expect(retainedHeaders(error)).toStrictEqual({});
+  // One request (the redirect is not followed), and its body is cancelled unread.
+  expect(probe.requests).toHaveLength(1);
+  expect(probe.requests[0]?.redirect).toBe("manual");
+  expect(probe.reads).toHaveLength(0);
+  expect(probe.cancels).toHaveLength(1);
+};
+
 describe("refuseRedirects", () => {
   const inits: Array<RequestInit> = [];
   const fetch: typeof globalThis.fetch = async (_input, init) => {
@@ -50,15 +115,17 @@ describe("refuseRedirects", () => {
   const execute = Effect.flatMap(HttpClient.HttpClient, (client) => client.execute(request));
 
   layer(http)((it) => {
-    it.effect("pins redirect: error over the consumer's own RequestInit", () =>
+    it.effect("pins redirect: manual over the consumer's own RequestInit", () =>
       Effect.gen(function* () {
-        yield* refuseRedirects(execute).pipe(
+        const response = yield* refuseRedirects(execute).pipe(
           Effect.provideService(FetchHttpClient.RequestInit, {
             credentials: "omit",
             redirect: "follow",
           }),
         );
-        expect(inits.at(-1)?.redirect).toBe("error");
+        expect(response.status).toBe(200);
+        // Never `error`: Cloudflare Workers rejects that value on every request.
+        expect(inits.at(-1)?.redirect).toBe("manual");
         expect(inits.at(-1)?.credentials).toBe("omit");
       }),
     );
@@ -66,10 +133,60 @@ describe("refuseRedirects", () => {
     it.effect("pins it when the consumer provides no RequestInit", () =>
       Effect.gen(function* () {
         yield* refuseRedirects(execute);
-        expect(inits.at(-1)?.redirect).toBe("error");
+        expect(inits.at(-1)?.redirect).toBe("manual");
       }),
     );
   });
+
+  [301, 302, 303, 307, 308].forEach((status) => {
+    const probe = redirecting(
+      (body) =>
+        new Response(body, {
+          status,
+          headers: { location: "https://elsewhere.example.test/next" },
+        }),
+    );
+    layer(probe.http)((it) => {
+      it.effect(`refuses a ${String(status)} after one request, without reading it`, () =>
+        Effect.gen(function* () {
+          expectRefused(yield* Effect.flip(refuseRedirects(execute)), status, probe);
+        }),
+      );
+    });
+  });
+
+  // A browser-like runtime answers `redirect: "manual"` with an opaque
+  // redirect: status 0 and no readable headers. `Response` cannot be
+  // constructed with status 0, so the two fields are redefined on a real one.
+  const opaque = redirecting((body) =>
+    Object.defineProperties(new Response(body), {
+      status: { value: 0 },
+      type: { value: "opaqueredirect" },
+    }),
+  );
+  layer(opaque.http)((it) => {
+    it.effect("refuses an opaque redirect after one request, without reading it", () =>
+      Effect.gen(function* () {
+        expectRefused(yield* Effect.flip(refuseRedirects(execute)), 0, opaque);
+      }),
+    );
+  });
+});
+
+describeWrapped("refuseRedirects over a non-fetch client", (it) => {
+  it.effect("refuses a 3xx response that has no Web body to cancel", () =>
+    Effect.gen(function* () {
+      const error = yield* Effect.flip(refuseRedirects(Effect.succeed(responseOf(null, 302))));
+      expect(describeHttpError(error)).toBe("redirect refused (302)");
+    }),
+  );
+
+  it.effect("answers anything that is not a redirect, a 4xx included", () =>
+    Effect.gen(function* () {
+      const response = yield* refuseRedirects(Effect.succeed(responseOf("nope", 404)));
+      expect(response.status).toBe(404);
+    }),
+  );
 });
 
 describe("isSuccessStatus", () => {
@@ -169,7 +286,22 @@ describe("executeWithSecretUrl", () => {
       Effect.gen(function* () {
         const response = yield* execute;
         expect(response.status).toBe(200);
-        expect(inits.at(-1)?.redirect).toBe("error");
+        expect(inits.at(-1)?.redirect).toBe("manual");
+      }),
+    );
+  });
+
+  layer(
+    answering(
+      async () => new Response(`moved to ${url}`, { status: 307, headers: { location: url } }),
+    ),
+  )((it) => {
+    it.effect("fails a redirect with its status alone: no body, no Location, no URL", () =>
+      Effect.gen(function* () {
+        expect(yield* Effect.flip(execute)).toStrictEqual({
+          message: "Vendor was unreachable: redirect refused (307)",
+          status: Option.some(307),
+        });
       }),
     );
   });

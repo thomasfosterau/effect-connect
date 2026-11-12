@@ -96,6 +96,17 @@ export default defineConfig({
           "effecttsgo/unstable-api-usage": "off",
         },
       },
+      // The Worker that tests/workerd runs inside workerd. Its `test` handlers
+      // are the entry point of that Worker: the one place an effect is run and
+      // the transport is provided, from the `env` only the handler receives.
+      // Both rules exempt an entry point, which the linter cannot recognise.
+      {
+        files: ["tests/workerd/src/worker.ts"],
+        rules: {
+          "effect/effect-run-in-body": "off",
+          "effecttsgo/strict-effect-provide": "off",
+        },
+      },
       // The exact type-equality idiom (`(<T>() => T extends A ? 1 : 2) extends
       // …`) needs the phantom `T` this rule reports; there is no equivalent
       // without it. Only the compile-time assertion suites use it.

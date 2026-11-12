@@ -60,6 +60,9 @@ catalogs:
     vitest:
       specifier: 5.1.0
       version: 5.1.0
+    workerd:
+      specifier: 1.20261026.1
+      version: 1.20261026.1
 
 overrides:
   undici: ^8.12.2
@@ -205,6 +208,21 @@ importers:
       alchemy:
         specifier: 'catalog:'
         version: 2.0.0-beta.85(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.0))(@voidzero-dev/vite-plus-core@1.5.1(@types/node@26.6.6)(@typescript/typescript6@6.0.2)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.1)
+
+  tests/workerd:
+    devDependencies:
+      '@thomasfosterau/effect-connect':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@thomasfosterau/effect-connect-resend':
+        specifier: workspace:*
+        version: link:../../packages/resend
+      effect:
+        specifier: 4.1.4
+        version: 4.1.4
+      workerd:
+        specifier: 'catalog:'
+        version: 1.20261026.1
 
 packages:
 

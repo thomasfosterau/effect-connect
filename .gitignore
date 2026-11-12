@@ -31,3 +31,6 @@ coverage/
 # The generated git-hook runner; the editable hook itself is committed.
 .vite-hooks/_/
 .vitest/
+
+# The bundle tests/workerd/run.sh builds for workerd.
+tests/workerd/.build/
