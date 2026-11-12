@@ -4,7 +4,7 @@
  * accessors and the recording double.
  */
 
-import { describe, expect, it } from "@effect/vitest";
+import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
@@ -23,7 +23,7 @@ const decodeMessage = Schema.decodeUnknownSync(WhatsAppMessage);
 const TO = "+61412345678";
 
 describe("WhatsAppMessage", () => {
-  it("decodes a free-form text message, leaving an absent from absent", () => {
+  test("decodes a free-form text message, leaving an absent from absent", () => {
     expect(decodeMessage({ _tag: "Text", to: TO, body: "hi" })).toEqual({
       _tag: "Text",
       to: TO,
@@ -31,7 +31,7 @@ describe("WhatsAppMessage", () => {
     });
   });
 
-  it("decodes a template message with and without variables", () => {
+  test("decodes a template message with and without variables", () => {
     expect(
       decodeMessage({
         _tag: "Template",
@@ -52,7 +52,7 @@ describe("WhatsAppMessage", () => {
     });
   });
 
-  it("rejects an empty body, an empty template id, a non-E.164 sender and an unknown tag", () => {
+  test("rejects an empty body, an empty template id, a non-E.164 sender and an unknown tag", () => {
     expect(() => decodeMessage({ _tag: "Text", to: TO, body: "" })).toThrow(Schema.SchemaError);
     expect(() => decodeMessage({ _tag: "Template", to: TO, template: { id: "" } })).toThrow(
       Schema.SchemaError,
@@ -64,14 +64,14 @@ describe("WhatsAppMessage", () => {
     expect(() => decodeMessage({ to: TO, body: "hi" })).toThrow(Schema.SchemaError);
   });
 
-  it("rejects non-string template variables", () => {
+  test("rejects non-string template variables", () => {
     expect(() =>
       decodeMessage({ _tag: "Template", to: TO, template: { id: "HX1", variables: { "1": 1 } } }),
     ).toThrow(Schema.SchemaError);
   });
 });
 
-describe("decodeWhatsAppMessage", () => {
+describeWrapped("decodeWhatsAppMessage", (it) => {
   it.effect("succeeds with the typed message", () =>
     Effect.gen(function* () {
       const message = yield* decodeWhatsAppMessage({
@@ -97,7 +97,7 @@ describe("decodeWhatsAppMessage", () => {
 });
 
 describe("WhatsAppSendResult", () => {
-  it("encodes `none` as an absent key, so a result is plain JSON", () => {
+  test("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(WhatsAppSendResult)({ id: Option.none() })).toEqual({});
     expect(Schema.decodeUnknownSync(WhatsAppSendResult)({ id: "SM1" }).id).toStrictEqual(
       Option.some("SM1"),
@@ -106,28 +106,29 @@ describe("WhatsAppSendResult", () => {
 });
 
 describe("WhatsAppService.layerRecording", () => {
-  it.effect("records every send and numbers the ids from 1", () =>
-    Effect.gen(function* () {
-      const sent: Array<WhatsAppMessage> = [];
-      const results = yield* Effect.gen(function* () {
+  const sent: Array<WhatsAppMessage> = [];
+
+  layer(WhatsAppService.layerRecording(sent))((it) => {
+    it.effect("records every send and numbers the ids from 1", () =>
+      Effect.gen(function* () {
         const first = yield* sendWhatsApp({ _tag: "Text", to: TO, body: "one" });
         const rest = yield* sendWhatsAppBatch([
           { _tag: "Template", to: TO, template: { id: "HX2" } },
           { _tag: "Text", to: TO, body: "three" },
         ]);
-        return [first, ...rest];
-      }).pipe(Effect.provide(WhatsAppService.layerRecording(sent)));
-      expect(sent.map((m) => m._tag)).toEqual(["Text", "Template", "Text"]);
-      expect(results.map((r) => r.id)).toStrictEqual([
-        Option.some("recorded-1"),
-        Option.some("recorded-2"),
-        Option.some("recorded-3"),
-      ]);
-    }),
-  );
+        const results = [first, ...rest];
+        expect(sent.map((m) => m._tag)).toEqual(["Text", "Template", "Text"]);
+        expect(results.map((r) => r.id)).toStrictEqual([
+          Option.some("recorded-1"),
+          Option.some("recorded-2"),
+          Option.some("recorded-3"),
+        ]);
+      }),
+    );
+  });
 });
 
-describe("WhatsAppSendError", () => {
+describeWrapped("WhatsAppSendError", (it) => {
   it.effect("is yieldable and tagged", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(

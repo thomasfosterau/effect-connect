@@ -4,7 +4,7 @@
  * providers' own suites pin each of those end to end.
  */
 
-import { describe, expect, it } from "@effect/vitest";
+import { describe, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
@@ -23,7 +23,7 @@ import {
 } from "../src/index.ts";
 
 describe("boundString", () => {
-  it("is some for a non-blank value, none for absent, null, empty or blank", () => {
+  test("is some for a non-blank value, none for absent, null, empty or blank", () => {
     expect(boundString("x")).toStrictEqual(Option.some("x"));
     expect([undefined, null, "", "   "].map(boundString)).toStrictEqual(
       Array.from({ length: 4 }, () => Option.none()),
@@ -32,13 +32,13 @@ describe("boundString", () => {
 });
 
 describe("boundSecret", () => {
-  it("wraps a plain string and keeps an already-redacted one", () => {
+  test("wraps a plain string and keeps an already-redacted one", () => {
     expect(Option.map(boundSecret("a"), Redacted.value)).toStrictEqual(Option.some("a"));
     const redacted = Redacted.make("b");
     expect(boundSecret(redacted)).toStrictEqual(Option.some(redacted));
   });
 
-  it("is none for absent, null, empty or blank, plain or redacted", () => {
+  test("is none for absent, null, empty or blank, plain or redacted", () => {
     const values = [undefined, null, "", "  ", Redacted.make(""), Redacted.make(" ")];
     expect(values.map(boundSecret)).toStrictEqual(values.map(() => Option.none()));
   });
@@ -64,53 +64,47 @@ const live = (host: string) =>
 describe("selectTransport", () => {
   const fallback = SmsService.layerRecording([]);
 
-  it("is the fallback, untouched, when the config is none", () => {
+  const urls: Array<string> = [];
+  const fetch: typeof globalThis.fetch = async (input) => {
+    urls.push(input instanceof Request ? input.url : String(input));
+    return new Response("{}");
+  };
+
+  test("is the fallback, untouched, when the config is none", () => {
     expect(selectTransport(Option.none(), () => fallback, fallback)).toBe(fallback);
   });
 
-  it.effect("builds the live layer from the config, over the platform fetch", () => {
-    const urls: Array<string> = [];
-    const fetch: typeof globalThis.fetch = async (input) => {
-      urls.push(input instanceof Request ? input.url : String(input));
-      return new Response("{}");
-    };
-    return Effect.gen(function* () {
-      const result = yield* Effect.flatMap(SmsService, (sms) =>
-        sms.send({ to: "+61400000000", body: "b" }),
-      );
-      expect(result.id).toStrictEqual(Option.some("live"));
-      expect(urls).toEqual(["https://stub.test/send"]);
-    }).pipe(
-      Effect.provide(selectTransport(Option.some("https://stub.test"), live, fallback)),
-      Effect.provideService(FetchHttpClient.Fetch, fetch),
+  layer(selectTransport(Option.some("https://stub.test"), live, fallback))((it) => {
+    it.effect("builds the live layer from the config, over the platform fetch", () =>
+      // The fiber's `Fetch` wins over the layer's default (`globalThis.fetch`).
+      Effect.gen(function* () {
+        const result = yield* Effect.flatMap(SmsService, (sms) =>
+          sms.send({ to: "+61400000000", body: "b" }),
+        );
+        expect(result.id).toStrictEqual(Option.some("live"));
+        expect(urls).toEqual(["https://stub.test/send"]);
+      }).pipe(Effect.provideService(FetchHttpClient.Fetch, fetch)),
     );
   });
 });
 
-const capture = <A, E>(effect: Effect.Effect<A, E>) => {
+describe("droppingSender", () => {
   const lines: Array<string> = [];
   const logger = Logger.make(({ message }) => {
     lines.push(String(message));
   });
-  return {
-    lines,
-    run: effect.pipe(Effect.provide(Logger.layer([logger]))),
-  };
-};
 
-describe("droppingSender", () => {
-  it.effect("succeeds with no id and logs the provider's line, once per message", () => {
-    const sender = droppingSender<SmsMessage>((message) => `dropping ${message.to.length}`);
-    const { lines, run } = capture(
-      sender.sendBatch([
-        { to: "+61400000001", body: "one" },
-        { to: "+61400000002", body: "two" },
-      ]),
+  layer(Logger.layer([logger]))((it) => {
+    it.effect("succeeds with no id and logs the provider's line, once per message", () =>
+      Effect.gen(function* () {
+        const sender = droppingSender<SmsMessage>((message) => `dropping ${message.to.length}`);
+        const results = yield* sender.sendBatch([
+          { to: "+61400000001", body: "one" },
+          { to: "+61400000002", body: "two" },
+        ]);
+        expect(results.map((result) => result.id)).toStrictEqual([Option.none(), Option.none()]);
+        expect(lines).toEqual(["dropping 12", "dropping 12"]);
+      }),
     );
-    return Effect.gen(function* () {
-      const results = yield* run;
-      expect(results.map((result) => result.id)).toStrictEqual([Option.none(), Option.none()]);
-      expect(lines).toEqual(["dropping 12", "dropping 12"]);
-    });
   });
 });
