@@ -13,6 +13,19 @@
 import { defineConfig } from "vite-plus";
 import { recommended } from "@effect/tsgo/oxlint-presets";
 import effect from "@enfect/oxlint";
+import * as R from "effect/Record";
+
+type Preset = typeof recommended;
+
+/**
+ * A preset with every rule it enables raised to `error`. Both presets set
+ * their rules to a bare severity (`"warn"` or `"error"`, no options and no
+ * `"off"`), so each one maps to `"error"`.
+ */
+const atError = (preset: Preset): Preset => ({
+  ...preset,
+  rules: R.map(preset.rules ?? {}, () => "error" as const),
+});
 
 export default defineConfig({
   // Staged-file checks run by `vp staged` (pre-commit).
@@ -36,7 +49,9 @@ export default defineConfig({
   },
   lint: {
     ignorePatterns: ["packages/*/docs/**", "**/coverage/**"],
-    extends: [recommended, effect.configs.recommended],
+    // Both presets, with every rule they enable raised to `error`: there is
+    // no warn tier, so a finding always fails `vp check`.
+    extends: [atError(recommended), atError(effect.configs.recommended)],
     plugins: ["typescript", "unicorn", "oxc", "import", "promise", "vitest", "jsdoc"],
     categories: {
       correctness: "error",
@@ -45,23 +60,15 @@ export default defineConfig({
     },
     rules: {
       "eslint/no-unused-vars": [
-        "warn",
+        "error",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
         },
       ],
-      "eslint/prefer-const": "warn",
+      "eslint/prefer-const": "error",
       // `_tag` is Effect's discriminant on every tagged union and error.
       "eslint/no-underscore-dangle": ["error", { allow: ["_tag"] }],
-      // Flags every `effect/http/*` import as unstable. HTTP through
-      // `effect/http` is this library's contract (every provider is an
-      // `HttpClient` consumer, AGENTS.md), so each import site would warn.
-      "effecttsgo/unstable-api-usage": "off",
-      "typescript/no-explicit-any": "off",
-      "typescript/no-empty-object-type": "off",
-      "typescript/ban-ts-comment": "off",
-      "unicorn/no-empty-file": "off",
       "vite-plus/prefer-vite-plus-imports": "error",
       // `@effect/vitest`'s `it.effect` / `it.layer` are test blocks: an
       // `expect` inside the effect they run is inside the test (#104).
@@ -71,6 +78,24 @@ export default defineConfig({
       ],
     },
     overrides: [
+      // `effect/http/*` and `@effect/vitest` are marked unstable upstream, and
+      // both are this library's contract: every provider is an `HttpClient`
+      // consumer (AGENTS.md) and every suite runs under `@effect/vitest`. The
+      // rule is off only for the modules that must import `effect/http`, the
+      // consumer fixture that names `HttpClient` in a type, and the tests.
+      {
+        files: [
+          "packages/core/src/Http.ts",
+          "packages/core/src/Transport.ts",
+          "packages/resend/src/Resend.ts",
+          "packages/resend/src/index.ts",
+          "tests/dist-consumer/src/consumer.ts",
+          "**/tests/**/*.ts",
+        ],
+        rules: {
+          "effecttsgo/unstable-api-usage": "off",
+        },
+      },
       // The exact type-equality idiom (`(<T>() => T extends A ? 1 : 2) extends
       // …`) needs the phantom `T` this rule reports; there is no equivalent
       // without it. Only the compile-time assertion suites use it.
