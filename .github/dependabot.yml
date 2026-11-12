@@ -103,11 +103,8 @@ updates:
     assignees:
       - thomasfosterau
   - package-ecosystem: "github-actions"
-    # `/` covers .github/workflows only; the local composite action lists its
-    # own directory, or its pins drift from the workflows'.
-    directories:
-      - "/"
-      - "/.github/actions/setup"
+    # `/` covers .github/workflows; there is no local composite action.
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
