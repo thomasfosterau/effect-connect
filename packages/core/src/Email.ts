@@ -4,7 +4,7 @@
  *
  * Provider-agnostic on purpose. A provider maps this shape onto its wire
  * format (SendGrid personalizations, Resend's flat JSON) and never leaks its
- * own vocabulary back into it — see the package `CLAUDE.md`.
+ * own vocabulary back into it — see the package `AGENTS.md`.
  *
  * @module Email
  * @since 0.1.0
