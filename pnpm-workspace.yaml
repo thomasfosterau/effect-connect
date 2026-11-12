@@ -56,8 +56,8 @@ catalog:
   # (UnsupportedTargetPackageVersionError) on anything else, failing
   # `pnpm install` itself rather than a later task. Read the `components`
   # table in node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping
-  # any of the three. 0.67.5 ships against typescript 7.0.2, oxlint 1.91.0
-  # and tsgolint 7.0.2005, exactly what vite-plus 1.5.1 carries.
+  # any of the three. 0.67.7 ships against typescript 7.0.2, oxlint 1.93.0
+  # and tsgolint 7.0.2006, exactly what vite-plus 1.6.0 carries.
   "@effect/tsgo": 0.67.7
   # The Effect lint rules (`effect/*`) `vp check` runs, as an oxlint JS plugin
   # (`configs.recommended` in vite.config.ts). Runs inside vite-plus's oxlint
@@ -117,7 +117,7 @@ catalog:
   # / `output` under `cache` (vite.package.ts). 1.0.1 or later is required:
   # 1.0.0 and older bundle a launch-editor with GHSA-587h-7wmj-h5pm (high).
   vite-plus: 1.6.0
-  vite: npm:@voidzero-dev/vite-plus-core@1.5.1
+  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
   vitest: 5.1.0
   # The Workers runtime itself, for tests/workerd: it runs a send inside real
   # workerd, because Workers rejects request options Node accepts. Pinned exact

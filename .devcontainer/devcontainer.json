@@ -3,7 +3,7 @@
   // The Vite+ base image: Node + pnpm + the vp CLI. The tag is the catalog's
   // `vite-plus` pin in pnpm-workspace.yaml; Dependabot cannot move it, so bump it
   // by hand on the toolchain PR that moves `vite-plus`.
-  "image": "ghcr.io/voidzero-dev/vite-plus:1.5.1",
+  "image": "ghcr.io/voidzero-dev/vite-plus:1.6.0",
   "features": {
     // Both default to `"version": "latest"`, resolved through the GitHub API at
     // build time (unauthenticated, so it flakes on a rate limit). Pinned;
