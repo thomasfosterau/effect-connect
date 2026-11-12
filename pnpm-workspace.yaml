@@ -125,7 +125,7 @@ catalog:
   # so the tree holds one copy; move it with the `alchemy` group. Its
   # postinstall only validates the binary (`allowBuilds: workerd: false`); the
   # binary itself is the `@cloudflare/workerd-<platform>` optional dependency.
-  workerd: 1.20261026.1
+  workerd: 1.20261110.1
 
 # Peer ranges the PUBLISHED packages declare. Kept as a named catalog so the
 # strict catalog mode still governs them while they stay ranges. `pnpm pack`
