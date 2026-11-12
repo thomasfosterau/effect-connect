@@ -48,33 +48,13 @@ const EmailLive = Resend.layer({ apiKey: Redacted.make("re_…") }).pipe(
 Effect.runPromise(sendWelcome("reader@example.com").pipe(Effect.provide(EmailLive)));
 ```
 
-SMS, WhatsApp and chat are channels of their own, each with its own service (`SmsService`, `WhatsAppService`, `ChatService`). They are contracts only: no provider in this repository implements them yet, so provide your own layer for each (or its `layerRecording` in a test). A program that uses two channels names both in its requirements:
+## Documentation
 
-```ts
-import * as Effect from "effect/Effect";
-import { sendSms, sendWhatsApp, SmsService, WhatsAppService } from "@thomasfosterau/effect-connect";
+Each package README is a short landing page; the detail is in [`docs/`](docs/):
 
-const notify = (to: string) =>
-  Effect.all([
-    sendSms({ to, body: "Your order has shipped" }),
-    // A WhatsApp message is free-form text (`_tag: "Text"`, only inside the
-    // 24-hour customer-service window) or a pre-approved template.
-    sendWhatsApp({
-      _tag: "Template",
-      to,
-      template: { id: "shipped", variables: { "1": "#1042" } },
-    }),
-  ]);
-
-Effect.runPromise(
-  notify("+61412345678").pipe(
-    Effect.provide(SmsService.layerRecording([])),
-    Effect.provide(WhatsAppService.layerRecording([])),
-  ),
-);
-```
-
-Each package README is its API reference; start with the [core](packages/core/README.md).
+- [Core](docs/core.md): usage per channel, the API tables, testing a consumer, errors.
+- [Resend](docs/resend.md): the provider, the Worker resolver, what the transport pins.
+- [Alchemy Cloudflare](docs/alchemy-cloudflare.md): deploy-time bindings.
 
 ## Development
 
