@@ -66,6 +66,7 @@ overrides:
   effect: 4.1.2
   launch-editor>shell-quote: ^1.11.0
   '@changesets/cli>launch-editor': ^2.14.2
+  '@ts-morph/common>minimatch': ^11.0.1
   vite@*: npm:@voidzero-dev/vite-plus-core@1.4.0
   vitest@*: 5.1.0
 
@@ -2391,10 +2392,6 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  minimatch@10.2.6:
-    resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
-    engines: {node: 18 || 20 || >=22}
-
   minimatch@11.0.4:
     resolution: {integrity: sha512-/UJ1dEoVQTjPNDh6SGlUo+ueLMmoHTas4q+8yaAR/5t6nLAIiBDJtoYUh20IYleix7ehiQkgczb84PE3uzHkxg==}
     engines: {node: 20 || >=22}
@@ -3687,7 +3684,7 @@ snapshots:
 
   '@ts-morph/common@0.29.0':
     dependencies:
-      minimatch: 10.2.6
+      minimatch: 11.0.4
       path-browserify: 1.0.1
       tinyglobby: 0.2.17
 
@@ -4405,10 +4402,6 @@ snapshots:
   math-random@1.0.4: {}
 
   mime@4.1.2: {}
-
-  minimatch@10.2.6:
-    dependencies:
-      brace-expansion: 5.0.12
 
   minimatch@11.0.4:
     dependencies:
