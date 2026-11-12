@@ -129,10 +129,10 @@ describe("decodeEmailMessage", () => {
 
 describe("EmailSendResult", () => {
   it("decodes the provider id from an optional key", () => {
-    expect(Schema.decodeUnknownSync(EmailSendResult)({ id: "msg_1" }).id).toStrictEqual(
+    expect(Schema.decodeSync(EmailSendResult)({ id: "msg_1" }).id).toStrictEqual(
       Option.some("msg_1"),
     );
-    expect(Schema.decodeUnknownSync(EmailSendResult)({}).id).toStrictEqual(Option.none());
+    expect(Schema.decodeSync(EmailSendResult)({}).id).toStrictEqual(Option.none());
   });
 
   it("encodes `none` as an absent key, so a result is plain JSON", () => {

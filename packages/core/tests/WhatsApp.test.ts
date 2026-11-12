@@ -99,7 +99,7 @@ describeWrapped("decodeWhatsAppMessage", (it) => {
 describe("WhatsAppSendResult", () => {
   test("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(WhatsAppSendResult)({ id: Option.none() })).toEqual({});
-    expect(Schema.decodeUnknownSync(WhatsAppSendResult)({ id: "SM1" }).id).toStrictEqual(
+    expect(Schema.decodeSync(WhatsAppSendResult)({ id: "SM1" }).id).toStrictEqual(
       Option.some("SM1"),
     );
   });
@@ -129,16 +129,16 @@ describe("WhatsAppService.layerRecording", () => {
 });
 
 describeWrapped("WhatsAppSendError", (it) => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new WhatsAppSendError({
+        Effect.fail(
+          new WhatsAppSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(400),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("WhatsAppSendError");
       expect(error.status).toStrictEqual(Option.some(400));

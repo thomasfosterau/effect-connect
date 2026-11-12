@@ -21,8 +21,10 @@ export default defineConfig({
   },
   fmt: {
     // docgen's output (the generated API docs and the example files it
-    // type-checks and runs) is gitignored and not ours to format.
-    ignorePatterns: ["packages/*/docs/**", "**/coverage/**"],
+    // type-checks and runs) is gitignored and not ours to format. Changesets
+    // writes each CHANGELOG.md, so the Version Packages PR must not depend on
+    // the formatter agreeing with its output.
+    ignorePatterns: ["packages/*/docs/**", "**/coverage/**", "**/CHANGELOG.md"],
     overrides: [
       {
         files: ["**/*.md"],
@@ -79,6 +81,34 @@ export default defineConfig({
         ],
         rules: {
           "typescript/no-unnecessary-type-parameters": "off",
+        },
+      },
+      // Each channel's model module exports its boundary decoder
+      // (`decode<Channel>Message(input: unknown)`), the one function whose job
+      // is to run the schema over unparsed input, so its parameter cannot be
+      // a domain type. A point-free spelling (`flow(Schema.decodeUnknownEffect(…),
+      // …)`) only hides the same `unknown` behind inference, and the emitted
+      // declaration then inlines the message's structure in place of its name.
+      {
+        files: [
+          "packages/core/src/Email.ts",
+          "packages/core/src/Sms.ts",
+          "packages/core/src/WhatsApp.ts",
+          "packages/core/src/Chat.ts",
+        ],
+        rules: {
+          "effect/no-unknown-parameters": "off",
+        },
+      },
+      // A Worker `env` record keeps its native form: Cloudflare leaves an
+      // unbound value as a missing key (or a stage binds `null`), so the two
+      // binding types this module exports (`EnvBinding`, `EnvSecretBinding`)
+      // have to spell `| null | undefined`. `boundString` / `boundSecret`, in
+      // the same module, adapt them onto `Option` for everything else.
+      {
+        files: ["packages/core/src/Transport.ts"],
+        rules: {
+          "effect/prefer-option-over-null": "off",
         },
       },
       // The declaration assertions compare the emitted public types with

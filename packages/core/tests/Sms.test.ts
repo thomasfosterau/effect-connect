@@ -93,9 +93,7 @@ describeWrapped("decodeSmsMessage", (it) => {
 describe("SmsSendResult", () => {
   test("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(SmsSendResult)({ id: Option.none() })).toEqual({});
-    expect(Schema.decodeUnknownSync(SmsSendResult)({ id: "SM1" }).id).toStrictEqual(
-      Option.some("SM1"),
-    );
+    expect(Schema.decodeSync(SmsSendResult)({ id: "SM1" }).id).toStrictEqual(Option.some("SM1"));
   });
 });
 
@@ -123,16 +121,16 @@ describe("SmsService.layerRecording", () => {
 });
 
 describeWrapped("SmsSendError", (it) => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new SmsSendError({
+        Effect.fail(
+          new SmsSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(400),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("SmsSendError");
       expect(error.status).toStrictEqual(Option.some(400));

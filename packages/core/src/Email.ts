@@ -152,7 +152,6 @@ export type EmailSendResult = typeof EmailSendResult.Type;
  * @since 0.1.0
  */
 export const decodeEmailMessage = (
-  // oxlint-disable-next-line effect/no-unknown-parameters -- this IS the I/O boundary: the whole point of the function is to run the schema over unparsed input
   input: unknown,
 ): Effect.Effect<EmailMessage, EmailValidationError> =>
   Schema.decodeUnknownEffect(EmailMessage, { errors: "all" })(input).pipe(

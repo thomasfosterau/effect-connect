@@ -45,14 +45,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Setup pnpm
-        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      # Vite+, Node.js and the pnpm that package.json's `packageManager` pins,
+      # with the pnpm store cache. The install is its own step (below).
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: 22.x
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
+          node-version: "22"
+          cache: true
+          run-install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Select mode
@@ -77,14 +77,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Setup pnpm
-        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      # Vite+, Node.js and the pnpm that package.json's `packageManager` pins,
+      # with the pnpm store cache. The install is its own step (below).
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: 22.x
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
+          node-version: "22"
+          cache: true
+          run-install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Create or update the version PR
@@ -141,17 +141,14 @@ jobs:
         with:
           persist-credentials: false
 
-      # Installs the pnpm version pinned by the package.json "packageManager"
-      # field. Must run before setup-node so its pnpm cache can find the store.
-      - name: Setup pnpm
-        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      # Vite+, Node.js and the pnpm that package.json's `packageManager` pins,
+      # with the pnpm store cache. The install is its own step (below).
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: 22.x
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
+          node-version: "22"
+          cache: true
+          run-install: false
 
       # scripts/release.sh publishes each `pnpm pack` tarball with the npm CLI
       # (`npm publish`), and npm's own OIDC trusted publishing needs

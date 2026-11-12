@@ -4,7 +4,7 @@ effect-connect publishes an Effect-native messaging abstraction (email, SMS, Wha
 
 The three published packages are described in [README.md](README.md): `@thomasfosterau/effect-connect` (`packages/core`), `@thomasfosterau/effect-connect-resend` (`packages/resend`) and `@thomasfosterau/effect-connect-alchemy-cloudflare` (`packages/alchemy-cloudflare`). The core carries no provider vocabulary. Alchemy packages split per Alchemy provider: another provider is a package of its own.
 
-The SendGrid provider (the port of the archived `thomasfosterau/effect-sendgrid`) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
+The SendGrid provider (the port of `thomasfosterau/effect-sendgrid`, a repository that no longer exists) and the Twilio provider were dropped as unused, so `SmsService`, `WhatsAppService` and `ChatService` are contracts with no provider in this repository; a provider for one is a new package.
 
 Each package's `AGENTS.md` carries its boundary, invariants and terms; read it before touching that package.
 
@@ -22,7 +22,8 @@ Each package's `AGENTS.md` carries its boundary, invariants and terms; read it b
 ## Conventions
 
 - Relative imports carry their `.ts` extension (`rewriteRelativeImportExtensions` permits it under `noEmit`; `vp pack` bundles each entry, so no relative specifier reaches `dist/`).
-- `exactOptionalPropertyTypes` is on: spell an optional field a caller may forward `undefined` to as `?: T | undefined`.
+- Absence is `Option`, never a nullable (`effect/prefer-option-over-null` is at error). An Option-valued optional property is `x?: Option.Option<T>`; an options-bag member is `readonly x?: T` and an optional parameter `x?: T`, with no `| undefined` (`exactOptionalPropertyTypes` is on, so the caller omits the key); a public `T | null` is an `Option`. Wire shapes (a vendor's request or response JSON) and Worker `env` records keep their native forms, and a module adapts them onto `Option` at the edge (`boundString` / `boundSecret`).
+- No inline lint disables (`oxlint-disable`, `eslint-disable`). Fix the code; where a rule genuinely cannot apply, the exception is a file-scoped override in `vite.config.ts` with its reason.
 - Every export has a TSDoc summary. `vp run -r docgen` type-checks and executes every `@example`, so an example is a complete program that runs without a network: pure functions, the recording or no-op layers, never a live provider. An example that uses `assert.` imports it itself (`import * as assert from "node:assert"`): docgen adds no imports. Each package's `docgen.json` sets `"runExamples": true`; without it docgen only type-checks the examples.
 - Every module doc and every export, each documented `export * from` in `src/index.ts` included, carries `@since <version>`: the release it first ships in (the version its changeset produces; `0.1.0` for the initial release). `vp run -r docgen` (so `vp run check`) fails on an export without one; it does not check module docs, so review catches those. Effect's tag order: summary, `@example`s, `@category` (if any), then `@since` last.
 - Schema-backed errors: see [Effect](#effect) for the rc-line spelling.
@@ -42,7 +43,7 @@ Before you report work as done, run the gates below in order and quote each comm
 5. `pnpm audit --audit-level high` (network)
 6. `vp run test:coverage && vp exec fallow audit --format json --quiet --explain --gate-marker agent --base origin/trunk` (a Claude Code session's PreToolUse hook also runs the audit on `git commit` / `git push`, but never refreshes the coverage map)
 
-Steps 1–5 are what CI runs, in that order ([ci.yml](.github/workflows/ci.yml): no secrets, read-only token, actions pinned to commit SHAs, `persist-credentials: false`; the Release job alone holds `id-token: write` and never runs for Dependabot; `uvx zizmor --offline .github` audits the workflows, configured in `.github/zizmor.yml`); step 6 is local-only. A warm tree hides a missing peer: for CI parity, `rm -rf node_modules packages/*/node_modules tests/*/node_modules && pnpm install --frozen-lockfile` first. A required peer of a dependency must be a declared dependency, or a fresh runner fails where a warm local tree passes.
+Steps 1–5 are what CI runs, in that order ([ci.yml](.github/workflows/ci.yml): no secrets, read-only token, actions pinned to commit SHAs (`voidzero-dev/setup-vp`, which sets up Vite+, Node.js and pnpm, to an exact release tag), `persist-credentials: false`; the Release job alone holds `id-token: write` and never runs for Dependabot; `uvx zizmor --offline .github` audits the workflows, configured in `.github/zizmor.yml`); step 6 is local-only. A warm tree hides a missing peer: for CI parity, `rm -rf node_modules packages/*/node_modules tests/*/node_modules && pnpm install --frozen-lockfile` first. A required peer of a dependency must be a declared dependency, or a fresh runner fails where a warm local tree passes.
 
 ## Branches and pull requests
 
@@ -71,7 +72,7 @@ Read the installed package before writing Effect code: `node_modules/effect/dist
 
 ## Documentation surfaces
 
-`README.md` at the root is the landing page and the package overview; each package `README.md` is the API reference consumers read on npm; this file and each package `AGENTS.md` carry agent guidance (the package ones: boundary, invariants and terms); `CONTRIBUTING.md` carries human setup, commands and procedures; `PUBLISHING.md` and `SECURITY.md` carry the release pipeline and its one-time setup. `.claude/CLAUDE.md` holds only what is specific to Claude Code (hooks, settings, worktree location, session limits) and imports this file, `CONTRIBUTING.md` and `README.md`; each package `CLAUDE.md` imports its `AGENTS.md`. Write guidance once, in the file that owns it. No committed `docs/` tree (`packages/*/docs/` is docgen's gitignored output); decisions go in issue comments.
+`README.md` at the root is the landing page and the package overview; each package `README.md` is a short landing page (what it is, install, one example, an entry-point table, absolute links) that consumers read on npm; `docs/*.md` at the root carries the detail (usage, API tables, testing, errors), with relative links between pages; this file and each package `AGENTS.md` carry agent guidance (the package ones: boundary, invariants and terms); `CONTRIBUTING.md` carries human setup, commands and procedures; `PUBLISHING.md` and `SECURITY.md` carry the release pipeline and its one-time setup. `.claude/CLAUDE.md` holds only what is specific to Claude Code (hooks, settings, worktree location, session limits) and imports this file, `CONTRIBUTING.md` and `README.md`; each package `CLAUDE.md` imports its `AGENTS.md`. Write guidance once, in the file that owns it. `packages/*/docs/` is still docgen's gitignored output, not the root `docs/`; decisions go in issue comments. Links in a package README are absolute (`https://github.com/thomasfosterau/effect-connect/blob/trunk/…`), because npm renders it outside the repository; the root `docs/` is not shipped in any package.
 
 ---
 
