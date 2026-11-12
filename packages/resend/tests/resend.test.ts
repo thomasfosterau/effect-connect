@@ -1,7 +1,7 @@
 /**
  * The Resend provider's suite: the transport properties the preferenceflow
  * application's `apps/auth/tests/email.test.ts` pins (fixed endpoint, bearer
- * credential, `redirect: "error"`, truncated error bodies, an unreadable
+ * credential, refused redirects (`redirect: "manual"`), truncated error bodies, an unreadable
  * error body still failing with the status), the no-op transport's logging
  * discipline and the env resolver — ported onto the v4 core, with the
  * network stubbed at `FetchHttpClient.Fetch`. No test here reaches Resend.
@@ -158,7 +158,7 @@ describe("EmailService.send", () => {
         Effect.gen(function* () {
           const calls = yield* StubCalls;
           yield* sendMessage;
-          expect(calls[0].init.redirect).toBe("error");
+          expect(calls[0].init.redirect).toBe("manual");
         }),
     );
 
@@ -168,8 +168,32 @@ describe("EmailService.send", () => {
         yield* sendMessage.pipe(
           Effect.provideService(FetchHttpClient.RequestInit, { credentials: "omit" }),
         );
-        expect(calls[0].init.redirect).toBe("error");
+        expect(calls[0].init.redirect).toBe("manual");
         expect(calls[0].init.credentials).toBe("omit");
+      }),
+    );
+  });
+
+  layer(
+    resendOver(
+      () =>
+        new Response("moved", {
+          status: 302,
+          headers: { location: "https://elsewhere.example.test/emails" },
+        }),
+    ),
+  )((it) => {
+    it.effect("fails a redirect after one request, naming only its status", () =>
+      Effect.gen(function* () {
+        const calls = yield* StubCalls;
+        const error = yield* Effect.flip(sendMessage);
+
+        expect(error).toBeInstanceOf(EmailSendError);
+        expect(error.status).toStrictEqual(Option.some(302));
+        expect(error.message).toBe("Resend was unreachable: redirect refused (302)");
+        expect(error.message).not.toContain("elsewhere.example.test");
+        expect(error.message).not.toContain(API_KEY);
+        expect(calls).toHaveLength(1);
       }),
     );
   });
@@ -436,7 +460,7 @@ describe("resolveTransport", () => {
           yield* sendMessage;
           expect(calls).toHaveLength(1);
           expect(calls[0].headers.get("authorization")).toBe("Bearer re_live_key");
-          expect(calls[0].init.redirect).toBe("error");
+          expect(calls[0].init.redirect).toBe("manual");
         }),
       );
     },

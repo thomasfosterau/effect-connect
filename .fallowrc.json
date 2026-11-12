@@ -6,10 +6,17 @@
     "packages/alchemy-cloudflare/src/index.ts",
     "packages/*/tests/**/*.test.ts",
     "tests/dist-consumer/src/*.ts",
+    "tests/workerd/src/*.ts",
+    "tests/workerd/origin.js",
     "**/vite.config.ts",
     "vite.package.ts"
   ],
-  "ignorePatterns": ["**/dist/**", "**/coverage/**", "packages/*/docs/**"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "packages/*/docs/**",
+    "tests/workerd/.build/**"
+  ],
   "ignoreDependencies": [
     "@thomasfosterau/effect-connect",
     "@thomasfosterau/effect-connect-resend",
@@ -23,6 +30,7 @@
     "vitest",
     "vite-plus",
     "@changesets/cli",
+    "workerd",
     "@changesets/changelog-github",
     "@effect/docgen",
     "tsx",
@@ -65,6 +73,10 @@
       {
         "name": "dist-consumer",
         "patterns": ["tests/dist-consumer/**"]
+      },
+      {
+        "name": "workerd",
+        "patterns": ["tests/workerd/**"]
       }
     ],
     "rules": [
@@ -87,6 +99,10 @@
       {
         "from": "dist-consumer",
         "allow": ["core", "resend", "alchemy-cloudflare"]
+      },
+      {
+        "from": "workerd",
+        "allow": ["core", "resend"]
       }
     ]
   },

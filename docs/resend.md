@@ -77,7 +77,7 @@ export default {
 ## What the transport pins
 
 - **A fixed literal host.** `https://api.resend.com` is a compile-time constant; `baseUrl` exists for a stub server in a test, never for request input.
-- **`redirect: "error"`** on the underlying fetch, layered over any `FetchHttpClient.RequestInit` defaults you provide. Workers' default (`follow`) replays a request at the redirect target with the headers intact, so a 3xx from a hijacked host would hand the bearer token to whatever host the response named. A Resend send has no legitimate reason to redirect.
+- **Redirects are refused**: `redirect: "manual"` on the underlying fetch, layered over any `FetchHttpClient.RequestInit` defaults you provide, and a 3xx answer fails as `EmailSendError` (`Resend was unreachable: redirect refused (302)`, `status: some(302)`) after one request. Workers' default (`follow`) replays a request at the redirect target with the headers intact, so a 3xx from a hijacked host would hand the bearer token to whatever host the response named. A Resend send has no legitimate reason to redirect. (`redirect: "error"` is not used: Cloudflare Workers rejects it on every request.)
 - **Truncated error bodies.** A non-2xx becomes an `EmailSendError` with `provider: "resend"`, `status: some(status)` and at most 200 characters of the response; an unreadable body still fails with the status; a transport failure carries `status: none`. The key never appears in a message.
 - **No retry.** The caller decides the policy (`Effect.retry`).
 

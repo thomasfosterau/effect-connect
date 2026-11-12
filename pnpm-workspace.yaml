@@ -119,6 +119,13 @@ catalog:
   vite-plus: 1.6.0
   vite: npm:@voidzero-dev/vite-plus-core@1.5.1
   vitest: 5.1.0
+  # The Workers runtime itself, for tests/workerd: it runs a send inside real
+  # workerd, because Workers rejects request options Node accepts. Pinned exact
+  # at the version `@alchemy.run/cloudflare` already brings into the lockfile,
+  # so the tree holds one copy; move it with the `alchemy` group. Its
+  # postinstall only validates the binary (`allowBuilds: workerd: false`); the
+  # binary itself is the `@cloudflare/workerd-<platform>` optional dependency.
+  workerd: 1.20261026.1
 
 # Peer ranges the PUBLISHED packages declare. Kept as a named catalog so the
 # strict catalog mode still governs them while they stay ranges. `pnpm pack`
@@ -179,9 +186,10 @@ nodeLinker: hoisted
 allowBuilds:
   esbuild: true
   fallow: true
-  # workerd (via @alchemy.run/cloudflare, the dev copy of effect-connect-alchemy-cloudflare's peer)
-  # downloads the local Workers runtime in its install script. Nothing here
-  # runs a Worker, so the download is skipped.
+  # workerd's install script only re-downloads the runtime when its
+  # `@cloudflare/workerd-<platform>` optional dependency is missing. pnpm
+  # installs that package, and tests/workerd fails hard without the binary,
+  # so the script is not needed.
   workerd: false
 peerDependencyRules:
   allowAny:

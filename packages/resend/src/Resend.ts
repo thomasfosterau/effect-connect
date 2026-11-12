@@ -7,13 +7,15 @@
  * The properties those senders pin, kept here:
  *
  * - a fixed literal host ({@link DEFAULT_BASE_URL});
- * - `redirect: "error"` on the underlying `fetch`. Workers' default
+ * - redirects refused (the core's `refuseRedirects`: `redirect: "manual"` on
+ *   the underlying `fetch`, and a 3xx answer fails unread). Workers' default
  *   (`follow`) replays the request at the redirect target **with the headers
  *   intact** — it does not drop `Authorization` on a cross-origin hop the way
  *   a browser does — so a 3xx from a hijacked or misconfigured
  *   `api.resend.com` would hand the API key to whatever host the response
  *   named. A Resend send has no legitimate reason to redirect, so the correct
- *   behaviour is to fail loudly (SEC-SECRET-001);
+ *   behaviour is to fail loudly (SEC-SECRET-001). Never `redirect: "error"`:
+ *   Workers rejects that value on every request;
  * - a non-2xx becomes an `EmailSendError` carrying the status and a
  *   **truncated** body, never the raw unbounded one, and never the key;
  * - no retry: the caller decides the policy.
