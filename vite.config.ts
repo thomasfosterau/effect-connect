@@ -13,6 +13,19 @@
 import { defineConfig } from "vite-plus";
 import { recommended } from "@effect/tsgo/oxlint-presets";
 import effect from "@enfect/oxlint";
+import * as R from "effect/Record";
+
+type Preset = typeof recommended;
+
+/**
+ * A preset with every rule it enables raised to `error`. Both presets set
+ * their rules to a bare severity (`"warn"` or `"error"`, no options and no
+ * `"off"`), so each one maps to `"error"`.
+ */
+const atError = (preset: Preset): Preset => ({
+  ...preset,
+  rules: R.map(preset.rules ?? {}, () => "error" as const),
+});
 
 export default defineConfig({
   // Staged-file checks run by `vp staged` (pre-commit).
@@ -36,7 +49,9 @@ export default defineConfig({
   },
   lint: {
     ignorePatterns: ["packages/*/docs/**", "**/coverage/**"],
-    extends: [recommended, effect.configs.recommended],
+    // Both presets, with every rule they enable raised to `error`: there is
+    // no warn tier, so a finding always fails `vp check`.
+    extends: [atError(recommended), atError(effect.configs.recommended)],
     plugins: ["typescript", "unicorn", "oxc", "import", "promise", "vitest", "jsdoc"],
     categories: {
       correctness: "error",
@@ -45,23 +60,15 @@ export default defineConfig({
     },
     rules: {
       "eslint/no-unused-vars": [
-        "warn",
+        "error",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
         },
       ],
-      "eslint/prefer-const": "warn",
+      "eslint/prefer-const": "error",
       // `_tag` is Effect's discriminant on every tagged union and error.
       "eslint/no-underscore-dangle": ["error", { allow: ["_tag"] }],
-      // Flags every `effect/http/*` import as unstable. HTTP through
-      // `effect/http` is this library's contract (every provider is an
-      // `HttpClient` consumer, AGENTS.md), so each import site would warn.
-      "effecttsgo/unstable-api-usage": "off",
-      "typescript/no-explicit-any": "off",
-      "typescript/no-empty-object-type": "off",
-      "typescript/ban-ts-comment": "off",
-      "unicorn/no-empty-file": "off",
       "vite-plus/prefer-vite-plus-imports": "error",
       // `@effect/vitest`'s `it.effect` / `it.layer` are test blocks: an
       // `expect` inside the effect they run is inside the test (#104).
@@ -71,14 +78,22 @@ export default defineConfig({
       ],
     },
     overrides: [
-      // A test body IS the entry point that provides the layers under test,
-      // which is exactly the place this rule says `Effect.provide` belongs.
-      // (The `effect/*` rules all hold in tests: each suite runs its effects
-      // through `@effect/vitest`'s `it.effect`, #104.)
+      // `effect/http/*` and `@effect/vitest` are marked unstable upstream, and
+      // both are this library's contract: every provider is an `HttpClient`
+      // consumer (AGENTS.md) and every suite runs under `@effect/vitest`. The
+      // rule is off only for the modules that must import `effect/http`, the
+      // consumer fixture that names `HttpClient` in a type, and the tests.
       {
-        files: ["**/tests/**/*.ts"],
+        files: [
+          "packages/core/src/Http.ts",
+          "packages/core/src/Transport.ts",
+          "packages/resend/src/Resend.ts",
+          "packages/resend/src/index.ts",
+          "tests/dist-consumer/src/consumer.ts",
+          "**/tests/**/*.ts",
+        ],
         rules: {
-          "effecttsgo/strict-effect-provide": "off",
+          "effecttsgo/unstable-api-usage": "off",
         },
       },
       // The exact type-equality idiom (`(<T>() => T extends A ? 1 : 2) extends
@@ -91,6 +106,34 @@ export default defineConfig({
         ],
         rules: {
           "typescript/no-unnecessary-type-parameters": "off",
+        },
+      },
+      // Each channel's model module exports its boundary decoder
+      // (`decode<Channel>Message(input: unknown)`), the one function whose job
+      // is to run the schema over unparsed input, so its parameter cannot be
+      // a domain type. A point-free spelling (`flow(Schema.decodeUnknownEffect(…),
+      // …)`) only hides the same `unknown` behind inference, and the emitted
+      // declaration then inlines the message's structure in place of its name.
+      {
+        files: [
+          "packages/core/src/Email.ts",
+          "packages/core/src/Sms.ts",
+          "packages/core/src/WhatsApp.ts",
+          "packages/core/src/Chat.ts",
+        ],
+        rules: {
+          "effect/no-unknown-parameters": "off",
+        },
+      },
+      // A Worker `env` record keeps its native form: Cloudflare leaves an
+      // unbound value as a missing key (or a stage binds `null`), so the two
+      // binding types this module exports (`EnvBinding`, `EnvSecretBinding`)
+      // have to spell `| null | undefined`. `boundString` / `boundSecret`, in
+      // the same module, adapt them onto `Option` for everything else.
+      {
+        files: ["packages/core/src/Transport.ts"],
+        rules: {
+          "effect/prefer-option-over-null": "off",
         },
       },
       // The declaration assertions compare the emitted public types with

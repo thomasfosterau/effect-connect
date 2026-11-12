@@ -81,7 +81,6 @@ export type ChatSendResult = typeof ChatSendResult.Type;
  * @since 0.1.0
  */
 export const decodeChatMessage = (
-  // oxlint-disable-next-line effect/no-unknown-parameters -- this IS the I/O boundary: the whole point of the function is to run the schema over unparsed input
   input: unknown,
 ): Effect.Effect<ChatMessage, ChatValidationError> =>
   Schema.decodeUnknownEffect(ChatMessage, { errors: "all" })(input).pipe(
