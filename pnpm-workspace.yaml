@@ -166,6 +166,13 @@ overrides:
   # dev-only, via @changesets/cli, whose declared range still admits the
   # vulnerable versions. Remove once @changesets/cli requires 2.14.2 or later.
   "@changesets/cli>launch-editor": ^2.14.2
+  # TEMPORARY (#110): security floor for minimatch GHSA-g3hv-75wg-m249
+  # (moderate), dev-only, via @effect/docgen > ts-morph > @ts-morph/common,
+  # whose declared `^10.0.1` cannot reach the fix (11.0.1). Scoped to that one
+  # parent, so nothing else moves and nothing reaches the published packages;
+  # `vp run -r docgen` passes on it. Remove once @ts-morph/common requires
+  # minimatch 11.0.1 or later.
+  "@ts-morph/common>minimatch": ^11.0.1
   vite@*: "catalog:"
   vitest@*: "catalog:"
 nodeLinker: hoisted
