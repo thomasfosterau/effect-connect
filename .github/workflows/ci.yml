@@ -40,15 +40,50 @@ jobs:
           key: vp-task-v1-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             vp-task-v1-${{ runner.os }}-
+      - name: Toolchain versions
+        run: node --version && pnpm --version && vp --version
       - name: Format and lint
-        run: pnpm exec vp check
+        run: vp check
       # Includes every package's docgen: each JSDoc `@example` is type-checked
       # and executed.
       - name: Type gates (packages + emitted declarations + doc examples)
-        run: pnpm exec vp run --concurrency-limit 2 check
+        run: vp run --concurrency-limit 2 check
       - name: Unit tests
-        run: pnpm exec vp run -r test:unit
+        run: vp run -r test:unit
       - name: Build
-        run: pnpm exec vp run -r build
+        run: vp run -r build
       - name: Audit
         run: pnpm audit --audit-level high
+
+  # TEMPORARY (removed before merge): proves the Release workflow's setup on
+  # setup-vp, which only runs on a push to trunk.
+  release-setup-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      pnpm_config_verify_deps_before_run: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: "22"
+          cache: true
+          run-install: false
+      - run: |
+          set -x
+          type -a node npm pnpm vp
+          node --version; npm --version; pnpm --version; vp --version
+          npm config get registry
+          npm install -g npm@11.20.0
+          hash -r; type -a npm; npm --version
+          test "$(npm --version)" = "11.20.0"
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm run build
+          npm view @thomasfosterau/effect-connect@0.1.0 version
+          (cd packages/core && pnpm pack --config.ignore-scripts=true --pack-destination "$RUNNER_TEMP" && tar -tzf "$RUNNER_TEMP"/*.tgz | head)
+          pnpm exec changeset status || true
