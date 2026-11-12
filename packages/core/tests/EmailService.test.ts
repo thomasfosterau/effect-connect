@@ -65,16 +65,16 @@ describe("EmailService.layerRecording", () => {
 });
 
 describe("EmailSendError", () => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new EmailSendError({
+        Effect.fail(
+          new EmailSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(422),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("EmailSendError");
       expect(error.provider).toBe("test");

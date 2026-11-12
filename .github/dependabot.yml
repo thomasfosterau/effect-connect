@@ -41,7 +41,8 @@
 #   (`npm:typescript@<v>`) move only to a pairing the pinned `@effect/tsgo`
 #   supports.
 # - the `overrides`-only security floors in pnpm-workspace.yaml (`undici`,
-#   `launch-editor>shell-quote`, `@changesets/cli>launch-editor`) are removed
+#   `launch-editor>shell-quote`, `@changesets/cli>launch-editor`,
+#   `@ts-morph/common>minimatch`) are removed
 #   once their parent requires the fixed version; see each one's comment.
 # - the npm version the Release workflow installs (release.yml).
 # - the `ghcr.io/voidzero-dev/vite-plus:<tag>` image in .devcontainer/devcontainer.json:

@@ -59,9 +59,7 @@ describe("decodeChatMessage", () => {
 describe("ChatSendResult", () => {
   it("encodes `none` as an absent key, so a result is plain JSON", () => {
     expect(Schema.encodeSync(ChatSendResult)({ id: Option.none() })).toEqual({});
-    expect(Schema.decodeUnknownSync(ChatSendResult)({ id: "1" }).id).toStrictEqual(
-      Option.some("1"),
-    );
+    expect(Schema.decodeSync(ChatSendResult)({ id: "1" }).id).toStrictEqual(Option.some("1"));
   });
 });
 
@@ -83,16 +81,16 @@ describe("ChatService.layerRecording", () => {
 });
 
 describe("ChatSendError", () => {
-  it.effect("is yieldable and tagged", () =>
+  it.effect("fails as a tagged error carrying its fields", () =>
     Effect.gen(function* () {
       const error = yield* Effect.flip(
-        Effect.gen(function* () {
-          return yield* new ChatSendError({
+        Effect.fail(
+          new ChatSendError({
             provider: "test",
             message: "rejected",
             status: Option.some(404),
-          });
-        }),
+          }),
+        ),
       );
       expect(error._tag).toBe("ChatSendError");
       expect(error.status).toStrictEqual(Option.some(404));

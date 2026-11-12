@@ -21,8 +21,10 @@ export default defineConfig({
   },
   fmt: {
     // docgen's output (the generated API docs and the example files it
-    // type-checks and runs) is gitignored and not ours to format.
-    ignorePatterns: ["packages/*/docs/**", "**/coverage/**"],
+    // type-checks and runs) is gitignored and not ours to format. Changesets
+    // writes each CHANGELOG.md, so the Version Packages PR must not depend on
+    // the formatter agreeing with its output.
+    ignorePatterns: ["packages/*/docs/**", "**/coverage/**", "**/CHANGELOG.md"],
     overrides: [
       {
         files: ["**/*.md"],
