@@ -2,8 +2,9 @@ name: CI
 
 # ONE workflow, ONE command: `vp run ci`, the root task in vite.config.ts that
 # runs every gate in order (format + lint, type gates, unit and workerd
-# tests, builds, audit). It runs once per Node.js version in the matrix, and
-# the `ci` job at the end is the single check a ruleset requires.
+# tests, builds, audit). It runs once per Node.js version in the matrix.
+# There is no aggregate job: a ruleset requires each matrix leg by name,
+# `ci (node lts)` and `ci (node latest)`.
 
 on:
   pull_request:
@@ -20,7 +21,7 @@ concurrency:
 permissions: {}
 
 jobs:
-  test:
+  ci:
     name: ci (node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -70,22 +71,3 @@ jobs:
         run: node --version && pnpm --version && vp --version
       - name: CI
         run: vp run ci
-
-  # The one stable check name for required-check rulesets, whatever the
-  # matrix holds.
-  ci:
-    name: ci
-    needs: [test]
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions: {}
-    steps:
-      - name: Every matrix job succeeded
-        env:
-          RESULT: ${{ needs.test.result }}
-        run: |
-          if [ "$RESULT" != "success" ]; then
-            echo "::error::the ci matrix finished with: $RESULT"
-            exit 1
-          fi
