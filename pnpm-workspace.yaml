@@ -90,7 +90,7 @@ catalog:
   # hono / @hono/node-server / lodash; see #82). Their `effect` peer (^4.1.0)
   # must admit the `effect` pin below. Move `catalogs.alchemy-peers` with them.
   "@alchemy.run/cloudflare": 2.0.0-beta.85
-  alchemy: 2.0.0-beta.85
+  alchemy: 2.0.0-beta.87
   effect: 4.1.4
   fallow: 3.43.1
   # Exists only for `@effect/docgen`, which requires it as a peer and spawns
@@ -147,7 +147,7 @@ catalogs:
   # peer on `effect ^4.1.0`. Move all three with the dev pins above.
   alchemy-peers:
     "@alchemy.run/cloudflare": 2.0.0-beta.85
-    alchemy: 2.0.0-beta.85
+    alchemy: 2.0.0-beta.87
     effect: ^4.1.0
 
 overrides:
