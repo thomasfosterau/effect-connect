@@ -3,3 +3,8 @@ rules:
   dependabot-cooldown:
     config:
       days: 1
+  unpinned-uses:
+    config:
+      # Exact release tags; .github/workflows/actions.lock pins their commits.
+      policies:
+        "*": ref-pin
