@@ -30,13 +30,68 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./Chat": "./src/Chat.ts",
+    "./ChatService": "./src/ChatService.ts",
+    "./Email": "./src/Email.ts",
+    "./EmailService": "./src/EmailService.ts",
+    "./Errors": "./src/Errors.ts",
+    "./Http": "./src/Http.ts",
+    "./Sms": "./src/Sms.ts",
+    "./SmsService": "./src/SmsService.ts",
+    "./Transport": "./src/Transport.ts",
+    "./WhatsApp": "./src/WhatsApp.ts",
+    "./WhatsAppService": "./src/WhatsAppService.ts"
   },
   "publishConfig": {
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./Chat": {
+        "types": "./dist/Chat.d.ts",
+        "default": "./dist/Chat.js"
+      },
+      "./ChatService": {
+        "types": "./dist/ChatService.d.ts",
+        "default": "./dist/ChatService.js"
+      },
+      "./Email": {
+        "types": "./dist/Email.d.ts",
+        "default": "./dist/Email.js"
+      },
+      "./EmailService": {
+        "types": "./dist/EmailService.d.ts",
+        "default": "./dist/EmailService.js"
+      },
+      "./Errors": {
+        "types": "./dist/Errors.d.ts",
+        "default": "./dist/Errors.js"
+      },
+      "./Http": {
+        "types": "./dist/Http.d.ts",
+        "default": "./dist/Http.js"
+      },
+      "./Sms": {
+        "types": "./dist/Sms.d.ts",
+        "default": "./dist/Sms.js"
+      },
+      "./SmsService": {
+        "types": "./dist/SmsService.d.ts",
+        "default": "./dist/SmsService.js"
+      },
+      "./Transport": {
+        "types": "./dist/Transport.d.ts",
+        "default": "./dist/Transport.js"
+      },
+      "./WhatsApp": {
+        "types": "./dist/WhatsApp.d.ts",
+        "default": "./dist/WhatsApp.js"
+      },
+      "./WhatsAppService": {
+        "types": "./dist/WhatsAppService.d.ts",
+        "default": "./dist/WhatsAppService.js"
       }
     },
     "access": "public"

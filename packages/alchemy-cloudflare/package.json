@@ -33,13 +33,23 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./Bindings": "./src/Bindings.ts",
+    "./Resend": "./src/Resend.ts"
   },
   "publishConfig": {
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./Bindings": {
+        "types": "./dist/Bindings.d.ts",
+        "default": "./dist/Bindings.js"
+      },
+      "./Resend": {
+        "types": "./dist/Resend.d.ts",
+        "default": "./dist/Resend.js"
       }
     },
     "access": "public"

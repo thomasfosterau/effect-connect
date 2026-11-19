@@ -9,7 +9,8 @@ const cacheInputs = [
   { pattern: "pnpm-lock.yaml", base: "workspace" as const },
 ];
 
-export const packageConfig = () =>
+/** `modules` are the `src/<Module>.ts` files each published as a `./<Module>` subpath. */
+export const packageConfig = (modules: ReadonlyArray<string>) =>
   defineConfig({
     run: {
       tasks: {
@@ -35,7 +36,7 @@ export const packageConfig = () =>
       },
     },
     pack: {
-      entry: ["src/index.ts"],
+      entry: ["src/index.ts", ...modules.map((m) => `src/${m}.ts`)],
       platform: "neutral",
       dts: true,
       sourcemap: true,
