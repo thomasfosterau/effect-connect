@@ -1,14 +1,9 @@
 # effect-connect
 
-An Effect-native messaging abstraction over email, SMS, WhatsApp and chat, published as three npm packages: a provider-agnostic core with one service per channel, and providers that talk HTTP through `effect/http`, so they run on Cloudflare Workers, browsers and Node alike, with no vendor SDK.
+Effect-native messaging for email, SMS, WhatsApp and chat: one provider-agnostic service per channel, and providers that speak HTTP through `effect/http` with no vendor SDK, so they run on Cloudflare Workers, browsers and Node alike.
 
-| Package | What it is |
-| --- | --- |
-| [`@thomasfosterau/effect-connect`](packages/core/README.md) | The core: per-channel message models (`effect/Schema`), the `EmailService`, `SmsService`, `WhatsAppService` and `ChatService` contracts (`Context.Service`), their errors and recording test layers, and the shared `effect/http` transport rules (`Http`) every provider applies. Provider-agnostic. |
-| [`@thomasfosterau/effect-connect-resend`](packages/resend/README.md) | The Resend email provider: `POST /emails` with a `Redacted` key, a no-op layer for un-provisioned stages and a Worker env resolver. |
-| [`@thomasfosterau/effect-connect-alchemy-cloudflare`](packages/alchemy-cloudflare/README.md) | Deploy-time bindings for Workers deployed with Alchemy's Cloudflare provider: one builder per provider (Resend today) of the `env` record its resolver reads, secrets as `Redacted`, typed by `Cloudflare.InferEnv`. Peers: `@alchemy.run/cloudflare` and `alchemy` (2.0.0-beta.85), `effect ^4.1.0`. |
-
-The API is in flux: expect breaking changes before 1.0.
+> [!WARNING]
+> Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. **Not production-ready:** it handles credentials and personal data, and has not been audited.
 
 ## Install
 
@@ -16,11 +11,9 @@ The API is in flux: expect breaking changes before 1.0.
 pnpm add @thomasfosterau/effect-connect @thomasfosterau/effect-connect-resend effect
 ```
 
-`effect` (`^4.0.0`) is a peer dependency. Node.js 22 or newer.
+## Usage
 
-## Example
-
-Code sends through a channel's service (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`); the edge provides one provider's layer per channel. Swapping providers is a one-line layer change, and a test provides `EmailService.layerRecording` / `SmsService.layerRecording` instead.
+Code sends through a channel's service; the edge provides one provider's layer per channel (or `EmailService.layerRecording` in a test).
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -48,18 +41,14 @@ const EmailLive = Resend.layer({ apiKey: Redacted.make("re_…") }).pipe(
 Effect.runPromise(sendWelcome("reader@example.com").pipe(Effect.provide(EmailLive)));
 ```
 
-## Documentation
+## Packages
 
-Each package README is a short landing page; the detail is in [`docs/`](docs/):
+| Package | What it is | Guide |
+| --- | --- | --- |
+| [`@thomasfosterau/effect-connect`](packages/core) | Message models, the `EmailService` / `SmsService` / `WhatsAppService` / `ChatService` contracts, errors, test layers and shared HTTP transport rules. | [core](docs/core.md) |
+| [`@thomasfosterau/effect-connect-resend`](packages/resend) | Resend email provider, a no-op layer and a Worker env resolver. | [resend](docs/resend.md) |
+| [`@thomasfosterau/effect-connect-alchemy-cloudflare`](packages/alchemy-cloudflare) | Deploy-time Worker bindings for Alchemy's Cloudflare provider. | [alchemy-cloudflare](docs/alchemy-cloudflare.md) |
 
-- [Core](docs/core.md): usage per channel, the API tables, testing a consumer, errors.
-- [Resend](docs/resend.md): the provider, the Worker resolver, what the transport pins.
-- [Alchemy Cloudflare](docs/alchemy-cloudflare.md): deploy-time bindings.
+## More
 
-## Development
-
-pnpm + Vite+ (`vp`), with fallow for dead-code and complexity audits and Changesets for releases. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, hooks and the individual checks, [PUBLISHING.md](PUBLISHING.md) for the release pipeline, [SECURITY.md](SECURITY.md) for reporting a vulnerability, and [AGENTS.md](AGENTS.md) for the guidance coding agents follow.
-
-## License
-
-[MIT](LICENSE)
+[Contributing](docs/CONTRIBUTING.md) · [Security](docs/SECURITY.md) · [Publishing](docs/PUBLISHING.md) · [License](LICENSE.md) (MIT)

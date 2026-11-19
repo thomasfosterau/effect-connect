@@ -1,20 +1,8 @@
 # `@thomasfosterau/effect-connect-alchemy-cloudflare`
 
-Detail for the [package README](../packages/alchemy-cloudflare/README.md).
+Detail for the [package README](../packages/alchemy-cloudflare/README.md). Each builder returns the record of Worker `env` bindings one provider reads, under its own keys (`RESEND_API_KEY` for Resend). Secrets are `Redacted`, which Alchemy deploys as secret bindings. Spread the record into your Worker's `env`, and the provider's `resolveTransport(env)` (or `layerConfig`) finds its credentials at runtime.
 
-Deploy-time bindings for [`@thomasfosterau/effect-connect`](./core.md) on Cloudflare Workers deployed with [Alchemy](https://alchemy.run)'s Cloudflare provider, [`@alchemy.run/cloudflare`](https://www.npmjs.com/package/@alchemy.run/cloudflare). Each builder returns the record of Worker `env` bindings one provider reads, under that provider's own keys (`RESEND_API_KEY` for Resend, the one provider today). Secrets are `Redacted` values, which Alchemy deploys as secret bindings. Spread the record into your Worker's `env`, and the provider's `resolveTransport(env)` (or `layerConfig`) finds its credentials at runtime.
-
-It binds credentials only. It provisions nothing on the vendor's side (domains, API keys). Its types are the Cloudflare provider's: every bindings record is a `WorkerBindings` (each value a `Cloudflare.WorkerBindingResource`), and `Deployed<B>` is `Cloudflare.InferEnv<B>`. At runtime the builders need only `effect`.
-
-This package was created using Claude Code, and its API is in flux: expect churn and breaking changes.
-
-## Install
-
-```bash
-pnpm add -D @thomasfosterau/effect-connect-alchemy-cloudflare @alchemy.run/cloudflare@2.0.0-beta.85 alchemy@2.0.0-beta.85 effect
-```
-
-Its peer dependencies are all required: `@alchemy.run/cloudflare` and `alchemy`, exactly `2.0.0-beta.85` (the provider peers on that exact `alchemy`), and `effect` `^4.1.0`, the range both of them require. Node.js 22 or newer is required. The package runs on the deploy machine, inside your `alchemy.run.ts`, never in the Worker.
+It binds credentials only and provisions nothing on the vendor's side. It runs on the deploy machine, inside your `alchemy.run.ts`, never in the Worker. Its peers `@alchemy.run/cloudflare` and `alchemy` are pinned to one exact beta (the provider peers on that exact `alchemy`), with `effect ^4.1.0`.
 
 ## Usage
 
@@ -57,6 +45,6 @@ const EmailLive = Resend.resolveTransport(env); // the live sender: RESEND_API_K
 | `WorkerBindings<B>` | — | The constraint every bindings record meets: each value a `Cloudflare.WorkerBindingResource`, so the record spreads into a `Cloudflare.Worker`'s `env`. |
 | `Deployed<B>` | — | `Cloudflare.InferEnv<B>`: the `env` a Worker receives for a bindings record `B`, every value a plain string. Each provider's env type accepts it. |
 
-`Deployed<B>` is defined as the provider's own `Cloudflare.InferEnv<B>`, so a Worker typed with it is checked against the env Alchemy actually deploys; the package's tests assert, for every builder against `@alchemy.run/cloudflare` 2.0.0-beta.85, that it is also what `InferEnv` gives a `Cloudflare.Worker` whose `env` is `B`, and that the provider's env type accepts it.
+`Deployed<B>` is the provider's own `Cloudflare.InferEnv<B>`, so a Worker typed with it is checked against the env Alchemy actually deploys.
 
 See also the [Resend provider](./resend.md), whose `resolveTransport(env)` reads these bindings.

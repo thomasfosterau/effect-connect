@@ -1,6 +1,9 @@
 # `@thomasfosterau/effect-connect`
 
-An Effect-native messaging abstraction: one message model and one service contract per channel (email, SMS, WhatsApp, chat), and their errors, provider-agnostic. The Resend (email) provider ships as a sibling package, [`@thomasfosterau/effect-connect-resend`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/resend#readme); no first-party provider implements `SmsService`, `WhatsAppService` or `ChatService` yet. Created using Claude Code; the API is in flux, so expect breaking changes.
+An Effect-native messaging abstraction: one message model and one service contract per channel (email, SMS, WhatsApp, chat), and their errors, provider-agnostic. The Resend (email) provider ships as a sibling package, [`@thomasfosterau/effect-connect-resend`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/resend#readme); no first-party provider implements `SmsService`, `WhatsAppService` or `ChatService` yet.
+
+> [!WARNING]
+> Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. Not production-ready.
 
 ## Install
 
@@ -56,4 +59,4 @@ The package has the single entry point `.`.
 
 ## License
 
-MIT
+[MIT](https://github.com/thomasfosterau/effect-connect/blob/trunk/LICENSE.md)

@@ -1,22 +1,10 @@
 # `@thomasfosterau/effect-connect`
 
-Detail for the [package README](../packages/core/README.md).
-
-An Effect-native messaging abstraction: one message model and one service contract per channel (email: `EmailService`; SMS: `SmsService`; WhatsApp: `WhatsAppService`; chat: `ChatService`), and their errors, provider-agnostic. The Resend (email) provider ships as a sibling package; no first-party provider implements `SmsService`, `WhatsAppService` or `ChatService` yet.
-
-This package was created using Claude Code, and its API is in flux: expect churn and breaking changes.
-
-## Install
-
-```bash
-pnpm add @thomasfosterau/effect-connect effect
-```
-
-`effect` (`^4.0.0`) is a required peer dependency. Node.js 22 or newer is required. Install a provider per channel alongside it: [`@thomasfosterau/effect-connect-resend`](./resend.md) for email. No first-party provider implements `SmsService`, `WhatsAppService` or `ChatService` yet: those channels are contracts you provide your own layer for.
+Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`), and their errors. [Resend](./resend.md) implements email; no provider in this repository implements the other channels yet, so provide your own layer for them.
 
 ## Usage
 
-A consumer sends through a channel's service (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`) and provides one provider's layer for it at the edge; each channel is its own service, so an application that sends only email never provides an SMS layer, and a missing provider is a type error rather than a failure at the first send; swapping providers is a one-line layer change. Every provider talks HTTP through Effect's `HttpClient` (`effect/http`), so a test stands in a stub at that seam and nothing ever reaches a vendor from a unit suite.
+Each channel is its own service, so an application that sends only email never provides an SMS layer, and a missing provider is a type error rather than a failure at the first send. Providers talk HTTP through Effect's `HttpClient`, so a test stubs that seam.
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -79,7 +67,7 @@ export const announce = (version: string) => sendChat({ text: `Deployed ${versio
 
 ## Multiple channels
 
-SMS, WhatsApp and chat are channels of their own, each with its own service (`SmsService`, `WhatsAppService`, `ChatService`). They are contracts only: no provider in this repository implements them yet, so provide your own layer for each (or its `layerRecording` in a test). A program that uses two channels names both in its requirements:
+A program that uses two channels names both in its requirements:
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -193,6 +181,6 @@ await Effect.runPromise(
 
 ## Relationship to effect-auth
 
-`@thomasfosterau/effect-auth`'s `EmailSender` takes a purpose-keyed message (`{ to, purpose, params }`) and lets an adapter render it. This package's `EmailMessage` is the rendered form, so an effect-auth adapter can be implemented on top of a provider from this repository: render, then `EmailService.send`. There is no dependency in either direction.
+`@thomasfosterau/effect-auth`'s `EmailSender` takes a purpose-keyed message; `EmailMessage` is its rendered form, so an adapter renders, then calls `EmailService.send`. Neither package depends on the other.
 
 See also the [Resend provider](./resend.md) and [Alchemy Cloudflare bindings](./alchemy-cloudflare.md).

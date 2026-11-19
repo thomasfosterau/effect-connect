@@ -1,6 +1,9 @@
 # `@thomasfosterau/effect-connect-resend`
 
-The Resend provider for [`@thomasfosterau/effect-connect`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/core#readme): `POST /emails` over Effect's `HttpClient` (`effect/http`) with no SDK, a `Redacted` API key, a no-op layer for un-provisioned stages and an env-driven resolver that picks between the two. Created using Claude Code; the API is in flux, so expect breaking changes.
+The Resend provider for [`@thomasfosterau/effect-connect`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/core#readme): `POST /emails` over Effect's `HttpClient` (`effect/http`) with no SDK, a `Redacted` API key, a no-op layer for un-provisioned stages and an env-driven resolver that picks between the two.
+
+> [!WARNING]
+> Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. Not production-ready.
 
 ## Install
 
@@ -59,4 +62,4 @@ The package has the single entry point `.`.
 
 ## License
 
-MIT
+[MIT](https://github.com/thomasfosterau/effect-connect/blob/trunk/LICENSE.md)

@@ -1,18 +1,6 @@
 # `@thomasfosterau/effect-connect-resend`
 
-Detail for the [package README](../packages/resend/README.md).
-
-The Resend provider for [`@thomasfosterau/effect-connect`](./core.md): `POST /emails` over Effect's `HttpClient` (`effect/http`) with no SDK, a `Redacted` API key, a no-op layer for un-provisioned stages and an env-driven resolver that picks between the two.
-
-This package was created using Claude Code, and its API is in flux: expect churn and breaking changes.
-
-## Install
-
-```bash
-pnpm add @thomasfosterau/effect-connect-resend @thomasfosterau/effect-connect effect
-```
-
-`effect` (`^4.0.0`) is a required peer dependency. Node.js 22 or newer is required. Nothing here is Node-shaped: the provider runs on Cloudflare Workers and in browsers as well as on Node.
+Detail for the [package README](../packages/resend/README.md): the Resend provider for the [core](./core.md), `POST /emails` over Effect's `HttpClient` with no SDK. It runs on Cloudflare Workers and in browsers as well as on Node.
 
 ## Usage
 
@@ -56,7 +44,7 @@ const program = Effect.gen(function* () {
 
 ## On a Worker: `resolveTransport(env)`
 
-The consuming applications' preview and dev stages deploy without the credential. `resolveTransport` is the one call a Worker makes: the live sender on the platform `fetch` when `RESEND_API_KEY` is bound and non-blank (as a string or a `Redacted`), the logging no-op otherwise, so the fallback cannot be forgotten.
+For stages deployed without the credential, `resolveTransport` is the one call a Worker makes: the live sender on the platform `fetch` when `RESEND_API_KEY` is bound and non-blank (as a string or a `Redacted`), the logging no-op otherwise, so the fallback cannot be forgotten.
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -77,7 +65,7 @@ export default {
 ## What the transport pins
 
 - **A fixed literal host.** `https://api.resend.com` is a compile-time constant; `baseUrl` exists for a stub server in a test, never for request input.
-- **Redirects are refused**: `redirect: "manual"` on the underlying fetch, layered over any `FetchHttpClient.RequestInit` defaults you provide, and a 3xx answer fails as `EmailSendError` (`Resend was unreachable: redirect refused (302)`, `status: some(302)`) after one request. Workers' default (`follow`) replays a request at the redirect target with the headers intact, so a 3xx from a hijacked host would hand the bearer token to whatever host the response named. A Resend send has no legitimate reason to redirect. (`redirect: "error"` is not used: Cloudflare Workers rejects it on every request.)
+- **Redirects are refused**: `redirect: "manual"` on the underlying fetch (layered over your own `FetchHttpClient.RequestInit`), and a 3xx fails as `EmailSendError` (`Resend was unreachable: redirect refused (302)`, `status: some(302)`) after one request. Workers' default (`follow`) replays the request, bearer token included, at whatever host the response names. (`redirect: "error"` is not an option: Workers rejects it on every request.)
 - **Truncated error bodies.** A non-2xx becomes an `EmailSendError` with `provider: "resend"`, `status: some(status)` and at most 200 characters of the response; an unreadable body still fails with the status; a transport failure carries `status: none`. The key never appears in a message.
 - **No retry.** The caller decides the policy (`Effect.retry`).
 
