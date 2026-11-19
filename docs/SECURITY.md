@@ -17,4 +17,4 @@ Report vulnerabilities privately through GitHub's [Report a vulnerability](https
 - **No install scripts in release jobs**: `--ignore-scripts`, no shared cache, and no pnpm re-install mid-job. `allowBuilds` in `pnpm-workspace.yaml` names the only dependencies whose scripts run anywhere.
 - **Locked actions**: every action is pinned by exact tag and locked to a commit by `.github/workflows/actions.lock`; nothing publishes unless it verifies.
 - **Least privilege**: workflows default to `permissions: {}`; CI holds a read-only token and no secrets, so Dependabot PRs run it safely.
-- **Locked dependencies**: frozen-lockfile installs; pnpm refuses versions younger than 8 hours, and Dependabot waits a day.
+- **Locked dependencies**: frozen-lockfile installs; pnpm and Dependabot both refuse versions younger than a day.
