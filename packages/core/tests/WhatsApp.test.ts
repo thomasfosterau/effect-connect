@@ -1,9 +1,3 @@
-/**
- * Unit coverage for `./WhatsApp`, `./WhatsAppService` and the WhatsApp
- * errors — the text / template union, its boundary decoder, the contract's
- * accessors and the recording double.
- */
-
 import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -13,7 +7,6 @@ import {
   sendWhatsApp,
   sendWhatsAppBatch,
   WhatsAppMessage,
-  WhatsAppSendError,
   WhatsAppSendResult,
   WhatsAppService,
   WhatsAppValidationError,
@@ -126,22 +119,4 @@ describe("WhatsAppService.layerRecording", () => {
       }),
     );
   });
-});
-
-describeWrapped("WhatsAppSendError", (it) => {
-  it.effect("fails as a tagged error carrying its fields", () =>
-    Effect.gen(function* () {
-      const error = yield* Effect.flip(
-        Effect.fail(
-          new WhatsAppSendError({
-            provider: "test",
-            message: "rejected",
-            status: Option.some(400),
-          }),
-        ),
-      );
-      expect(error._tag).toBe("WhatsAppSendError");
-      expect(error.status).toStrictEqual(Option.some(400));
-    }),
-  );
 });

@@ -85,33 +85,20 @@ const refuse = (
 
 /**
  * Run a request with redirects refused: `redirect: "manual"` is pinned on the
- * underlying `fetch`, and a response that is a redirect fails instead of
- * being answered.
+ * underlying `fetch`, and a redirect answer fails instead of being followed.
  *
- * Workers' default (`follow`) replays a request at the redirect target
- * **with the headers intact** — it does not drop `Authorization` on a
- * cross-origin hop the way a browser does — so a 3xx from a hijacked or
- * misconfigured vendor host would hand the credential to whatever host the
- * response named. A vendor API call has no legitimate reason to redirect, so
- * the request fails instead (SEC-SECRET-001 in the consuming applications).
+ * Workers' default (`follow`) replays a request at the redirect target with
+ * its headers, `Authorization` included, so a 3xx from a hijacked vendor host
+ * would hand it the credential. `"error"` is not an option: Workers rejects
+ * it on every request.
  *
- * `redirect: "manual"`, not `"error"`: Cloudflare Workers rejects `"error"`
- * outright, before sending anything, so it would fail every request there.
- * Under `"manual"` Workers answers a redirect as an ordinary response with
- * its 3xx status, and a browser-like runtime as an opaque redirect (status
- * `0`). Either fails with an `HttpClientError` whose reason is a
- * `StatusCodeError` described as `redirect refused`. The redirect is never
- * followed and its body and `Location` are never read: the body is
- * cancelled, the message carries the status alone, and the response the
- * error holds keeps the status and drops every header.
- *
- * Layered over whatever `FetchHttpClient.RequestInit` the consumer already
- * provides, so a `credentials` or `cache` setting survives; only `redirect`
- * is pinned. A non-fetch `HttpClient` never reads the option, and its 3xx
- * answers are refused the same way. An effect that answers something other
- * than an `HttpClientResponse` has only the option pinned: there is no
- * response to inspect, so it never fails with the `HttpClientError` its type
- * admits.
+ * A 3xx (or a browser's opaque redirect, status `0`) fails with an
+ * `HttpClientError` whose reason is a `StatusCodeError` described as
+ * `redirect refused`. Its body is cancelled unread, and the response the
+ * error keeps has the status and no headers, so `Location` never reaches a
+ * log. Only `redirect` is overridden in the consumer's
+ * `FetchHttpClient.RequestInit`; a non-fetch `HttpClient` is refused the same
+ * way.
  *
  * @since 0.1.0
  */

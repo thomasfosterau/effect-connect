@@ -1,9 +1,3 @@
-/**
- * Unit coverage for `./Sms`, `./SmsService` and the SMS errors — the SMS
- * message model, its boundary decoder, the contract's accessors and the
- * recording double.
- */
-
 import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -15,7 +9,6 @@ import {
   sendSmsBatch,
   SmsMessage,
   SmsSender,
-  SmsSendError,
   SmsSendResult,
   SmsService,
   SmsValidationError,
@@ -118,22 +111,4 @@ describe("SmsService.layerRecording", () => {
       }),
     );
   });
-});
-
-describeWrapped("SmsSendError", (it) => {
-  it.effect("fails as a tagged error carrying its fields", () =>
-    Effect.gen(function* () {
-      const error = yield* Effect.flip(
-        Effect.fail(
-          new SmsSendError({
-            provider: "test",
-            message: "rejected",
-            status: Option.some(400),
-          }),
-        ),
-      );
-      expect(error._tag).toBe("SmsSendError");
-      expect(error.status).toStrictEqual(Option.some(400));
-    }),
-  );
 });

@@ -1,18 +1,8 @@
 /**
- * The WhatsApp message model every WhatsApp provider sends: a free-form text
- * message, a pre-approved template message, and the result of a send.
- *
- * WhatsApp admits free-form text only inside the 24-hour customer-service
- * window that opens when the recipient last messaged the sender; outside it
- * a business may send only a template the platform approved in advance. The
- * model makes the two a tagged union (`_tag: "Text"` / `"Template"`), so a
- * consumer says which it means and a provider maps each onto its wire format
- * (Twilio's `Body`, or `ContentSid` + `ContentVariables`). Provider-only
- * concepts (a Twilio Content SID's `HX…` shape, a Messaging Service) stay in
- * that provider — see the package `AGENTS.md`.
- *
- * Numbers reuse the SMS model's `PhoneNumber` (E.164): a WhatsApp address is
- * a phone number, and a provider adds its own channel prefix (`whatsapp:`).
+ * The WhatsApp message model. WhatsApp admits free-form text only inside the
+ * 24-hour customer-service window; outside it a business may send only a
+ * pre-approved template, so the message is a tagged union of the two.
+ * Numbers are E.164 `PhoneNumber`s; a provider adds its own channel prefix.
  *
  * @module WhatsApp
  * @since 0.1.0

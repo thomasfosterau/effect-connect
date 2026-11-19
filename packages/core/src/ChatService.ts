@@ -1,12 +1,5 @@
 /**
- * The service every chat provider implements and every consumer posts chat
- * messages through — the chat counterpart of `EmailService` and
- * `SmsService`, with the same shape.
- *
- * A separate service per channel: an application that posts to chat but
- * sends no email never provides an email layer, and a missing chat provider
- * is a type error at the edge rather than a runtime failure at the first
- * send.
+ * The chat service, the counterpart of `EmailService`.
  *
  * @module ChatService
  * @since 0.1.0

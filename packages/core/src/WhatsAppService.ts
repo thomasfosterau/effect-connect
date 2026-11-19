@@ -1,11 +1,5 @@
 /**
- * The service every WhatsApp provider implements and every consumer sends
- * WhatsApp messages through — the WhatsApp counterpart of `SmsService`, with
- * the same shape.
- *
- * A separate service per channel: an application that sends SMS but not
- * WhatsApp never has to provide a WhatsApp layer, and a missing WhatsApp
- * provider is a type error at the edge rather than a runtime failure.
+ * The WhatsApp service, the counterpart of `SmsService`.
  *
  * @module WhatsAppService
  * @since 0.1.0

@@ -1,10 +1,6 @@
 /**
- * The message model every provider sends: addresses, recipients, attachments,
- * the message itself and the result of a send.
- *
- * Provider-agnostic on purpose. A provider maps this shape onto its wire
- * format (SendGrid personalizations, Resend's flat JSON) and never leaks its
- * own vocabulary back into it — see the package `AGENTS.md`.
+ * The email message model, provider-agnostic: a provider maps it onto its
+ * wire format and never leaks its own vocabulary back into it.
  *
  * @module Email
  * @since 0.1.0
@@ -16,9 +12,8 @@ import { EmailValidationError } from "./Errors.ts";
 import { issueLines } from "./internal/issues.ts";
 
 /**
- * An email address: a syntactic check only (`local@domain.tld`), the same
- * pattern the original scaffold validated. Deliverability is the provider's
- * verdict, not the schema's.
+ * An email address: a syntactic check only (`local@domain.tld`).
+ * Deliverability is the provider's verdict.
  *
  * @since 0.1.0
  */

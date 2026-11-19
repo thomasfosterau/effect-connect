@@ -1,11 +1,7 @@
 /**
- * The service every SMS provider implements and every consumer sends SMS
- * through — the SMS counterpart of `EmailService`, with the same shape.
- *
- * A separate service per channel, not one service over every channel: an
- * application that sends only email never has to provide an SMS layer, and
- * a missing SMS provider is a type error at the edge rather than a runtime
- * failure at the first send.
+ * The SMS service, the counterpart of `EmailService`. Each channel is its
+ * own service, so a missing provider is a type error at the edge rather than
+ * a failure at the first send.
  *
  * @module SmsService
  * @since 0.1.0
