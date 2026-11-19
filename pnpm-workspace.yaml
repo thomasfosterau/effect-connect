@@ -90,6 +90,6 @@ peerDependencyRules:
     # docgen's `tsconfck` never calls the API that needs this optional peer.
     "tsconfck>typescript": "6"
 
-# Hold new versions for 8 hours (minutes). Dependabot's 1-day cooldown is
-# longer. Keep the toolchain out of the exclusions `vp migrate` adds.
-minimumReleaseAge: 480
+# Hold new versions for 24 hours (minutes), matching Dependabot's 1-day
+# cooldown. Keep the toolchain out of the exclusions `vp migrate` adds.
+minimumReleaseAge: 1440
