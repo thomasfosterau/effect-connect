@@ -67,10 +67,8 @@ export interface ResendEnv {
 }
 
 /**
- * The credential from a Worker env, normalised: `none` when the binding is
- * absent, `null`, or blank (a stage can bind `""` by hand, and a truthiness
- * check is what makes that the same case as "unset" rather than a real
- * transport built around an empty bearer token).
+ * The credential from a Worker env: `none` when the binding is absent,
+ * `null` or blank.
  *
  * @since 0.1.0
  */

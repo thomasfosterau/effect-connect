@@ -13,14 +13,9 @@
 import * as Schema from "effect/Schema";
 
 /**
- * How much of a vendor's error body a send error ({@link EmailSendError},
- * {@link SmsSendError}, {@link WhatsAppSendError},
- * {@link ChatSendError}) carries.
- *
- * A vendor error response can echo request context back — headers, the
- * message it rejected — so a provider never embeds one raw and unbounded in
- * an error message; it truncates to this many characters first
- * ({@link truncateUpstreamBody}). The credential never appears in one at all.
+ * How many characters of a vendor's error body a send error carries. A vendor
+ * error can echo request context back, so a provider never embeds one
+ * unbounded ({@link truncateUpstreamBody}).
  *
  * @since 0.1.0
  */

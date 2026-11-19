@@ -1,18 +1,13 @@
 {
   "$schema": "./node_modules/@effect/tsgo/schema.json",
   "compilerOptions": {
-    // Copied from the preferenceflow application so the library compiles under
-    // exactly the options its consumers use. `erasableSyntaxOnly` because the
-    // apps load TypeScript under Node's strip-only loader; a library file that
-    // uses enums / namespaces / parameter properties would fail there.
+    // Consumers may load TypeScript under Node's strip-only loader.
     "erasableSyntaxOnly": true,
     "module": "preserve",
     "moduleResolution": "bundler",
     "target": "esnext",
     "lib": ["esnext", "dom", "dom.iterable"],
-    // Source imports are written `./x.ts`; this flag lets them type-check.
-    // `vp pack` (tsdown) bundles each entry point into one `index.js` +
-    // `index.d.ts`, so no relative specifier reaches a consumer.
+    // Sources import `./x.ts`; `vp pack` bundles them away.
     "rewriteRelativeImportExtensions": true,
     "allowJs": true,
     "checkJs": false,
@@ -31,9 +26,7 @@
     "plugins": [
       {
         "name": "@effect/language-service",
-        // The severities below keep every Effect rule visible in the editor,
-        // but a "warning" still fails the patched tsc by default — this flag
-        // is what actually makes warnings non-blocking in the check tasks.
+        // Warnings show in the editor without failing the patched `tsc`.
         "ignoreEffectWarningsInTscExitCode": true,
         "diagnosticSeverity": {
           "abortControllerInEffect": "warning",
@@ -58,9 +51,7 @@
           "processEnv": "warning",
           "processEnvInEffect": "warning",
           "unsafeEffectTypeAssertion": "warning",
-          // Effect 4 marks much of `effect/http` `@stability unstable`, so as a
-          // warning this fires on every provider's HTTP import and drowns the
-          // warnings that matter. Owner decision (#36): a suggestion.
+          // Fires on every `effect/http` import, which this library is built on.
           "unstableApiUsage": "suggestion"
         }
       }

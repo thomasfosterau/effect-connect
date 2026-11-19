@@ -1,14 +1,7 @@
 /**
- * The chat message model every chat provider sends: a message posted to a
- * chat channel through an incoming webhook, and the result of a send.
- *
- * Provider-agnostic on purpose, as the email and SMS models are: plain text
- * and an optional display name, the subset Slack's and Discord's incoming
- * webhooks both accept. Vendor-only shapes (Slack Block Kit, Discord embeds,
- * either vendor's mention syntax) stay out of the core — see the package
- * `AGENTS.md`. The destination channel is not part of the message: an
- * incoming webhook is bound to one channel, so it lives in the provider's
- * configuration (the webhook URL).
+ * The chat message model: plain text and an optional display name, the
+ * subset Slack's and Discord's incoming webhooks share. The destination is
+ * the provider's configured webhook, not part of the message.
  *
  * @module Chat
  * @since 0.1.0

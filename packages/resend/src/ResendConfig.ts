@@ -13,12 +13,8 @@ import * as Layer from "effect/Layer";
 import type * as Redacted from "effect/Redacted";
 
 /**
- * Resend's API host, as a compile-time constant. A hard-coded literal rather
- * than anything derived from input: a `fetch` whose host could be steered is
- * exactly the outbound-request hazard the consuming applications' security
- * policies forbid (SEC-SSRF-001), and the only values that ever vary in a
- * send are the message fields in the body. `baseUrl` exists for a stub
- * server in a test, never for request input.
+ * Resend's API host. A literal, so no input can steer where the key is sent;
+ * `baseUrl` exists for a stub server in a test, never for request input.
  *
  * @since 0.1.0
  */

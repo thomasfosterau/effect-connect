@@ -2,11 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "types": ["node"],
-    // Resolve the package names to the EMITTED declarations rather than the
-    // workspace `exports` (which point at `src/` for the in-repo dev loop) —
-    // which is also why this package declares no dependency on any of them:
-    // the mapping below is the whole resolution. Relative to this file;
-    // TypeScript 7 removed `baseUrl`.
+    // Resolve the packages to their emitted declarations, not `src/`.
     "paths": {
       "@thomasfosterau/effect-connect": ["../../packages/core/dist/index.d.ts"],
       "@thomasfosterau/effect-connect-resend": ["../../packages/resend/dist/index.d.ts"],

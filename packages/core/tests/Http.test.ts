@@ -1,9 +1,3 @@
-/**
- * Unit coverage for `./Http` — the transport rules the providers share. The
- * providers' own suites pin each rule end to end through a stubbed `fetch`;
- * this suite pins the helpers on their own.
- */
-
 import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";

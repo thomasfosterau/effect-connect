@@ -1,9 +1,3 @@
-/**
- * Unit coverage for `./Transport` — the Worker-edge helpers every provider's
- * `configFromEnv`, `resolveTransport(env)` and `noop` are built from. The
- * providers' own suites pin each of those end to end.
- */
-
 import { describe, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";

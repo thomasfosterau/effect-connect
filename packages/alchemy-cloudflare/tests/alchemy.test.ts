@@ -49,12 +49,12 @@ type Equals<A, B> =
 type Assert<T extends true> = T;
 
 // The `env` alchemy infers for a Cloudflare Worker whose `env` prop is the
-// bindings record `B` (#94).
+// bindings record `B`.
 type WorkerEnv<B> = Cloudflare.InferEnv<Cloudflare.Worker<B>>;
 export type Checks = [
   Assert<Extends<ResendBindings, Resend.ResendEnv>>,
   Assert<Extends<Deployed<ResendBindings>, Resend.ResendEnv>>,
-  // An optional binding deploys as an optional string, not `?: never` (#94),
+  // An optional binding deploys as an optional string, not `?: never`,
   // and a secret as a plain one.
   Assert<
     Equals<

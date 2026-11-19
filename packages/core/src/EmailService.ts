@@ -1,12 +1,6 @@
 /**
- * The service every provider implements and every consumer sends through.
- *
- * A consumer yields {@link EmailService} (or calls the {@link send} /
- * {@link sendBatch} accessors) and provides one provider's layer at the
- * edge; swapping one email provider for another is a one-line layer change. The
- * recording layer is the test double both the providers' own suites and a
- * consumer's use: nothing leaves the process, and the test reads back what
- * would have gone out.
+ * The email service every provider implements and every consumer sends
+ * through, with its accessors and recording test double.
  *
  * @module EmailService
  * @since 0.1.0

@@ -1,24 +1,8 @@
 /**
- * The Resend sender: the core `EmailMessage` mapped onto Resend's
- * `POST /emails` (and `POST /emails/batch`) JSON, sent over Effect's
- * `HttpClient` with no SDK — the library form of the hand-rolled senders the
- * website, gardeneria and preferenceflow applications carry.
- *
- * The properties those senders pin, kept here:
- *
- * - a fixed literal host ({@link DEFAULT_BASE_URL});
- * - redirects refused (the core's `refuseRedirects`: `redirect: "manual"` on
- *   the underlying `fetch`, and a 3xx answer fails unread). Workers' default
- *   (`follow`) replays the request at the redirect target **with the headers
- *   intact** — it does not drop `Authorization` on a cross-origin hop the way
- *   a browser does — so a 3xx from a hijacked or misconfigured
- *   `api.resend.com` would hand the API key to whatever host the response
- *   named. A Resend send has no legitimate reason to redirect, so the correct
- *   behaviour is to fail loudly (SEC-SECRET-001). Never `redirect: "error"`:
- *   Workers rejects that value on every request;
- * - a non-2xx becomes an `EmailSendError` carrying the status and a
- *   **truncated** body, never the raw unbounded one, and never the key;
- * - no retry: the caller decides the policy.
+ * The core `EmailMessage` mapped onto Resend's `POST /emails` (and
+ * `/emails/batch`), sent over Effect's `HttpClient` with no SDK: a fixed host,
+ * redirects refused (the core's `refuseRedirects`), a truncated error body
+ * that never holds the key, and no retry.
  *
  * @module Resend
  * @since 0.1.0
@@ -244,23 +228,15 @@ export const layerEmailService: Layer.Layer<
  * The sender used when no API key is configured: every send **succeeds**
  * without sending, and logs the subject only.
  *
- * Deliberately succeeds rather than failing. The consuming applications'
- * preview and dev stages deploy without the credential, so a failing stub
- * would turn "no mail configured" into "signup is broken" on every preview
- * stage — and inside a queue consumer, into every notification in the batch
- * being re-delivered, forever. That trade is only safe while the mail is
- * advisory (a verification a user can still sign in without, a notification
- * that also went out as push); if a send ever gates an account, fail loudly
- * at boot instead of installing this.
+ * Succeeding keeps an un-provisioned stage (or a queue consumer) working
+ * rather than failing every send. That is only safe while the mail is
+ * advisory; if a send gates an account, fail loudly at boot instead.
  *
  * @since 0.1.0
  */
 export const noop: Layer.Layer<EmailService> = Layer.succeed(
   EmailService,
-  // Logs the subject only — never the recipient (PII) and never the body
-  // (a verification URL IS the token). The subject alone answers the
-  // question this line exists for: "is mail being dropped for want of a
-  // credential?"
+  // Never the recipient (PII) or the body (a verification URL is the token).
   droppingSender<EmailMessage>(
     (message) =>
       `[effect-connect-resend] no RESEND_API_KEY configured; dropping "${message.subject}"`,

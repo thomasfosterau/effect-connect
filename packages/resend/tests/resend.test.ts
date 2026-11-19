@@ -1,11 +1,4 @@
-/**
- * The Resend provider's suite: the transport properties the preferenceflow
- * application's `apps/auth/tests/email.test.ts` pins (fixed endpoint, bearer
- * credential, refused redirects (`redirect: "manual"`), truncated error bodies, an unreadable
- * error body still failing with the status), the no-op transport's logging
- * discipline and the env resolver — ported onto the v4 core, with the
- * network stubbed at `FetchHttpClient.Fetch`. No test here reaches Resend.
- */
+// The network is stubbed at `FetchHttpClient.Fetch`; nothing reaches Resend.
 
 import { describe, expect, layer, test } from "@effect/vitest";
 import * as ConfigProvider from "effect/ConfigProvider";

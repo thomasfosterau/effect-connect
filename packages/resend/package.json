@@ -26,18 +26,28 @@
     "!src/**/*.test.ts",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE.md"
   ],
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./Resend": "./src/Resend.ts",
+    "./ResendConfig": "./src/ResendConfig.ts"
   },
   "publishConfig": {
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./Resend": {
+        "types": "./dist/Resend.d.ts",
+        "default": "./dist/Resend.js"
+      },
+      "./ResendConfig": {
+        "types": "./dist/ResendConfig.d.ts",
+        "default": "./dist/ResendConfig.js"
       }
     },
     "access": "public"

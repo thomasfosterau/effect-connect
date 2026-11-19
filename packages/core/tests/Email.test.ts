@@ -1,11 +1,3 @@
-/**
- * Unit coverage for `./Email` — the message model and its boundary decoder.
- *
- * The four decode cases are the original scaffold's `src/Email.test.ts`
- * ported onto `effect/Schema`; the rest pins the boundary decoder's error
- * shape and the recipient projection the providers build their payloads from.
- */
-
 import { describe, expect, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";

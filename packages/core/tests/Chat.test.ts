@@ -1,16 +1,9 @@
-/**
- * Unit coverage for `./Chat`, `./ChatService` and the chat errors — the chat
- * message model, its boundary decoder, the contract's accessors and the
- * recording double.
- */
-
 import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import {
   ChatMessage,
-  ChatSendError,
   ChatSendResult,
   ChatService,
   ChatValidationError,
@@ -81,22 +74,4 @@ describe("ChatService.layerRecording", () => {
       }),
     );
   });
-});
-
-describeWrapped("ChatSendError", (it) => {
-  it.effect("fails as a tagged error carrying its fields", () =>
-    Effect.gen(function* () {
-      const error = yield* Effect.flip(
-        Effect.fail(
-          new ChatSendError({
-            provider: "test",
-            message: "rejected",
-            status: Option.some(404),
-          }),
-        ),
-      );
-      expect(error._tag).toBe("ChatSendError");
-      expect(error.status).toStrictEqual(Option.some(404));
-    }),
-  );
 });

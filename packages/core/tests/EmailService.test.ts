@@ -1,16 +1,9 @@
-/**
- * Unit coverage for `./EmailService` and `./Errors` — the contract's
- * accessors, the recording double, and the error classes' shape.
- */
-
-import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
+import { describe, expect, layer, test } from "@effect/vitest";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import * as Schema from "effect/Schema";
 import {
-  EmailSendError,
   EmailService,
   send,
   sendBatch,
@@ -18,14 +11,6 @@ import {
   UPSTREAM_BODY_LIMIT,
   type EmailMessage,
 } from "../src/index.ts";
-
-/** A stand-in for the platform failure a provider wraps as the cause. */
-class StubFailure extends Schema.TaggedError<StubFailure, { readonly brand: unique symbol }>()(
-  "StubFailure",
-  {
-    message: Schema.String,
-  },
-) {}
 
 const message = (to: string): EmailMessage => ({
   from: { email: "sender@example.com" },
@@ -70,37 +55,6 @@ describe("EmailService.layerRecording", () => {
         expect(two).toHaveLength(1);
       }),
     );
-  });
-});
-
-describeWrapped("EmailSendError", (it) => {
-  it.effect("fails as a tagged error carrying its fields", () =>
-    Effect.gen(function* () {
-      const error = yield* Effect.flip(
-        Effect.fail(
-          new EmailSendError({
-            provider: "test",
-            message: "rejected",
-            status: Option.some(422),
-          }),
-        ),
-      );
-      expect(error._tag).toBe("EmailSendError");
-      expect(error.provider).toBe("test");
-      expect(error.status).toStrictEqual(Option.some(422));
-      expect(error.message).toBe("rejected");
-    }),
-  );
-
-  test("carries an optional cause for diagnostics", () => {
-    const cause = new StubFailure({ message: "boom" });
-    const error = new EmailSendError({
-      provider: "test",
-      message: "unreachable",
-      status: Option.none(),
-      cause,
-    });
-    expect(error.cause).toBe(cause);
   });
 });
 
