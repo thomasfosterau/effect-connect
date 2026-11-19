@@ -1,22 +1,8 @@
 #!/usr/bin/env bash
 #
-# Publish every workspace package whose version is not yet on npm, then tag.
-#
-# Run by the Release workflow (changesets/action `publish-script`) once the
-# "Version Packages" PR has merged. Publishes with the npm CLI (npm OIDC
-# trusted publishing, which needs npm >= 11.5.1 — the Release job pins one),
-# but the tarball is built by `pnpm pack`, which is what rewrites
-# `catalog:peers` / `workspace:*` specifiers and applies `publishConfig` (the
-# `dist/` exports) in the published manifest; `npm pack` would ship the
-# workspace manifest as-is. (pnpm 11's own `pnpm publish` also does OIDC
-# trusted publishing natively; switching to it is possible but not done here.)
-#
-# No `--provenance`: npm attaches provenance by itself under trusted publishing
-# once the repository and the package are both public, and an explicit
-# provenance request from a private repository makes the publish fail.
-#
-# Idempotent: a package already published at its current version is skipped,
-# so a partial run can be re-run without failing on the packages that made it.
+# Publish every package whose version is not yet on npm, then tag. `pnpm pack`
+# rewrites `catalog:` / `workspace:` specifiers and applies `publishConfig`;
+# `npm publish` does the OIDC trusted-publishing exchange. Idempotent.
 
 set -euo pipefail
 
@@ -33,10 +19,7 @@ for dir in "$root"/packages/*/; do
     continue
   fi
   echo "pack: $name@$version"
-  # `--config.ignore-scripts=true`: no `prepack` / `prepare` / `postpack` runs
-  # in the id-token job (none is defined today). `pnpm pack` has no
-  # `--ignore-scripts` flag (pnpm 11 rejects it as an unknown option), so the
-  # setting is passed as config; the tarball is byte-identical either way.
+  # No lifecycle scripts in the id-token job; `pnpm pack` has no `--ignore-scripts` flag.
   (cd "$dir" && pnpm pack --config.ignore-scripts=true --pack-destination "$out" >/dev/null)
   tarball="$(ls -t "$out"/*.tgz | head -1)"
   echo "publish: $tarball"
@@ -44,6 +27,5 @@ for dir in "$root"/packages/*/; do
   rm -f "$tarball"
 done
 
-# Emits the `New tag:` lines the Changesets action parses to push the tags
-# and create the GitHub releases.
+# Prints the `New tag:` lines the Changesets action turns into tags and releases.
 pnpm exec changeset tag
