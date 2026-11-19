@@ -1,5 +1,16 @@
 # @thomasfosterau/effect-connect-resend
 
+## 0.3.0
+
+### Minor Changes
+
+- [#171](https://github.com/thomasfosterau/effect-connect/pull/171) [`c80c9ee`](https://github.com/thomasfosterau/effect-connect/commit/c80c9ee77dde4cfc0fcd345fdc2a76c307591300) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - Each module is now importable from its own subpath (`@thomasfosterau/effect-connect/Email`, `@thomasfosterau/effect-connect-resend/Resend`, …), alongside the root entry. Doc comments are shorter.
+
+### Patch Changes
+
+- Updated dependencies [[`c80c9ee`](https://github.com/thomasfosterau/effect-connect/commit/c80c9ee77dde4cfc0fcd345fdc2a76c307591300)]:
+  - @thomasfosterau/effect-connect@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes
