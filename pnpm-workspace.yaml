@@ -48,7 +48,7 @@ catalog:
   vitest: 5.1.0
   # For tests/workerd. Pinned at the version `@alchemy.run/cloudflare` brings,
   # so the tree holds one copy.
-  workerd: 1.20261116.1
+  workerd: 1.20261118.1
 
 # Peer ranges the published packages declare (`catalog:peers`). The `effect`
 # floor is `^4.0.0` unless a package's own dependency requires more, in a
