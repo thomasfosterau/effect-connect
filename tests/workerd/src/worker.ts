@@ -3,15 +3,19 @@
  * Twilio send through that provider's `resolveTransport(env)`, the call a deployed Worker makes, inside
  * workerd. Every outbound `fetch` is routed to the stub origin (`origin.js`),
  * which answers with the status named in the bearer credential and counts
- * the requests it saw for it.
+ * the requests it saw for it. One more renders an email template, whose
+ * locale handling leans on `Intl`, which Workers ships its own build of.
  */
 
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import {
+  EmailHtml,
   EmailSendError,
   EmailService,
+  EmailTemplate,
+  EmailTemplateError,
   SmsSendError,
   SmsService,
 } from "@thomasfosterau/effect-connect";
@@ -118,6 +122,27 @@ const smsRefuses = (env: Env, status: number) =>
     yield* expectThat(seen === "1", `an SMS ${String(status)} made ${seen} requests, expected 1`);
   });
 
+const Welcome = EmailTemplate.make({
+  data: Schema.Struct({ name: Schema.String }),
+  messages: { en: { subject: "Welcome" }, ar: { subject: "مرحبا" } },
+  subject: (_, { t }) => t.subject,
+  html: ({ name }, { t }) =>
+    EmailHtml.html`<p>${t.subject} ${name}</p><a href="https://example.test">Start</a>`,
+});
+
+const rendersTemplate = () =>
+  Effect.gen(function* () {
+    const content = yield* EmailTemplate.render(Welcome, { name: "<Ada>" }, { locale: "ar-EG" });
+    yield* expectThat(
+      content.html.includes('<html lang="ar" dir="rtl">'),
+      "the template did not render an Arabic, right-to-left document",
+    );
+    yield* expectThat(
+      content.text === "مرحبا <Ada>\n\nStart (https://example.test)",
+      `unexpected derived text: ${content.text}`,
+    );
+  });
+
 /** workerd's test controller, which no scenario uses. */
 type TestController = Readonly<Record<string, never>>;
 
@@ -127,7 +152,9 @@ type TestController = Readonly<Record<string, never>>;
  * from the handler's `env`.
  */
 const scenario = (
-  run: (env: Env) => Effect.Effect<void, Unexpected | EmailSendError | SmsSendError>,
+  run: (
+    env: Env,
+  ) => Effect.Effect<void, Unexpected | EmailSendError | SmsSendError | EmailTemplateError>,
 ) => ({
   test: (_controller: TestController, env: Env) => Effect.runPromise(run(env)),
 });
@@ -141,3 +168,4 @@ export const redirect308 = scenario((env) => refuses(env, 308));
 export const sms201 = scenario(smsSucceedsOn201);
 export const smsRedirect302 = scenario((env) => smsRefuses(env, 302));
 export const smsRedirect307 = scenario((env) => smsRefuses(env, 307));
+export const template = scenario(rendersTemplate);

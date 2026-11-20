@@ -163,3 +163,18 @@ export class ChatValidationError extends Schema.TaggedError<
   message: Schema.String,
   issues: Schema.Array(Schema.String),
 }) {}
+
+/**
+ * An email template could not render: its data did not decode against the
+ * template's schema, or no locale it supports matches the one asked for.
+ * `issues` lists each problem as one line.
+ *
+ * @since 0.4.0
+ */
+export class EmailTemplateError extends Schema.TaggedError<
+  EmailTemplateError,
+  { readonly brand: unique symbol }
+>()("EmailTemplateError", {
+  message: Schema.String,
+  issues: Schema.Array(Schema.String),
+}) {}

@@ -1,6 +1,6 @@
 # @thomasfosterau/effect-connect
 
-The provider-agnostic core: one message model and one service per channel (`Email`, `Sms`, `WhatsApp`, `Chat` and their `*Service` modules), their errors (`Errors.ts`), the transport rules every provider applies (`Http.ts`) and the Worker-edge helpers (`Transport.ts`). Peer: `effect` only.
+The provider-agnostic core: one message model and one service per channel (`Email`, `Sms`, `WhatsApp`, `Chat` and their `*Service` modules), their errors (`Errors.ts`), email templates and their renderers (`EmailTemplate`, `EmailHtml`, `EmailText`), the transport rules every provider applies (`Http.ts`) and the Worker-edge helpers (`Transport.ts`). Peer: `effect` only.
 
 ## Boundary
 
@@ -14,3 +14,4 @@ Imports nothing from this workspace and names no provider or vendor; providers d
 - **Providers build `configFromEnv` / `resolveTransport(env)` / `noop` from `Transport.ts`**: a blank binding is absent; every `noop` logs a line naming no recipient and no body.
 - **`internal/` is not public**: not re-exported, excluded from docgen.
 - **`EmailMessage` is a rendered message**, so an effect-auth `EmailSender` adapter is `render`, then `EmailService.send`. No dependency either way.
+- **Templates sit above `send`**: `EmailTemplate` renders to `EmailContent`, then an `EmailMessage`; nothing in a provider knows about templates. `EmailHtml` escapes every interpolation that is not `Html`, and `unsafeRaw` stays the only way around it. Renderer adapters are packages of their own, built on `fromRenderer`.

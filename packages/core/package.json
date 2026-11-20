@@ -34,7 +34,10 @@
     "./Chat": "./src/Chat.ts",
     "./ChatService": "./src/ChatService.ts",
     "./Email": "./src/Email.ts",
+    "./EmailHtml": "./src/EmailHtml.ts",
     "./EmailService": "./src/EmailService.ts",
+    "./EmailTemplate": "./src/EmailTemplate.ts",
+    "./EmailText": "./src/EmailText.ts",
     "./Errors": "./src/Errors.ts",
     "./Http": "./src/Http.ts",
     "./Sms": "./src/Sms.ts",
@@ -61,9 +64,21 @@
         "types": "./dist/Email.d.ts",
         "default": "./dist/Email.js"
       },
+      "./EmailHtml": {
+        "types": "./dist/EmailHtml.d.ts",
+        "default": "./dist/EmailHtml.js"
+      },
       "./EmailService": {
         "types": "./dist/EmailService.d.ts",
         "default": "./dist/EmailService.js"
+      },
+      "./EmailTemplate": {
+        "types": "./dist/EmailTemplate.d.ts",
+        "default": "./dist/EmailTemplate.js"
+      },
+      "./EmailText": {
+        "types": "./dist/EmailText.d.ts",
+        "default": "./dist/EmailText.js"
       },
       "./Errors": {
         "types": "./dist/Errors.d.ts",

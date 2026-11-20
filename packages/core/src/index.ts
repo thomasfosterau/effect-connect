@@ -22,6 +22,24 @@ export * from "./Email.ts";
  */
 export * from "./EmailService.ts";
 /**
+ * HTML for email bodies, escaped by construction, with accessible helpers and the document shell.
+ *
+ * @since 0.4.0
+ */
+export * as EmailHtml from "./EmailHtml.ts";
+/**
+ * Plain-text email bodies: written with the `text` template, or derived from HTML.
+ *
+ * @since 0.4.0
+ */
+export * as EmailText from "./EmailText.ts";
+/**
+ * Typed, localised email templates that render a subject, HTML and text together.
+ *
+ * @since 0.4.0
+ */
+export * as EmailTemplate from "./EmailTemplate.ts";
+/**
  * The SMS message model: phone numbers, senders, the message and the result of a send.
  *
  * @since 0.1.0
