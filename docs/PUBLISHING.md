@@ -6,11 +6,11 @@ Releases use [Changesets](https://github.com/changesets/changesets) and npm [tru
 
 1. Each change to a published package carries a changeset ([CONTRIBUTING.md](CONTRIBUTING.md#changesets)).
 2. On a push to `trunk`, [release.yml](../.github/workflows/release.yml) opens or updates the "chore: version packages" PR (`vp run changeset:version`) and assigns it to the owner.
-3. Merging that PR publishes: `vp run changeset:publish` builds every package and runs [scripts/release.sh](../scripts/release.sh), which packs each unpublished version with `pnpm pack` (which rewrites `catalog:` / `workspace:` specifiers and applies `publishConfig`), publishes it with `npm publish`, and tags it. Already-published versions are skipped, so a partial run can be re-run.
+3. Merging that PR publishes: `vp run changeset:publish` builds every package, publishes each unpublished version with `pnpm -r publish --ignore-scripts` (which rewrites `catalog:` / `workspace:` specifiers, applies `publishConfig`, and does the OIDC trusted-publishing exchange with provenance; no npm CLI), and tags it (`changeset tag`). Already-published versions are skipped, so a partial run can be re-run.
 
 Every release job first verifies `.github/workflows/actions.lock`, installs with `--ignore-scripts` and no cache, and sets `pnpm_config_verify_deps_before_run: "false"` so pnpm can't re-install with lifecycle scripts mid-job. Only `publish` holds `id-token: write`, and only it runs in the protected `release` environment.
 
-Provenance is left to npm: under trusted publishing it is attached once the repository and package are public. Don't force it (`--provenance` or `NPM_CONFIG_PROVENANCE=true`): from a private repository the publish fails.
+Provenance is left to pnpm: under trusted publishing it attaches provenance to a public package from a public repository on its own. Don't force it with `--provenance`; from a private repository, pass `--no-provenance` instead.
 
 ## One-time setup
 

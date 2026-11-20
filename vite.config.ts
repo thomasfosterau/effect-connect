@@ -186,7 +186,11 @@ export default defineConfig({
         cache: false,
       },
       "changeset:publish": {
-        command: "bash scripts/release.sh",
+        // Skips versions already on npm, runs no lifecycle scripts, and does the OIDC
+        // trusted-publishing exchange (with provenance) itself. `changeset tag` prints
+        // the `New tag:` lines the Changesets action turns into tags and releases.
+        command:
+          "pnpm -r --filter './packages/*' publish --access public --no-git-checks --ignore-scripts && pnpm exec changeset tag",
         dependsOn: [
           "@thomasfosterau/effect-connect#build",
           "@thomasfosterau/effect-connect-resend#build",

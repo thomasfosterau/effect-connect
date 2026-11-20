@@ -118,7 +118,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      # The LTS line bundles an npm with trusted publishing (>= 11.5.1).
+      # `pnpm publish` does trusted publishing itself; no npm.
       # No `prepare`: `vp pack` does not need the Effect-patched `tsc`.
       - name: Setup Vite+
         uses: voidzero-dev/setup-vp@v1.22.0
