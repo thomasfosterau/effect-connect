@@ -115,10 +115,11 @@ jobs:
       # Stop pnpm re-installing, with lifecycle scripts, before a `pnpm run` / `pnpm exec`.
       pnpm_config_verify_deps_before_run: "false"
     steps:
+      # Full history and tags, so `changeset git-tag` skips existing tags.
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      # The LTS line bundles an npm with trusted publishing (>= 11.5.1).
+          fetch-depth: 0
       # No `prepare`: `vp pack` does not need the Effect-patched `tsc`.
       - name: Setup Vite+
         uses: voidzero-dev/setup-vp@v1.22.0
@@ -128,9 +129,11 @@ jobs:
           cache: false
           run-install: |
             args: ["--frozen-lockfile", "--ignore-scripts"]
+      # `vp run release` (vite.config.ts): builds, publishes each unpublished
+      # version with `vp pm publish -r` (pnpm does trusted publishing itself; no
+      # npm), then `changeset git-tag` reports the new tags through
+      # CHANGESETS_OUTPUT, and the action pushes them and creates the releases.
       - name: Publish to npm
         uses: changesets/action/publish@v2.1.2
         with:
-          script: vp run changeset:publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: vp run release

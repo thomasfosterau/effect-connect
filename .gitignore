@@ -23,8 +23,6 @@ dist/
 packages/*/docs/
 # The root `test:coverage` Istanbul map (`fallow audit` reads it).
 coverage/
-# Tarballs `scripts/release.sh` packs before `npm publish`.
-.release/
 
 # The Vite+ task cache and vitest scratch dirs.
 .vite/
