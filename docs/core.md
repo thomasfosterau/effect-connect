@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect`
 
-Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`), and their errors. [Resend](./resend.md) implements email; no provider in this repository implements the other channels yet, so provide your own layer for them.
+Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`), and their errors. [Resend](./resend.md) implements email and [Twilio](./twilio.md) SMS; no provider in this repository implements WhatsApp or chat yet, so provide your own layer for them.
 
 ## Usage
 
@@ -183,4 +183,4 @@ await Effect.runPromise(
 
 `@thomasfosterau/effect-auth`'s `EmailSender` takes a purpose-keyed message; `EmailMessage` is its rendered form, so an adapter renders, then calls `EmailService.send`. Neither package depends on the other.
 
-See also the [Resend provider](./resend.md) and [Alchemy Cloudflare bindings](./alchemy-cloudflare.md).
+See also the [Resend](./resend.md) and [Twilio](./twilio.md) providers and [Alchemy Cloudflare bindings](./alchemy-cloudflare.md).

@@ -1,0 +1,71 @@
+{
+  "name": "@thomasfosterau/effect-connect-twilio",
+  "version": "0.0.0",
+  "description": "Twilio provider for @thomasfosterau/effect-connect: the SmsService over Twilio's Messages API with Effect's HttpClient and no SDK, a Redacted auth token, a no-op layer for un-provisioned stages and an env-driven resolver.",
+  "keywords": [
+    "effect",
+    "sms",
+    "transactional",
+    "twilio",
+    "typescript"
+  ],
+  "homepage": "https://github.com/thomasfosterau/effect-connect#readme",
+  "bugs": {
+    "url": "https://github.com/thomasfosterau/effect-connect/issues"
+  },
+  "license": "MIT",
+  "author": "Thomas Foster <me@thomasfoster.au>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasfosterau/effect-connect.git",
+    "directory": "packages/twilio"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./Twilio": "./src/Twilio.ts",
+    "./TwilioConfig": "./src/TwilioConfig.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./Twilio": {
+        "types": "./dist/Twilio.d.ts",
+        "default": "./dist/Twilio.js"
+      },
+      "./TwilioConfig": {
+        "types": "./dist/TwilioConfig.d.ts",
+        "default": "./dist/TwilioConfig.js"
+      }
+    },
+    "access": "public"
+  },
+  "dependencies": {
+    "@thomasfosterau/effect-connect": "workspace:^"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "effect": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "effect": "catalog:peers"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
