@@ -17,11 +17,15 @@ import * as R from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import * as Resend from "@thomasfosterau/effect-connect-resend";
+import * as Twilio from "@thomasfosterau/effect-connect-twilio";
 import {
   resendBindings,
   resendBindingsConfig,
+  twilioBindings,
+  twilioBindingsConfig,
   type Deployed,
   type ResendBindings,
+  type TwilioBindings,
   type WorkerBindings,
 } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
@@ -35,7 +39,7 @@ const BindingsRecord = Schema.Record(
   Schema.String,
   Schema.Union([Schema.String, Schema.Redacted(Schema.String)]),
 );
-const deploy = (bindings: ResendBindings): Record<string, string> =>
+const deploy = (bindings: ResendBindings | TwilioBindings): Record<string, string> =>
   R.map(Schema.decodeUnknownSync(BindingsRecord)(bindings), (value) =>
     Redacted.isRedacted(value) ? Redacted.value(value) : value,
   );
@@ -54,6 +58,19 @@ type WorkerEnv<B> = Cloudflare.InferEnv<Cloudflare.Worker<B>>;
 export type Checks = [
   Assert<Extends<ResendBindings, Resend.ResendEnv>>,
   Assert<Extends<Deployed<ResendBindings>, Resend.ResendEnv>>,
+  Assert<Extends<TwilioBindings, Twilio.TwilioEnv>>,
+  Assert<Extends<Deployed<TwilioBindings>, Twilio.TwilioEnv>>,
+  Assert<
+    Equals<
+      Deployed<TwilioBindings>,
+      {
+        readonly TWILIO_ACCOUNT_SID: string;
+        readonly TWILIO_AUTH_TOKEN: string;
+        readonly TWILIO_FROM?: string;
+        readonly TWILIO_MESSAGING_SERVICE_SID?: string;
+      }
+    >
+  >,
   // An optional binding deploys as an optional string, not `?: never`,
   // and a secret as a plain one.
   Assert<
@@ -76,6 +93,15 @@ export type InferEnvChecks = [
   Assert<
     Extends<
       { readonly [K in keyof ResendBindings]: ResendBindings[K] },
+      Cloudflare.WorkerBindingProps
+    >
+  >,
+  Assert<Extends<WorkerEnv<TwilioBindings>, Twilio.TwilioEnv>>,
+  Assert<Equals<WorkerEnv<TwilioBindings>, Deployed<TwilioBindings>>>,
+  Assert<Extends<TwilioBindings, WorkerBindings<TwilioBindings>>>,
+  Assert<
+    Extends<
+      { readonly [K in keyof TwilioBindings]: TwilioBindings[K] },
       Cloudflare.WorkerBindingProps
     >
   >,
@@ -102,6 +128,97 @@ describe("resendBindings", () => {
       const bindings = yield* resendBindingsConfig.parse(fromEnv({ RESEND_API_KEY: "re_123" }));
       expect(deploy(bindings)).toStrictEqual({ RESEND_API_KEY: "re_123" });
       expect((yield* Effect.exit(resendBindingsConfig.parse(fromEnv({}))))._tag).toBe("Failure");
+    }),
+  );
+});
+
+// The configuration the Twilio resolver reads from a deployed env, its token
+// unwrapped so it compares structurally.
+const resolved = (env: Record<string, string>) =>
+  Option.map(Twilio.configFromEnv(env), ({ authToken, ...rest }) => ({
+    ...rest,
+    authToken: Redacted.value(authToken),
+  }));
+
+const parseTwilio = (env: Record<string, string>) =>
+  Effect.exit(twilioBindingsConfig.parse(fromEnv(env)));
+
+describe("twilioBindings", () => {
+  const authToken = Redacted.make("token");
+
+  it("binds every value under its TWILIO_ key, which the resolver reads once deployed", () => {
+    const bindings = twilioBindings({
+      accountSid: "AC123",
+      authToken,
+      from: "+61400000000",
+      messagingServiceSid: "MG123",
+    });
+    expect(Redacted.isRedacted(bindings.TWILIO_AUTH_TOKEN)).toBe(true);
+    const env = deploy(bindings);
+    expect(env).toStrictEqual({
+      TWILIO_ACCOUNT_SID: "AC123",
+      TWILIO_AUTH_TOKEN: "token",
+      TWILIO_FROM: "+61400000000",
+      TWILIO_MESSAGING_SERVICE_SID: "MG123",
+    });
+    expect(resolved(env)).toStrictEqual(
+      Option.some({
+        accountSid: "AC123",
+        authToken: "token",
+        from: "+61400000000",
+        messagingServiceSid: "MG123",
+      }),
+    );
+  });
+
+  it("leaves an unset or blank optional value out of the record", () => {
+    const bound = { TWILIO_ACCOUNT_SID: "AC123", TWILIO_AUTH_TOKEN: authToken };
+    expect(twilioBindings({ accountSid: "AC123", authToken })).toStrictEqual(bound);
+    const blank = twilioBindings({
+      accountSid: "AC123",
+      authToken,
+      from: "",
+      messagingServiceSid: "  ",
+    });
+    expect(blank).toStrictEqual(bound);
+    expect(resolved(deploy(blank))).toStrictEqual(
+      Option.some({ accountSid: "AC123", authToken: "token" }),
+    );
+  });
+
+  it.effect("reads the values on the deploy machine, leaving unset or blank optionals out", () =>
+    Effect.gen(function* () {
+      const full = yield* twilioBindingsConfig.parse(
+        fromEnv({
+          TWILIO_ACCOUNT_SID: "AC123",
+          TWILIO_AUTH_TOKEN: "token",
+          TWILIO_FROM: "+61400000000",
+          TWILIO_MESSAGING_SERVICE_SID: "MG123",
+        }),
+      );
+      expect(deploy(full)).toStrictEqual({
+        TWILIO_ACCOUNT_SID: "AC123",
+        TWILIO_AUTH_TOKEN: "token",
+        TWILIO_FROM: "+61400000000",
+        TWILIO_MESSAGING_SERVICE_SID: "MG123",
+      });
+      const bare = yield* twilioBindingsConfig.parse(
+        fromEnv({ TWILIO_ACCOUNT_SID: "AC123", TWILIO_AUTH_TOKEN: "token", TWILIO_FROM: " " }),
+      );
+      expect(deploy(bare)).toStrictEqual({
+        TWILIO_ACCOUNT_SID: "AC123",
+        TWILIO_AUTH_TOKEN: "token",
+      });
+    }),
+  );
+
+  it.effect("fails on the deploy machine without the SID or the token", () =>
+    Effect.gen(function* () {
+      expect((yield* parseTwilio({ TWILIO_AUTH_TOKEN: "token" }))._tag).toBe("Failure");
+      expect((yield* parseTwilio({ TWILIO_ACCOUNT_SID: "AC123" }))._tag).toBe("Failure");
+      expect(
+        (yield* parseTwilio({ TWILIO_ACCOUNT_SID: "AC123", TWILIO_AUTH_TOKEN: "" }))._tag,
+      ).toBe("Failure");
     }),
   );
 });

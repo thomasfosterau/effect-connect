@@ -35,7 +35,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./Bindings": "./src/Bindings.ts",
-    "./Resend": "./src/Resend.ts"
+    "./Resend": "./src/Resend.ts",
+    "./Twilio": "./src/Twilio.ts"
   },
   "publishConfig": {
     "exports": {
@@ -50,6 +51,10 @@
       "./Resend": {
         "types": "./dist/Resend.d.ts",
         "default": "./dist/Resend.js"
+      },
+      "./Twilio": {
+        "types": "./dist/Twilio.d.ts",
+        "default": "./dist/Twilio.js"
       }
     },
     "access": "public"
@@ -59,6 +64,7 @@
     "@effect/language-service": "catalog:",
     "@effect/vitest": "catalog:",
     "@thomasfosterau/effect-connect-resend": "workspace:^",
+    "@thomasfosterau/effect-connect-twilio": "workspace:^",
     "@types/node": "catalog:",
     "alchemy": "catalog:",
     "effect": "catalog:",

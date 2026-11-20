@@ -151,6 +151,9 @@ importers:
       '@thomasfosterau/effect-connect-resend':
         specifier: workspace:^
         version: link:../resend
+      '@thomasfosterau/effect-connect-twilio':
+        specifier: workspace:^
+        version: link:../twilio
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
