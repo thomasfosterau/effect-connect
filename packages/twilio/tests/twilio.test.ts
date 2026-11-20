@@ -234,6 +234,20 @@ describe("SmsService.send", () => {
     );
   });
 
+  layer(
+    twilioOver(() =>
+      // The token starts a few characters before the truncation limit.
+      json({ message: `${"x".repeat(UPSTREAM_BODY_LIMIT - 20)}${AUTH_TOKEN}` }, 401),
+    ),
+  )((it) => {
+    it.effect("redacts a credential before truncating, so no part of it survives a cut", () =>
+      Effect.gen(function* () {
+        const error = yield* Effect.flip(sendMessage());
+        expect(error.message).not.toContain(AUTH_TOKEN.slice(0, 8));
+      }),
+    );
+  });
+
   layer(twilioOver(() => Promise.reject(new StubFailure({ message: "network down" }))))((it) => {
     it.effect("fails with no status when Twilio is unreachable", () =>
       Effect.gen(function* () {

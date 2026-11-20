@@ -15,6 +15,7 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
+import * as Str from "effect/String";
 import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
@@ -25,7 +26,7 @@ import {
   isSuccessStatus,
   redactSecrets,
   refuseRedirects,
-  rejectionMessage,
+  truncateUpstreamBody,
   SmsSendError,
   SmsService,
   type SmsMessage,
@@ -125,6 +126,19 @@ export const layerSmsService: Layer.Layer<SmsService, never, TwilioConfig | Http
         Redacted.value(config.authToken),
       ];
 
+      // Redacted before it is truncated, so a cut can never leave part of a
+      // credential behind.
+      const rejection = (response: HttpClientResponse.HttpClientResponse) =>
+        response.text.pipe(
+          Effect.map((body) => truncateUpstreamBody(redactSecrets(body, secrets))),
+          Effect.orElseSucceed(() => ""),
+          Effect.map((detail) =>
+            Str.isEmpty(detail)
+              ? `Twilio rejected the send: ${response.status}`
+              : `Twilio rejected the send: ${response.status} ${detail}`,
+          ),
+        );
+
       const send = Effect.fn("Twilio.send")(function* (message: SmsMessage) {
         const payload = yield* Effect.fromOption(toTwilioPayload(message, config)).pipe(
           Effect.mapError(() =>
@@ -149,8 +163,7 @@ export const layerSmsService: Layer.Layer<SmsService, never, TwilioConfig | Http
           ),
         );
         if (!isSuccessStatus(response.status)) {
-          const rejected = yield* rejectionMessage(response, "Twilio rejected the send");
-          return yield* failure(redactSecrets(rejected, secrets), Option.some(response.status));
+          return yield* failure(yield* rejection(response), Option.some(response.status));
         }
         const { sid } = yield* HttpClientResponse.schemaBodyJson(SendResponse)(response).pipe(
           Effect.mapError((cause) =>
