@@ -128,10 +128,13 @@ export default defineConfig({
         },
       },
     ],
-    // oxlint-tsgolint, patched by `effect-tsgo patch --oxlint`.
+    // tsrs, patched by `effect-tsgo patch --tsrs`. `typeCheck` stays off: it
+    // reports every Effect language-service warning as an error, which
+    // `ignoreEffectWarningsInTscExitCode` can't relax and no override can
+    // scope. `vp run check` is the type gate.
     options: {
       typeAware: true,
-      typeCheck: true,
+      typeCheck: false,
     },
     jsPlugins: [
       {

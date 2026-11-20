@@ -16,16 +16,16 @@ catalog:
   # on PATH, the patched native one.
   "@effect/docgen": 4.1.4
   "@effect/language-service": ^0.87.5
-  # `effect-tsgo patch --typescript --oxlint` (the root `prepare`) supports an
-  # explicit set of TypeScript and oxlint versions and fails the install on
-  # any other: this, `@typescript/native` and `vite-plus` (which pins oxlint)
-  # move together. Check the `components` table in
+  # `effect-tsgo patch --typescript --oxlint --tsrs` (the root `prepare`)
+  # supports an explicit set of TypeScript, oxlint and tsrs versions and fails
+  # the install on any other: this, `@typescript/native` and `vite-plus` (which
+  # pins oxlint and tsrs) move together. Check the `components` table in
   # node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping any of them.
-  "@effect/tsgo": 0.70.0
+  "@effect/tsgo": 0.73.2
   "@enfect/oxlint": 0.10.0
   "@types/node": ^26.6.6
-  # Must equal the vitest vite-plus bundles.
-  "@vitest/coverage-istanbul": 5.1.1
+  # Must equal the vitest vite-plus depends on.
+  "@vitest/coverage-istanbul": 5.1.0
   # Pinned exact at the `effect` version.
   "@effect/vitest": 4.1.4
   # Exact, and moved together: the provider peers on that exact `alchemy`.
@@ -41,11 +41,12 @@ catalog:
   # gate. Exact: its gitHead must match @effect/tsgo's bundled binary.
   typescript: "npm:@typescript/typescript6@6.0.2"
   "@typescript/native": "npm:typescript@7.0.2"
-  # vite-plus pins `oxlint`, `oxfmt` and `vitest` exactly; `vite` is its core
-  # under an alias, and `vitest` must equal its pin.
+  # `vite` (vite-plus's core under an alias) and `vitest` must equal what
+  # vite-plus itself depends on (`npm view vite-plus@<v> dependencies`);
+  # `vite` no longer equals vite-plus.
   vite-plus: 1.7.0
-  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  vitest: 5.1.1
+  vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
+  vitest: 5.1.0
   # For tests/workerd. Pinned at the version `@alchemy.run/cloudflare` brings,
   # so the tree holds one copy.
   workerd: 1.20261118.1
@@ -90,12 +91,7 @@ permissions:
 skills:
   dirs: [.claude/skills]
 peerDependencyRules:
-  allowAny:
-    - vite
-    - vitest
   allowedVersions:
-    vite: "*"
-    vitest: "*"
     # docgen's `tsconfck` never calls the API that needs this optional peer.
     "tsconfck>typescript": "6"
 
