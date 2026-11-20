@@ -1,6 +1,6 @@
 /**
- * The Worker under test: each exported `test` handler runs one Resend send
- * through `resolveTransport(env)`, the call a deployed Worker makes, inside
+ * The Worker under test: each exported `test` handler runs one Resend or
+ * Twilio send through that provider's `resolveTransport(env)`, the call a deployed Worker makes, inside
  * workerd. Every outbound `fetch` is routed to the stub origin (`origin.js`),
  * which answers with the status named in the bearer credential and counts
  * the requests it saw for it.
@@ -9,8 +9,14 @@
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
-import { EmailSendError, EmailService } from "@thomasfosterau/effect-connect";
+import {
+  EmailSendError,
+  EmailService,
+  SmsSendError,
+  SmsService,
+} from "@thomasfosterau/effect-connect";
 import { resolveTransport } from "@thomasfosterau/effect-connect-resend";
+import * as Twilio from "@thomasfosterau/effect-connect-twilio";
 
 /** The stub origin, bound as a service so a test can ask it what it saw. */
 interface Origin {
@@ -41,12 +47,25 @@ const sendAnswered = (status: number) =>
     }),
   ).pipe(Effect.provide(resolveTransport({ RESEND_API_KEY: `status-${String(status)}` })));
 
-/** How many requests the origin saw for `status`'s credential. */
-const requestsSeen = (env: Env, status: number) =>
+/** One Twilio send whose auth token tells the origin which status to answer. */
+const smsAnswered = (status: number) =>
+  Effect.flatMap(SmsService, (sms) =>
+    sms.send({ to: "+61412345678", from: "workerd", body: "sent from inside workerd" }),
+  ).pipe(
+    Effect.provide(
+      Twilio.resolveTransport({
+        TWILIO_ACCOUNT_SID: "AC_workerd",
+        TWILIO_AUTH_TOKEN: `sms-status-${String(status)}`,
+      }),
+    ),
+  );
+
+/** How many requests the origin saw for `status`'s credential (`prefix` keeps each provider's counts apart). */
+const requestsSeen = (env: Env, status: number, prefix = "") =>
   Effect.tryPromise({
     try: () =>
-      env.ORIGIN.fetch(`https://origin.test/seen?key=status-${String(status)}`).then((response) =>
-        response.text(),
+      env.ORIGIN.fetch(`https://origin.test/seen?key=${prefix}status-${String(status)}`).then(
+        (response) => response.text(),
       ),
     catch: () => new Unexpected({ message: "the stub origin could not be asked for its count" }),
   });
@@ -75,6 +94,30 @@ const refuses = (env: Env, status: number) =>
     yield* expectThat(seen === "1", `a ${String(status)} made ${seen} requests, expected 1`);
   });
 
+const smsSucceedsOn201 = (env: Env) =>
+  Effect.gen(function* () {
+    const result = yield* smsAnswered(201);
+    yield* expectThat(Option.isSome(result.id), "a 201 SMS send answered no id");
+    const seen = yield* requestsSeen(env, 201, "sms-");
+    yield* expectThat(seen === "1", `a 201 SMS send made ${seen} requests, expected 1`);
+  });
+
+const smsRefuses = (env: Env, status: number) =>
+  Effect.gen(function* () {
+    const error = yield* Effect.flip(smsAnswered(status)).pipe(
+      Effect.mapError(
+        () => new Unexpected({ message: `an SMS ${String(status)} was answered as a success` }),
+      ),
+    );
+    yield* expectThat(error instanceof SmsSendError, "a redirect did not fail as SmsSendError");
+    yield* expectThat(
+      error.message === `Twilio was unreachable: redirect refused (${String(status)})`,
+      `unexpected message for an SMS ${String(status)}: ${error.message}`,
+    );
+    const seen = yield* requestsSeen(env, status, "sms-");
+    yield* expectThat(seen === "1", `an SMS ${String(status)} made ${seen} requests, expected 1`);
+  });
+
 /** workerd's test controller, which no scenario uses. */
 type TestController = Readonly<Record<string, never>>;
 
@@ -83,7 +126,9 @@ type TestController = Readonly<Record<string, never>>;
  * entry point: the one place the effect is run, with the transport provided
  * from the handler's `env`.
  */
-const scenario = (run: (env: Env) => Effect.Effect<void, Unexpected | EmailSendError>) => ({
+const scenario = (
+  run: (env: Env) => Effect.Effect<void, Unexpected | EmailSendError | SmsSendError>,
+) => ({
   test: (_controller: TestController, env: Env) => Effect.runPromise(run(env)),
 });
 
@@ -93,3 +138,6 @@ export const redirect302 = scenario((env) => refuses(env, 302));
 export const redirect303 = scenario((env) => refuses(env, 303));
 export const redirect307 = scenario((env) => refuses(env, 307));
 export const redirect308 = scenario((env) => refuses(env, 308));
+export const sms201 = scenario(smsSucceedsOn201);
+export const smsRedirect302 = scenario((env) => smsRefuses(env, 302));
+export const smsRedirect307 = scenario((env) => smsRefuses(env, 307));

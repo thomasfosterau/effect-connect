@@ -3,6 +3,7 @@
   "entry": [
     "packages/core/src/index.ts",
     "packages/resend/src/index.ts",
+    "packages/twilio/src/index.ts",
     "packages/alchemy-cloudflare/src/index.ts",
     "packages/*/tests/**/*.test.ts",
     "tests/dist-consumer/src/*.ts",
@@ -20,6 +21,7 @@
   "ignoreDependencies": [
     "@thomasfosterau/effect-connect",
     "@thomasfosterau/effect-connect-resend",
+    "@thomasfosterau/effect-connect-twilio",
     "@thomasfosterau/effect-connect-alchemy-cloudflare",
     "@types/node",
     "@effect/tsgo",
@@ -63,6 +65,10 @@
         "patterns": ["packages/resend/**"]
       },
       {
+        "name": "twilio",
+        "patterns": ["packages/twilio/**"]
+      },
+      {
         "name": "alchemy-cloudflare",
         "patterns": ["packages/alchemy-cloudflare/src/**"]
       },
@@ -89,6 +95,10 @@
         "allow": ["core"]
       },
       {
+        "from": "twilio",
+        "allow": ["core"]
+      },
+      {
         "from": "alchemy-cloudflare",
         "allow": []
       },
@@ -98,11 +108,11 @@
       },
       {
         "from": "dist-consumer",
-        "allow": ["core", "resend", "alchemy-cloudflare"]
+        "allow": ["core", "resend", "twilio", "alchemy-cloudflare"]
       },
       {
         "from": "workerd",
-        "allow": ["core", "resend"]
+        "allow": ["core", "resend", "twilio"]
       }
     ]
   },

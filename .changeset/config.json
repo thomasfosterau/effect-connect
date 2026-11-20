@@ -13,6 +13,7 @@
     [
       "@thomasfosterau/effect-connect",
       "@thomasfosterau/effect-connect-resend",
+      "@thomasfosterau/effect-connect-twilio",
       "@thomasfosterau/effect-connect-alchemy-cloudflare"
     ]
   ],

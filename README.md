@@ -47,6 +47,7 @@ Effect.runPromise(sendWelcome("reader@example.com").pipe(Effect.provide(EmailLiv
 | --- | --- | --- |
 | [`@thomasfosterau/effect-connect`](packages/core) | Message models, the `EmailService` / `SmsService` / `WhatsAppService` / `ChatService` contracts, errors, test layers and shared HTTP transport rules. | [core](docs/core.md) |
 | [`@thomasfosterau/effect-connect-resend`](packages/resend) | Resend email provider, a no-op layer and a Worker env resolver. | [resend](docs/resend.md) |
+| [`@thomasfosterau/effect-connect-twilio`](packages/twilio) | Twilio SMS provider, a no-op layer and a Worker env resolver. | [twilio](docs/twilio.md) |
 | [`@thomasfosterau/effect-connect-alchemy-cloudflare`](packages/alchemy-cloudflare) | Deploy-time Worker bindings for Alchemy's Cloudflare provider. | [alchemy-cloudflare](docs/alchemy-cloudflare.md) |
 
 ## More

@@ -46,6 +46,7 @@ import {
   refuseRedirects,
 } from "@thomasfosterau/effect-connect";
 import * as Resend from "@thomasfosterau/effect-connect-resend";
+import * as Twilio from "@thomasfosterau/effect-connect-twilio";
 import type * as Cloudflare from "@alchemy.run/cloudflare";
 import * as Alchemy from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
@@ -100,6 +101,23 @@ export const resolved: Layer.Layer<EmailService> = Resend.resolveTransport({
 });
 export const noop: Layer.Layer<EmailService> = Resend.noop;
 export const resendPayload: Resend.ResendSendPayload = Resend.toResendPayload(message);
+
+// ── twilio ────────────────────────────────────────────────────────────────
+
+export const twilioLayer: Layer.Layer<SmsService, never, HttpClient.HttpClient> = Twilio.layer({
+  accountSid: "AC123",
+  authToken: Redacted.make("token"),
+  from: "Example",
+});
+export const twilioResolved: Layer.Layer<SmsService> = Twilio.resolveTransport({
+  TWILIO_ACCOUNT_SID: "AC123",
+  TWILIO_AUTH_TOKEN: "token",
+});
+export const twilioNoop: Layer.Layer<SmsService> = Twilio.noop;
+export const twilioPayload: Option.Option<Twilio.TwilioSendPayload> = Twilio.toTwilioPayload(
+  { to: "+61412345678", body: "Your code is 123456" },
+  { from: Option.some("Example"), messagingServiceSid: Option.none() },
+);
 
 // ── refuseRedirects: every call shape 0.2.0 accepted still compiles ─────────
 
