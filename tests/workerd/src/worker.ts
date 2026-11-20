@@ -94,6 +94,28 @@ const refuses = (env: Env, status: number) =>
     yield* expectThat(seen === "1", `a ${String(status)} made ${seen} requests, expected 1`);
   });
 
+/** How many chunks of the huge error body the origin was asked for. */
+const chunksPulled = (env: Env) =>
+  Effect.tryPromise({
+    try: () =>
+      env.ORIGIN.fetch("https://origin.test/seen?key=pulled").then((response) => response.text()),
+    catch: () => new Unexpected({ message: "the stub origin could not be asked for its count" }),
+  });
+
+const boundsHugeErrorBody = (env: Env) =>
+  Effect.gen(function* () {
+    const error = yield* Effect.flip(sendAnswered(502)).pipe(
+      Effect.mapError(() => new Unexpected({ message: "a 502 was answered as a success" })),
+    );
+    yield* expectThat(
+      error.message === `Resend rejected the send: 502 ${"e".repeat(200)}`,
+      `unexpected message for a 502: ${error.message.slice(0, 300)}`,
+    );
+    const pulled = Number(yield* chunksPulled(env));
+    // 160 chunks make the whole body; a bounded read leaves nearly all unread.
+    yield* expectThat(pulled < 16, `the 502 body was read ${String(pulled)} chunks deep`);
+  });
+
 const smsSucceedsOn201 = (env: Env) =>
   Effect.gen(function* () {
     const result = yield* smsAnswered(201);
@@ -138,6 +160,7 @@ export const redirect302 = scenario((env) => refuses(env, 302));
 export const redirect303 = scenario((env) => refuses(env, 303));
 export const redirect307 = scenario((env) => refuses(env, 307));
 export const redirect308 = scenario((env) => refuses(env, 308));
+export const hugeErrorBody502 = scenario(boundsHugeErrorBody);
 export const sms201 = scenario(smsSucceedsOn201);
 export const smsRedirect302 = scenario((env) => smsRefuses(env, 302));
 export const smsRedirect307 = scenario((env) => smsRefuses(env, 307));
