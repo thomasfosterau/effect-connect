@@ -311,6 +311,21 @@ describe("executeWithSecretUrl", () => {
     );
   });
 
+  // The secret starts inside the bound and runs past it: truncating first
+  // would keep its leading part, which no longer matches a whole secret.
+  const straddling = `${"x".repeat(UPSTREAM_BODY_LIMIT - 10)}${url}`;
+  layer(answering(async () => new Response(straddling, { status: 400 })))((it) => {
+    it.effect("redacts a secret that straddles the truncation bound", () =>
+      Effect.gen(function* () {
+        const { message } = yield* Effect.flip(execute);
+        expect(message).toBe(
+          `Vendor rejected the request: 400 ${`${"x".repeat(UPSTREAM_BODY_LIMIT - 10)}[redacted]`.slice(0, UPSTREAM_BODY_LIMIT)}`,
+        );
+        expect(message).not.toContain("https://hooks");
+      }),
+    );
+  });
+
   layer(answering(() => Promise.reject(new StubFailure({ message: `could not reach ${url}` }))))(
     (it) => {
       it.effect("fails a transport failure with no status and no URL", () =>
@@ -333,6 +348,15 @@ describeWrapped("rejectionMessage", (it) => {
         "Vendor rejected the send",
       );
       expect(message).toBe(`Vendor rejected the send: 422 ${"x".repeat(UPSTREAM_BODY_LIMIT)}`);
+    }),
+  );
+
+  it.effect("redacts each secret from the whole body before truncating it", () =>
+    Effect.gen(function* () {
+      const body = `${"x".repeat(UPSTREAM_BODY_LIMIT - 3)}s3cr3t`;
+      expect(yield* rejectionMessage(responseOf(body, 401), "Vendor", ["s3cr3t"])).toBe(
+        `Vendor: 401 ${`${"x".repeat(UPSTREAM_BODY_LIMIT - 3)}[redacted]`.slice(0, UPSTREAM_BODY_LIMIT)}`,
+      );
     }),
   );
 
