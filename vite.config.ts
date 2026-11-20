@@ -185,12 +185,30 @@ export default defineConfig({
         command: "changeset version && vp fmt && pnpm install --lockfile-only",
         cache: false,
       },
-      "changeset:publish": {
-        // Skips versions already on npm, runs no lifecycle scripts, and does the OIDC
-        // trusted-publishing exchange (with provenance) itself. `changeset tag` prints
-        // the `New tag:` lines the Changesets action turns into tags and releases.
-        command:
-          "pnpm -r --filter './packages/*' publish --access public --no-git-checks --ignore-scripts && pnpm exec changeset tag",
+      // The publish job's script: pnpm publishes each public package whose
+      // version isn't on npm yet, in dependency order, runs no lifecycle
+      // scripts, and does the OIDC trusted-publishing exchange (with
+      // provenance) itself. Then `changeset git-tag` tags each untagged version
+      // and reports the tags to the Changesets action through
+      // `CHANGESETS_OUTPUT`, which pushes them and creates the GitHub releases.
+      // A failed publish stops before tagging; a re-run publishes only what is
+      // missing. Uncached, so it sees the job's full environment.
+      release: {
+        command: [
+          "vp pm publish -r --access public --no-git-checks -- --ignore-scripts",
+          "changeset git-tag",
+        ],
+        dependsOn: [
+          "@thomasfosterau/effect-connect#build",
+          "@thomasfosterau/effect-connect-resend#build",
+          "@thomasfosterau/effect-connect-twilio#build",
+          "@thomasfosterau/effect-connect-alchemy-cloudflare#build",
+        ],
+        cache: false,
+      },
+      // What `release` would publish, without publishing or tagging.
+      "release:dry-run": {
+        command: "vp pm publish -r --access public --dry-run --no-git-checks -- --ignore-scripts",
         dependsOn: [
           "@thomasfosterau/effect-connect#build",
           "@thomasfosterau/effect-connect-resend#build",
