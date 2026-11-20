@@ -340,6 +340,26 @@ describe("executeWithSecretUrl", () => {
   );
 });
 
+/** A body of `chunks` chunks of `size` bytes each, recording each pull and each cancel. */
+const tracked = (chunks: number, size: number, onCancel: () => Promise<void> | void = () => {}) => {
+  const log = { pulls: 0, cancels: 0 };
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        log.pulls += 1;
+        if (log.pulls > chunks) controller.close();
+        else controller.enqueue(new TextEncoder().encode("y".repeat(size)));
+      },
+      cancel() {
+        log.cancels += 1;
+        return onCancel();
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  return { log, stream };
+};
+
 describeWrapped("rejectionMessage", (it) => {
   it.effect("names the status and a truncated body", () =>
     Effect.gen(function* () {
@@ -363,6 +383,57 @@ describeWrapped("rejectionMessage", (it) => {
   it.effect("names just the status for an empty body", () =>
     Effect.gen(function* () {
       expect(yield* rejectionMessage(responseOf(null, 500), "Vendor")).toBe("Vendor: 500");
+    }),
+  );
+
+  it.effect("reads a long body only as far as the bound, then cancels it once", () => {
+    const { log, stream } = tracked(Number.POSITIVE_INFINITY, 100);
+    return Effect.gen(function* () {
+      const message = yield* rejectionMessage(responseOf(stream, 500), "Vendor");
+      expect(message).toBe(`Vendor: 500 ${"y".repeat(UPSTREAM_BODY_LIMIT)}`);
+      expect(log.pulls).toBeLessThanOrEqual((UPSTREAM_BODY_LIMIT * 4) / 100);
+      expect(log.cancels).toBe(1);
+    });
+  });
+
+  it.effect("reads a short body to its end without cancelling it", () => {
+    const { log, stream } = tracked(2, 10);
+    return Effect.gen(function* () {
+      expect(yield* rejectionMessage(responseOf(stream, 500), "Vendor")).toBe(
+        `Vendor: 500 ${"y".repeat(20)}`,
+      );
+      expect(log.cancels).toBe(0);
+    });
+  });
+
+  it.effect("keeps the message when the cancel rejects", () => {
+    const { log, stream } = tracked(Number.POSITIVE_INFINITY, 100, () =>
+      Promise.reject(new StubFailure({ message: "cancel failed" })),
+    );
+    return Effect.gen(function* () {
+      expect(yield* rejectionMessage(responseOf(stream, 500), "Vendor")).toBe(
+        `Vendor: 500 ${"y".repeat(UPSTREAM_BODY_LIMIT)}`,
+      );
+      expect(log.cancels).toBe(1);
+    });
+  });
+
+  it.effect("drops a multi-byte character cut by the read bound instead of mangling it", () =>
+    Effect.gen(function* () {
+      // 4-byte characters, offset by one byte so the bound falls mid-character.
+      const body = `a${"😀".repeat(UPSTREAM_BODY_LIMIT)}`;
+      const message = yield* rejectionMessage(responseOf(body, 500), "Vendor");
+      expect(message).not.toContain("\uFFFD");
+      expect(message.startsWith("Vendor: 500 a😀")).toBe(true);
+    }),
+  );
+
+  it.effect("reads a secret that starts inside the bound whole, so it is redacted", () =>
+    Effect.gen(function* () {
+      const secret = "s".repeat(UPSTREAM_BODY_LIMIT * 4);
+      const body = `${"x".repeat(UPSTREAM_BODY_LIMIT - 1)}${secret}${"z".repeat(10_000)}`;
+      const message = yield* rejectionMessage(responseOf(body, 401), "Vendor", [secret]);
+      expect(message).toBe(`Vendor: 401 ${"x".repeat(UPSTREAM_BODY_LIMIT - 1)}[`);
     }),
   );
 
