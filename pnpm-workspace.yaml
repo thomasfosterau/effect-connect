@@ -21,11 +21,11 @@ catalog:
   # any other: this, `@typescript/native` and `vite-plus` (which pins oxlint)
   # move together. Check the `components` table in
   # node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping any of them.
-  "@effect/tsgo": 0.69.0
+  "@effect/tsgo": 0.70.0
   "@enfect/oxlint": 0.10.0
   "@types/node": ^26.6.6
   # Must equal the vitest vite-plus bundles.
-  "@vitest/coverage-istanbul": 5.1.0
+  "@vitest/coverage-istanbul": 5.1.1
   # Pinned exact at the `effect` version.
   "@effect/vitest": 4.1.4
   # Exact, and moved together: the provider peers on that exact `alchemy`.
@@ -43,9 +43,9 @@ catalog:
   "@typescript/native": "npm:typescript@7.0.2"
   # vite-plus pins `oxlint`, `oxfmt` and `vitest` exactly; `vite` is its core
   # under an alias, and `vitest` must equal its pin.
-  vite-plus: 1.6.0
+  vite-plus: 1.7.0
   vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  vitest: 5.1.0
+  vitest: 5.1.1
   # For tests/workerd. Pinned at the version `@alchemy.run/cloudflare` brings,
   # so the tree holds one copy.
   workerd: 1.20261118.1
