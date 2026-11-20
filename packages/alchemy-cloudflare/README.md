@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect-alchemy-cloudflare`
 
-Deploy-time bindings for [`@thomasfosterau/effect-connect`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/core#readme) on Cloudflare Workers deployed with [Alchemy](https://alchemy.run)'s Cloudflare provider. Each builder returns the record of Worker `env` bindings one provider reads (`RESEND_API_KEY` for Resend, the one provider today), with secrets as `Redacted` values. It binds credentials only and runs on the deploy machine, never in the Worker.
+Deploy-time bindings for [`@thomasfosterau/effect-connect`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/core#readme) on Cloudflare Workers deployed with [Alchemy](https://alchemy.run)'s Cloudflare provider. Each builder returns the record of Worker `env` bindings one provider reads (`RESEND_API_KEY` for Resend; `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` and the optional sender for Twilio), with secrets as `Redacted` values. It binds credentials only and runs on the deploy machine, never in the Worker.
 
 > [!WARNING]
 > Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. Not production-ready.
@@ -19,21 +19,27 @@ On the deploy machine, build the bindings and pass them into the Worker's `env`:
 
 ```ts skip-type-checking
 import * as Redacted from "effect/Redacted";
-import { resendBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+import { resendBindings, twilioBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
 const env = {
   ...resendBindings({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }),
+  ...twilioBindings({
+    accountSid: process.env.TWILIO_ACCOUNT_SID!,
+    authToken: Redacted.make(process.env.TWILIO_AUTH_TOKEN!),
+    from: process.env.TWILIO_FROM,
+  }),
 };
 // …then `env` in your Worker resource's props.
 ```
 
 ## Entry points
 
-The package has the single entry point `.`.
+The package's main entry point `.` re-exports everything; `./Bindings`, `./Resend` and `./Twilio` are subpaths of their own.
 
 | Export | Purpose |
 | --- | --- |
 | `resendBindings`, `resendBindingsConfig`, `ResendBindings`, `ResendBindingsInput` | The `RESEND_API_KEY` secret binding, from a value or from `effect/Config`. |
+| `twilioBindings`, `twilioBindingsConfig`, `TwilioBindings`, `TwilioBindingsInput` | `TWILIO_ACCOUNT_SID`, the `TWILIO_AUTH_TOKEN` secret, and `TWILIO_FROM` / `TWILIO_MESSAGING_SERVICE_SID` when set, from values or from `effect/Config`. |
 | `WorkerBindings<B>` | The constraint every bindings record meets. |
 | `Deployed<B>` | `Cloudflare.InferEnv<B>`: the `env` a Worker receives for a bindings record. |
 

@@ -145,6 +145,12 @@ export const resendBindings: Alchemy.ResendBindings = Alchemy.resendBindings({
   apiKey: Redacted.make("re_123"),
 });
 
+export const twilioBindings: Alchemy.TwilioBindings = Alchemy.twilioBindings({
+  accountSid: "AC123",
+  authToken: Redacted.make("token"),
+  from: "+61400000000",
+});
+
 /**
  * Every compile-time assertion, exported so `noUnusedLocals` keeps them and a
  * failing one names itself in the error.
@@ -226,6 +232,32 @@ export type Checks = [
   >,
   /** _alchemyResendIsWorkerBindings */ Assert<
     Alchemy.ResendBindings extends Alchemy.WorkerBindings<Alchemy.ResendBindings> ? true : false
+  >,
+  /** _alchemyTwilioTokenRedacted */ Assert<
+    Equals<Alchemy.TwilioBindings["TWILIO_AUTH_TOKEN"], Redacted.Redacted>
+  >,
+  /** _alchemyTwilioDeployedIsEnv */ Assert<
+    Alchemy.Deployed<Alchemy.TwilioBindings> extends Twilio.TwilioEnv ? true : false
+  >,
+  /** _alchemyTwilioDeployedIsInferEnv */ Assert<
+    Equals<
+      Alchemy.Deployed<Alchemy.TwilioBindings>,
+      Cloudflare.InferEnv<Cloudflare.Worker<Alchemy.TwilioBindings>>
+    >
+  >,
+  /** _alchemyTwilioDeployedOptionals */ Assert<
+    Equals<
+      Alchemy.Deployed<Alchemy.TwilioBindings>,
+      {
+        readonly TWILIO_ACCOUNT_SID: string;
+        readonly TWILIO_AUTH_TOKEN: string;
+        readonly TWILIO_FROM?: string;
+        readonly TWILIO_MESSAGING_SERVICE_SID?: string;
+      }
+    >
+  >,
+  /** _alchemyTwilioIsWorkerBindings */ Assert<
+    Alchemy.TwilioBindings extends Alchemy.WorkerBindings<Alchemy.TwilioBindings> ? true : false
   >,
   /** _resendPayloadTo */ Assert<
     Equals<Resend.ResendSendPayload["to"], readonly [string, ...Array<string>]>

@@ -1,6 +1,6 @@
 # @thomasfosterau/effect-connect-alchemy-cloudflare
 
-Deploy-time Worker `env` binding builders for Alchemy's Cloudflare provider: one builder per provider (`resendBindings`) and its `effect/Config` form (`…BindingsConfig`). Another Alchemy provider gets a package of its own.
+Deploy-time Worker `env` binding builders for Alchemy's Cloudflare provider: one builder per provider (`resendBindings`, `twilioBindings`) and its `effect/Config` form (`…BindingsConfig`). Another Alchemy provider gets a package of its own.
 
 ## Boundary
 
@@ -10,6 +10,6 @@ Deploy-time Worker `env` binding builders for Alchemy's Cloudflare provider: one
 
 ## Invariants
 
-- **Keys are each provider's env contract** (`ResendEnv`); `tests/alchemy.test.ts` asserts every record, its `Deployed` view and `Cloudflare.InferEnv` against it, and runs the provider's resolver on it.
+- **Keys are each provider's env contract** (`ResendEnv`, `TwilioEnv`); `tests/alchemy.test.ts` asserts every record, its `Deployed` view and `Cloudflare.InferEnv` against it, and runs the provider's resolver on it.
 - **Secrets are `Redacted`** (deployed as `secret_text`); plain values are strings.
 - **An unset optional value is absent from the record**, never `undefined` (deployed as JSON) or `""`.

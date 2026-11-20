@@ -104,7 +104,7 @@
       },
       {
         "from": "alchemy-cloudflare-tests",
-        "allow": ["alchemy-cloudflare", "resend"]
+        "allow": ["alchemy-cloudflare", "resend", "twilio"]
       },
       {
         "from": "dist-consumer",
