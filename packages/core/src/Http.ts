@@ -216,10 +216,12 @@ export const describeHttpErrorWithoutUrl = (
 
 /**
  * The message for a vendor's non-2xx answer: `<prefix>: <status>`, then the
- * response body **truncated** to `UPSTREAM_BODY_LIMIT` characters. A vendor
- * error response can echo request context back, so the body is bounded
- * before it can reach a log line; a body that cannot be read leaves just the
- * status. Never fails.
+ * response body with each of `secrets` redacted ({@link redactSecrets}) and
+ * **truncated** to `UPSTREAM_BODY_LIMIT` characters. A vendor error response
+ * can echo request context back, so the body is bounded before it can reach
+ * a log line. Redaction runs on the whole body first: a secret cut in two by
+ * the bound would no longer match. A body that cannot be read leaves just
+ * the status. Never fails.
  *
  * @example
  * ```ts
@@ -244,9 +246,10 @@ export const describeHttpErrorWithoutUrl = (
 export const rejectionMessage = (
   response: HttpClientResponse.HttpClientResponse,
   prefix: string,
+  secrets: ReadonlyArray<string> = [],
 ): Effect.Effect<string> =>
   response.text.pipe(
-    Effect.map(truncateUpstreamBody),
+    Effect.map((body) => truncateUpstreamBody(redactSecrets(body, secrets))),
     Effect.catchTag("HttpClientError", () => Effect.succeed("")),
     Effect.map((detail) =>
       Str.isEmpty(detail)
@@ -274,8 +277,8 @@ export interface SecretUrlRequestOptions<E> {
  * where the token is a path segment), answering the response on a 2xx. A
  * redirect is refused ({@link refuseRedirects}); a transport failure fails
  * with {@link describeHttpErrorWithoutUrl}'s line and `none`; a non-2xx
- * fails with {@link rejectionMessage}'s status and truncated body, redacted
- * ({@link redactSecrets}), and the status. Neither message ever names the
+ * fails with {@link rejectionMessage}'s status and body, redacted before it
+ * is truncated, and the status. Neither message ever names the
  * request URL, and `onFailure` is never handed the `HttpClientError`, whose
  * request carries it.
  *
@@ -298,14 +301,8 @@ export const executeWithSecretUrl = <E>(
       (response) => isSuccessStatus(response.status),
       (response) =>
         Effect.flatMap(
-          rejectionMessage(response, `${options.label} rejected the request`),
-          (message) =>
-            Effect.fail(
-              options.onFailure(
-                redactSecrets(message, options.secrets),
-                Option.some(response.status),
-              ),
-            ),
+          rejectionMessage(response, `${options.label} rejected the request`, options.secrets),
+          (message) => Effect.fail(options.onFailure(message, Option.some(response.status))),
         ),
     ),
   );
