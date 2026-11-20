@@ -1,5 +1,11 @@
 # @thomasfosterau/effect-connect-alchemy-cloudflare
 
+## 0.4.0
+
+### Minor Changes
+
+- [#184](https://github.com/thomasfosterau/effect-connect/pull/184) [`218fc26`](https://github.com/thomasfosterau/effect-connect/commit/218fc265c6a89aec218215cfce80508d6ef4be1c) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - Add `twilioBindings` and `twilioBindingsConfig` (also at the new `./Twilio` subpath): the Worker bindings `effect-connect-twilio`'s `resolveTransport(env)` reads. `TWILIO_ACCOUNT_SID` is a plain binding, `TWILIO_AUTH_TOKEN` is `Redacted` so it deploys as a secret, and `TWILIO_FROM` / `TWILIO_MESSAGING_SERVICE_SID` are in the record only when set and non-blank. The Config form fails when the SID or token is missing.
+
 ## 0.3.0
 
 ### Minor Changes
