@@ -153,8 +153,9 @@ export default defineConfig({
         cache: false,
       },
       // Every package's type check, the emitted-declaration check and docgen.
+      // Then the root configs (tsconfig.config.json), which no package covers.
       check: {
-        command: "echo 'check: every type gate green'",
+        command: "tsc -p tsconfig.config.json",
         dependsOn: [
           "@thomasfosterau/effect-connect#check",
           "@thomasfosterau/effect-connect-resend#check",
