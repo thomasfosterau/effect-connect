@@ -1,6 +1,6 @@
 {
   "name": "@thomasfosterau/effect-connect-react-email",
-  "version": "0.0.0",
+  "version": "0.5.0",
   "description": "React Email renderer for @thomasfosterau/effect-connect: an EmailTemplate whose body is a React Email component, with typed data, locales, accessible lang/dir/title defaults and a text part written, derived or rendered by React Email.",
   "keywords": [
     "effect",

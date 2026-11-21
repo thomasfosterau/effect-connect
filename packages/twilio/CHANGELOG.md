@@ -1,5 +1,12 @@
 # @thomasfosterau/effect-connect-twilio
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies [[`8ad9ffb`](https://github.com/thomasfosterau/effect-connect/commit/8ad9ffbc48c0a607a40de1b952e10bf74bb361a3), [`a5da9a1`](https://github.com/thomasfosterau/effect-connect/commit/a5da9a166a858b5a15c076b670a596abc5953a3e)]:
+  - @thomasfosterau/effect-connect@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes
