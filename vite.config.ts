@@ -128,10 +128,13 @@ export default defineConfig({
         },
       },
     ],
-    // oxlint-tsgolint, patched by `effect-tsgo patch --oxlint`.
+    // tsrs, patched by `effect-tsgo patch --tsrs`. `typeCheck` stays off: it
+    // reports every Effect language-service warning as an error, which
+    // `ignoreEffectWarningsInTscExitCode` can't relax and no override can
+    // scope. `vp run check` is the type gate.
     options: {
       typeAware: true,
-      typeCheck: true,
+      typeCheck: false,
     },
     jsPlugins: [
       {
@@ -150,8 +153,9 @@ export default defineConfig({
         cache: false,
       },
       // Every package's type check, the emitted-declaration check and docgen.
+      // Then the root configs (tsconfig.config.json), which no package covers.
       check: {
-        command: "echo 'check: every type gate green'",
+        command: "tsc -p tsconfig.config.json",
         dependsOn: [
           "@thomasfosterau/effect-connect#check",
           "@thomasfosterau/effect-connect-resend#check",
