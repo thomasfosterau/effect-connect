@@ -7,6 +7,7 @@
       "@thomasfosterau/effect-connect": ["../../packages/core/dist/index.d.ts"],
       "@thomasfosterau/effect-connect-resend": ["../../packages/resend/dist/index.d.ts"],
       "@thomasfosterau/effect-connect-twilio": ["../../packages/twilio/dist/index.d.ts"],
+      "@thomasfosterau/effect-connect-effect-chat": ["../../packages/effect-chat/dist/index.d.ts"],
       "@thomasfosterau/effect-connect-alchemy-cloudflare": [
         "../../packages/alchemy-cloudflare/dist/index.d.ts"
       ]

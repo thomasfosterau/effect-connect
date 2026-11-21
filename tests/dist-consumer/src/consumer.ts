@@ -47,6 +47,10 @@ import {
 } from "@thomasfosterau/effect-connect";
 import * as Resend from "@thomasfosterau/effect-connect-resend";
 import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import * as EffectChat from "@thomasfosterau/effect-connect-effect-chat";
+import type * as Chat from "effect/chat/Chat";
+import type * as ChatError from "effect/chat/ChatError";
+import * as ChatThread from "effect/chat/ChatThread";
 import type * as Cloudflare from "@alchemy.run/cloudflare";
 import * as Alchemy from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
@@ -118,6 +122,16 @@ export const twilioPayload: Option.Option<Twilio.TwilioSendPayload> = Twilio.toT
   { to: "+61412345678", body: "Your code is 123456" },
   { from: Option.some("Example"), messagingServiceSid: Option.none() },
 );
+
+// ── effect-chat ───────────────────────────────────────────────────────────
+
+export const effectChatLayer: Layer.Layer<ChatService, never, Chat.Chat> = EffectChat.layer({
+  thread: ChatThread.make("slack", "T1/C1"),
+});
+export const effectChatMake: Effect.Effect<ChatService["Service"], never, Chat.Chat> =
+  EffectChat.make({ thread: ChatThread.make("discord", "123") });
+export const effectChatError: (error: ChatError.ChatError) => ChatSendError =
+  EffectChat.toChatSendError;
 
 // ── refuseRedirects: every call shape 0.2.0 accepted still compiles ─────────
 

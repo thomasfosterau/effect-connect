@@ -19,6 +19,7 @@
     "@enfect/oxlint": "catalog:",
     "@thomasfosterau/effect-connect": "workspace:*",
     "@thomasfosterau/effect-connect-alchemy-cloudflare": "workspace:*",
+    "@thomasfosterau/effect-connect-effect-chat": "workspace:*",
     "@thomasfosterau/effect-connect-resend": "workspace:*",
     "@thomasfosterau/effect-connect-twilio": "workspace:*",
     "@types/node": "catalog:",
