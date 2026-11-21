@@ -41,14 +41,19 @@ catalog:
   # gate. Exact: its gitHead must match @effect/tsgo's bundled binary.
   typescript: "npm:@typescript/typescript6@6.0.2"
   "@typescript/native": "npm:typescript@7.0.2"
-  # `vite` (vite-plus's core under an alias) and `vitest` must equal what
-  # vite-plus itself depends on (`npm view vite-plus@<v> dependencies`);
-  # `vite` no longer equals vite-plus.
+  # effect-connect-mjml's compiler. mjml-browser requires cheerio without
+  # declaring it.
+  "@types/mjml-browser": ^5.0.0
+  cheerio: ^1.2.0
+  mjml-browser: ^5.4.1
   # effect-connect-react-email's renderer and its React.
   "@react-email/render": ^2.3.1
   "@types/react": ^19.3.0
   react: ^19.3.1
   react-dom: ^19.3.1
+  # `vite` (vite-plus's core under an alias) and `vitest` must equal what
+  # vite-plus itself depends on (`npm view vite-plus@<v> dependencies`);
+  # `vite` no longer equals vite-plus.
   vite-plus: 1.7.0
   vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
   vitest: 5.1.0

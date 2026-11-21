@@ -6,6 +6,7 @@
     { "path": "packages/resend" },
     { "path": "packages/twilio" },
     { "path": "packages/react-email" },
+    { "path": "packages/mjml" },
     { "path": "tests/dist-consumer" }
   ]
 }
