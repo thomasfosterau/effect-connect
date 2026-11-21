@@ -4,6 +4,7 @@
     "packages/core/src/index.ts",
     "packages/resend/src/index.ts",
     "packages/twilio/src/index.ts",
+    "packages/effect-chat/src/index.ts",
     "packages/alchemy-cloudflare/src/index.ts",
     "packages/*/tests/**/*.test.ts",
     "tests/dist-consumer/src/*.ts",
@@ -22,6 +23,7 @@
     "@thomasfosterau/effect-connect",
     "@thomasfosterau/effect-connect-resend",
     "@thomasfosterau/effect-connect-twilio",
+    "@thomasfosterau/effect-connect-effect-chat",
     "@thomasfosterau/effect-connect-alchemy-cloudflare",
     "@types/node",
     "@effect/tsgo",
@@ -69,6 +71,10 @@
         "patterns": ["packages/twilio/**"]
       },
       {
+        "name": "effect-chat",
+        "patterns": ["packages/effect-chat/**"]
+      },
+      {
         "name": "alchemy-cloudflare",
         "patterns": ["packages/alchemy-cloudflare/src/**"]
       },
@@ -99,6 +105,10 @@
         "allow": ["core"]
       },
       {
+        "from": "effect-chat",
+        "allow": ["core"]
+      },
+      {
         "from": "alchemy-cloudflare",
         "allow": []
       },
@@ -108,7 +118,7 @@
       },
       {
         "from": "dist-consumer",
-        "allow": ["core", "resend", "twilio", "alchemy-cloudflare"]
+        "allow": ["core", "resend", "twilio", "effect-chat", "alchemy-cloudflare"]
       },
       {
         "from": "workerd",

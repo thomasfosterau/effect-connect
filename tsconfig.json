@@ -5,6 +5,7 @@
     { "path": "packages/core" },
     { "path": "packages/resend" },
     { "path": "packages/twilio" },
+    { "path": "packages/effect-chat" },
     { "path": "tests/dist-consumer" }
   ]
 }

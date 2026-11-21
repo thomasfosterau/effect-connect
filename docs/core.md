@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect`
 
-Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`), and their errors. [Resend](./resend.md) implements email and [Twilio](./twilio.md) SMS; no provider in this repository implements WhatsApp or chat yet, so provide your own layer for them.
+Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`), and their errors. [Resend](./resend.md) implements email and [Twilio](./twilio.md) SMS; [effect-chat](./effect-chat.md) implements chat over Effect's `effect/chat` adapters; no provider in this repository implements WhatsApp yet, so provide your own layer for it.
 
 ## Usage
 

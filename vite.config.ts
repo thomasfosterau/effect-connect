@@ -62,7 +62,7 @@ export default defineConfig({
       ],
     },
     overrides: [
-      // `effect/http` and `@effect/vitest` are marked unstable upstream but are
+      // `effect/http`, `effect/chat` and `@effect/vitest` are marked unstable upstream but are
       // this library's contract: off only where they must be imported.
       {
         files: [
@@ -72,6 +72,7 @@ export default defineConfig({
           "packages/resend/src/index.ts",
           "packages/twilio/src/Twilio.ts",
           "packages/twilio/src/index.ts",
+          "packages/effect-chat/src/EffectChat.ts",
           "tests/dist-consumer/src/consumer.ts",
           "**/tests/**/*.ts",
         ],
@@ -160,11 +161,13 @@ export default defineConfig({
           "@thomasfosterau/effect-connect#check",
           "@thomasfosterau/effect-connect-resend#check",
           "@thomasfosterau/effect-connect-twilio#check",
+          "@thomasfosterau/effect-connect-effect-chat#check",
           "@thomasfosterau/effect-connect-alchemy-cloudflare#check",
           "@effect-connect/dist-consumer#check",
           "@thomasfosterau/effect-connect#docgen",
           "@thomasfosterau/effect-connect-resend#docgen",
           "@thomasfosterau/effect-connect-twilio#docgen",
+          "@thomasfosterau/effect-connect-effect-chat#docgen",
           "@thomasfosterau/effect-connect-alchemy-cloudflare#docgen",
         ],
         cache: false,
@@ -206,6 +209,7 @@ export default defineConfig({
           "@thomasfosterau/effect-connect#build",
           "@thomasfosterau/effect-connect-resend#build",
           "@thomasfosterau/effect-connect-twilio#build",
+          "@thomasfosterau/effect-connect-effect-chat#build",
           "@thomasfosterau/effect-connect-alchemy-cloudflare#build",
         ],
         cache: false,
@@ -217,6 +221,7 @@ export default defineConfig({
           "@thomasfosterau/effect-connect#build",
           "@thomasfosterau/effect-connect-resend#build",
           "@thomasfosterau/effect-connect-twilio#build",
+          "@thomasfosterau/effect-connect-effect-chat#build",
           "@thomasfosterau/effect-connect-alchemy-cloudflare#build",
         ],
         cache: false,

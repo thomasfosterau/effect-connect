@@ -1,0 +1,66 @@
+{
+  "name": "@thomasfosterau/effect-connect-effect-chat",
+  "version": "0.0.0",
+  "description": "A ChatService for @thomasfosterau/effect-connect over Effect's own effect/chat router, so sendChat posts through @effect/chat-slack, @effect/chat-discord or any other effect/chat adapter.",
+  "keywords": [
+    "chat",
+    "discord",
+    "effect",
+    "slack",
+    "typescript"
+  ],
+  "homepage": "https://github.com/thomasfosterau/effect-connect#readme",
+  "bugs": {
+    "url": "https://github.com/thomasfosterau/effect-connect/issues"
+  },
+  "license": "MIT",
+  "author": "Thomas Foster <me@thomasfoster.au>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasfosterau/effect-connect.git",
+    "directory": "packages/effect-chat"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./EffectChat": "./src/EffectChat.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./EffectChat": {
+        "types": "./dist/EffectChat.d.ts",
+        "default": "./dist/EffectChat.js"
+      }
+    },
+    "access": "public"
+  },
+  "dependencies": {
+    "@thomasfosterau/effect-connect": "workspace:^"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "effect": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "effect": "catalog:effect-chat-peers"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

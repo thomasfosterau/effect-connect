@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect`
 
-An Effect-native messaging abstraction: one message model and one service contract per channel (email, SMS, WhatsApp, chat), and their errors, provider-agnostic. The Resend (email) and Twilio (SMS) providers ship as sibling packages, [`@thomasfosterau/effect-connect-resend`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/resend#readme) and [`@thomasfosterau/effect-connect-twilio`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/twilio#readme); no first-party provider implements `WhatsAppService` or `ChatService` yet.
+An Effect-native messaging abstraction: one message model and one service contract per channel (email, SMS, WhatsApp, chat), and their errors, provider-agnostic. The Resend (email) and Twilio (SMS) providers ship as sibling packages, [`@thomasfosterau/effect-connect-resend`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/resend#readme) and [`@thomasfosterau/effect-connect-twilio`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/twilio#readme), and [`@thomasfosterau/effect-connect-effect-chat`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/effect-chat#readme) implements `ChatService` over Effect's `effect/chat` adapters; no first-party provider implements `WhatsAppService` yet.
 
 > [!WARNING]
 > Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. Not production-ready.
