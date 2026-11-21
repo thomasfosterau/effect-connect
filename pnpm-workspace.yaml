@@ -33,7 +33,7 @@ catalog:
   "@alchemy.run/cloudflare": 2.0.0-beta.87
   alchemy: 2.0.0-beta.87
   effect: 4.1.4
-  fallow: 3.43.2
+  fallow: 3.44.0
   # Only for `@effect/docgen`, which spawns it to run the examples.
   tsx: ^4.23.13
   # TS7 ships no JS API, so `typescript` is the TS6 compiler (bin `tsc6`) for
