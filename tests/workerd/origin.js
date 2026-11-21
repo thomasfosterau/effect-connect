@@ -23,7 +23,7 @@ const credential = (authorization) =>
 const record = (request) => {
   const key = credential(request.headers.get("authorization") ?? "");
   seen[key] = (seen[key] ?? 0) + 1;
-  return answer(Number(key.replace(/^(?:sms-)?status-/, "")));
+  return answer(Number(key.replace(/^(?:[a-z]+-)?status-/, "")));
 };
 
 export default {

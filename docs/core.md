@@ -149,6 +149,7 @@ export const sendWelcome = (to: string, locale: string) =>
 - **Accessible defaults.** The document shell sets `lang` and `dir` from the negotiated locale (right-to-left for Arabic, Hebrew, Persian, Urdu and the other RTL scripts), a `<title>` equal to the subject, `color-scheme`, a preheader hidden from view and from screen readers, and a `role="article"` wrapper labelled with the subject. `layout` tables are `role="presentation"`, `button` is a link, `image` requires `alt` (`""` for decorative), and `heading` is a real heading.
 - **Plain text.** By default it is derived from the body with `EmailText.fromHtml`: paragraphs and headings separated by blank lines, list markers, links as `label (url)`, images as their `alt`, hidden content dropped. Pass `text` to write it alongside instead.
 - **Localisation.** `messages` takes any per-locale strings, such as an effect-l10n catalog's compiled messages; locale negotiation is BCP 47 lookup (`fr-CA` → `fr` → `defaultLocale`). A template without `messages` renders in whichever locale is asked for, which `Intl` formatters can use through `locale.tag`. `localised({ en, fr }, { defaultLocale })` puts one template per locale behind one template.
+- **Provider-side templates.** `EmailTemplate.provider({ data, id, subject, variables })` references a template stored at the provider instead (one `id`, or one per locale). `toMessage` takes either kind, so moving a message between local and provider rendering changes the template, not the call site. The message carries `template: { id, variables }` and no `text` or `html`; a provider that cannot send provider templates fails the send.
 - **Other renderers.** `fromRenderer` builds the same `EmailTemplate` from any `(data, locale) => Effect<EmailContent>`, which is how adapter packages plug in.
 - **Errors.** Data that does not decode against the template's schema, or a default locale the template does not have, fails `EmailTemplateError` with one line per issue.
 
@@ -158,13 +159,13 @@ export const sendWelcome = (to: string, locale: string) =>
 
 | Export | What it is |
 | --- | --- |
-| `EmailAddress`, `Recipient`, `Attachment`, `EmailMessage`, `EmailSendResult` | The message model, as `effect/Schema` schemas with matching types. |
+| `EmailAddress`, `Recipient`, `Attachment`, `EmailProviderTemplate`, `EmailMessage`, `EmailSendResult` | The message model, as `effect/Schema` schemas with matching types. |
 | `EmailService` | The `Context.Service`: `send(message)` and `sendBatch(messages)`, failing `EmailSendError`. `EmailService.layerRecording(sent)` is the test double. |
 | `send`, `sendBatch` | Accessors over the service in context. |
 | `decodeEmailMessage` | Decode untrusted input into a message, failing `EmailValidationError`. |
 | `recipientAddresses` | Every address a message is delivered to (`to`, `cc`, `bcc`). |
 | `EmailSendError`, `EmailValidationError` | The contract's errors (`Schema.TaggedError`). |
-| `EmailTemplate` | Typed, localised templates: `make`, `localised`, `fromRenderer`, `render`, `toMessage`, `lookup`, `locale`. Fails `EmailTemplateError`. |
+| `EmailTemplate` | Typed, localised templates: `make`, `localised`, `provider`, `fromRenderer`, `render`, `toMessage`, `lookup`, `locale`. Fails `EmailTemplateError`. |
 | `EmailHtml` | The escaping `html` tag, `unsafeRaw`, `url` / `imageUrl`, the `document` shell, `preheader`, `layout`, `button`, `link`, `image`, `heading`. |
 | `EmailText` | The `text` tag for hand-written bodies, and `fromHtml` to derive one. |
 

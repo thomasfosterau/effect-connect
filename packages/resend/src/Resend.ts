@@ -37,6 +37,13 @@ const ResendAttachment = Schema.Struct({
   content_type: Schema.String,
 });
 
+const ResendTemplate = Schema.Struct({
+  id: Schema.String,
+  variables: Schema.optional(
+    Schema.Record(Schema.String, Schema.Union([Schema.String, Schema.Finite])),
+  ),
+});
+
 const ResendTag = Schema.Struct({
   name: Schema.String,
   value: Schema.String,
@@ -59,6 +66,7 @@ export const ResendSendPayload = Schema.Struct({
   subject: Schema.String,
   text: Schema.optional(Schema.String),
   html: Schema.optional(Schema.String),
+  template: Schema.optional(ResendTemplate),
   headers: Schema.optional(Schema.Record(Schema.String, Schema.String)),
   attachments: Schema.optional(Schema.Array(ResendAttachment)),
   tags: Schema.optional(Schema.Array(ResendTag)),
@@ -87,7 +95,9 @@ export const formatAddress = (recipient: Recipient): string =>
 /**
  * Map a core message onto Resend's send payload: recipients as
  * `Name <address>` strings, `replyTo` as a one-element `reply_to`, core
- * `tags` as Resend tags whose name and value are both the tag.
+ * `tags` as Resend tags whose name and value are both the tag, and a
+ * provider `template` as a Resend template (its id or alias, and its
+ * variables), whose defaults the message's `subject` overrides.
  *
  * @example
  * ```ts
@@ -121,6 +131,7 @@ export const toResendPayload = (message: EmailMessage): ResendSendPayload => ({
   subject: message.subject,
   text: message.text,
   html: message.html,
+  template: message.template,
   headers: message.headers,
   attachments: message.attachments?.map((attachment) => ({
     filename: attachment.filename,

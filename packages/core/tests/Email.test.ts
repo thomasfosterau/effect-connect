@@ -76,6 +76,23 @@ describe("EmailMessage", () => {
     ).toThrow(Schema.SchemaError);
   });
 
+  it("accepts a provider template without a body, and rejects one with a body", () => {
+    const base = {
+      from: { email: "sender@example.com" },
+      to: [{ email: "recipient@example.com" }],
+      subject: "s",
+    };
+    const message = decodeMessage({ ...base, template: { id: "welcome", variables: { N: 1 } } });
+    expect(message.template).toEqual({ id: "welcome", variables: { N: 1 } });
+    expect(() => decodeMessage({ ...base, template: { id: "welcome" }, html: "<p>h</p>" })).toThrow(
+      Schema.SchemaError,
+    );
+    expect(() => decodeMessage({ ...base, template: { id: "welcome" }, text: "t" })).toThrow(
+      Schema.SchemaError,
+    );
+    expect(() => decodeMessage({ ...base, template: { id: "" } })).toThrow(Schema.SchemaError);
+  });
+
   it("carries headers and tags through untouched", () => {
     const message = decodeMessage({
       from: { email: "sender@example.com" },

@@ -239,3 +239,56 @@ describe("EmailTemplate.toMessage", () => {
     }),
   );
 });
+
+describe("EmailTemplate.provider", () => {
+  const envelope = {
+    from: { email: "noreply@example.com" },
+    to: [{ email: "ada@example.com" }],
+  } as const;
+
+  const Welcome = EmailTemplate.provider({
+    data: Schema.Struct({ name: Schema.NonEmptyString }),
+    id: { en: "welcome-en", "pt-BR": "welcome-pt" },
+    subject: (_, { locale }) => `Welcome (${locale.tag})`,
+    variables: ({ name }) => ({ NAME: name }),
+  });
+
+  it.effect("references the negotiated locale's provider template, with no body", () =>
+    Effect.gen(function* () {
+      const message = yield* EmailTemplate.toMessage(
+        Welcome,
+        { name: "Ana" },
+        { ...envelope, locale: "pt-BR" },
+      );
+      expect(message.template).toStrictEqual({ id: "welcome-pt", variables: { NAME: "Ana" } });
+      expect(message.subject).toBe("Welcome (pt-BR)");
+      expect(message.html).toBeUndefined();
+      expect(message.text).toBeUndefined();
+      const fallback = yield* EmailTemplate.toMessage(
+        Welcome,
+        { name: "Ana" },
+        { ...envelope, locale: "de" },
+      );
+      expect(fallback.template?.id).toBe("welcome-en");
+    }),
+  );
+
+  it.effect("uses one id for every locale, and omits variables it was not given", () =>
+    Effect.gen(function* () {
+      const Plain = EmailTemplate.provider({
+        data: Schema.Struct({}),
+        id: "receipt",
+        subject: () => "Receipt",
+      });
+      const message = yield* EmailTemplate.toMessage(Plain, {}, { ...envelope, locale: "ja" });
+      expect(message.template).toStrictEqual({ id: "receipt" });
+    }),
+  );
+
+  it.effect("fails EmailTemplateError for invalid data", () =>
+    Effect.gen(function* () {
+      const error = yield* Effect.flip(EmailTemplate.toMessage(Welcome, { name: "" }, envelope));
+      expect(error._tag).toBe("EmailTemplateError");
+    }),
+  );
+});

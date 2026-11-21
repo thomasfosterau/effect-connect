@@ -130,6 +130,22 @@ const Welcome = EmailTemplate.make({
     EmailHtml.html`<p>${t.subject} ${name}</p><a href="https://example.test">Start</a>`,
 });
 
+/** A Resend send of a provider template: a JSON body with `template` and no `html` / `text`. */
+const sendsProviderTemplate = (env: Env) =>
+  Effect.gen(function* () {
+    const result = yield* Effect.flatMap(EmailService, (email) =>
+      email.send({
+        from: { email: "noreply@example.test" },
+        to: [{ email: "reader@example.test" }],
+        subject: "workerd",
+        template: { id: "welcome", variables: { NAME: "Ada", COUNT: 1 } },
+      }),
+    ).pipe(Effect.provide(resolveTransport({ RESEND_API_KEY: "template-status-200" })));
+    yield* expectThat(Option.isSome(result.id), "a template send answered no id");
+    const seen = yield* requestsSeen(env, 200, "template-");
+    yield* expectThat(seen === "1", `a template send made ${seen} requests, expected 1`);
+  });
+
 const rendersTemplate = () =>
   Effect.gen(function* () {
     const content = yield* EmailTemplate.render(Welcome, { name: "<Ada>" }, { locale: "ar-EG" });
@@ -169,3 +185,4 @@ export const sms201 = scenario(smsSucceedsOn201);
 export const smsRedirect302 = scenario((env) => smsRefuses(env, 302));
 export const smsRedirect307 = scenario((env) => smsRefuses(env, 307));
 export const template = scenario(rendersTemplate);
+export const providerTemplate = scenario(sendsProviderTemplate);
