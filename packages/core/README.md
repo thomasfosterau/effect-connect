@@ -39,11 +39,12 @@ export const sendWelcome = (to: string) =>
 
 ## Entry points
 
-The package has the single entry point `.`.
+Everything is exported from `.`; each module also has its own subpath, such as `./EmailTemplate`.
 
 | Export | Purpose |
 | --- | --- |
 | `EmailService`, `send`, `sendBatch`, `EmailMessage`, `decodeEmailMessage` | The email contract, accessors, message model and validation. |
+| `EmailTemplate`, `EmailHtml`, `EmailText` | Typed, localised email templates rendering accessible HTML and matching plain text. |
 | `SmsService`, `sendSms`, `SmsMessage`, `decodeSmsMessage` | The SMS contract, accessors, message model and validation. |
 | `WhatsAppService`, `sendWhatsApp`, `WhatsAppMessage`, `decodeWhatsAppMessage` | The WhatsApp contract, accessors, message model (text or template) and validation. |
 | `ChatService`, `sendChat`, `ChatMessage`, `decodeChatMessage` | The chat contract, accessors, message model and validation. |

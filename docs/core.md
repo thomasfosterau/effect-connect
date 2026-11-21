@@ -93,6 +93,65 @@ Effect.runPromise(
 );
 ```
 
+## Email templates
+
+`EmailTemplate` turns Schema-typed data into a subject, an accessible HTML document and a matching plain-text body, in a negotiated locale. `EmailMessage` stays a rendered message: `toMessage` renders, then you `send`.
+
+```ts
+import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
+import { EmailHtml, EmailTemplate, EmailText, send } from "@thomasfosterau/effect-connect";
+
+const { html } = EmailHtml;
+
+const Welcome = EmailTemplate.make({
+  data: Schema.Struct({ name: Schema.String, url: Schema.String }),
+  // Strings per locale: the keys are the locales the template supports.
+  messages: {
+    en: {
+      subject: "Welcome",
+      hello: (name: string) => `Hello, ${name}!`,
+      start: "Set up your account",
+    },
+    fr: {
+      subject: "Bienvenue",
+      hello: (name: string) => `Bonjour, ${name} !`,
+      start: "Configurer votre compte",
+    },
+  },
+  subject: (_, { t }) => t.subject,
+  preheader: (_, { t }) => t.start,
+  html: ({ name, url }, { t }) => html`
+    ${EmailHtml.heading(1, t.hello(name))}
+    <p>${EmailHtml.button({ href: url, label: t.start })}</p>
+  `,
+  // Optional: written alongside instead of derived from the HTML.
+  text: ({ name, url }, { t }) => EmailText.text`
+    ${t.hello(name)}
+
+    ${t.start}: ${url}
+  `,
+});
+
+export const sendWelcome = (to: string, locale: string) =>
+  EmailTemplate.toMessage(
+    Welcome,
+    { name: "Ada", url: "https://example.com/start" },
+    {
+      from: { email: "noreply@example.com" },
+      to: [{ email: to }],
+      locale, // or a preference list, e.g. from Accept-Language
+    },
+  ).pipe(Effect.flatMap(send));
+```
+
+- **Escaping.** `html` escapes every interpolation that is not already `Html`; `unsafeRaw` is the only way around it. Quote attributes, and pass URLs through `url` / `imageUrl` (or the helpers), which replace `javascript:` and other unsafe schemes with `about:invalid#unsafe-url`.
+- **Accessible defaults.** The document shell sets `lang` and `dir` from the negotiated locale (right-to-left for Arabic, Hebrew, Persian, Urdu and the other RTL scripts), a `<title>` equal to the subject, `color-scheme`, a preheader hidden from view and from screen readers, and a `role="article"` wrapper labelled with the subject. `layout` tables are `role="presentation"`, `button` is a link, `image` requires `alt` (`""` for decorative), and `heading` is a real heading.
+- **Plain text.** By default it is derived from the body with `EmailText.fromHtml`: paragraphs and headings separated by blank lines, list markers, links as `label (url)`, images as their `alt`, hidden content dropped. Pass `text` to write it alongside instead.
+- **Localisation.** `messages` takes any per-locale strings, such as an effect-l10n catalog's compiled messages; locale negotiation is BCP 47 lookup (`fr-CA` → `fr` → `defaultLocale`). A template without `messages` renders in whichever locale is asked for, which `Intl` formatters can use through `locale.tag`. `localised({ en, fr }, { defaultLocale })` puts one template per locale behind one template.
+- **Other renderers.** `fromRenderer` builds the same `EmailTemplate` from any `(data, locale) => Effect<EmailContent>`, which is how adapter packages plug in.
+- **Errors.** Data that does not decode against the template's schema, or a default locale the template does not have, fails `EmailTemplateError` with one line per issue.
+
 ## API
 
 ### Email
@@ -105,6 +164,9 @@ Effect.runPromise(
 | `decodeEmailMessage` | Decode untrusted input into a message, failing `EmailValidationError`. |
 | `recipientAddresses` | Every address a message is delivered to (`to`, `cc`, `bcc`). |
 | `EmailSendError`, `EmailValidationError` | The contract's errors (`Schema.TaggedError`). |
+| `EmailTemplate` | Typed, localised templates: `make`, `localised`, `fromRenderer`, `render`, `toMessage`, `lookup`, `locale`. Fails `EmailTemplateError`. |
+| `EmailHtml` | The escaping `html` tag, `unsafeRaw`, `url` / `imageUrl`, the `document` shell, `preheader`, `layout`, `button`, `link`, `image`, `heading`. |
+| `EmailText` | The `text` tag for hand-written bodies, and `fromHtml` to derive one. |
 
 ### SMS
 
@@ -172,6 +234,8 @@ await Effect.runPromise(
 `EmailSendError` carries the provider name, a one-line `message` safe to log, the vendor's HTTP `status` as an `Option` (`none` for transport failures) and the underlying `cause`. The vendor's error body is truncated to 200 characters before it is embedded, and the credential never appears in one.
 
 `EmailValidationError` is what `decodeEmailMessage` fails with; `issues` lists each schema issue as one line.
+
+`EmailTemplateError` is what rendering a template fails with: its data did not decode, or it has no usable locale. `issues` lists each problem as one line.
 
 `SmsSendError` and `SmsValidationError` mirror them for SMS. An SMS provider never puts the message body (often a one-time code) in an error message.
 

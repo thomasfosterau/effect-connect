@@ -98,6 +98,18 @@ export default defineConfig({
           "typescript/no-unnecessary-type-parameters": "off",
         },
       },
+      // `fromHtml` is a single-pass tokenizer over a string: a mutable cursor,
+      // tag and list stacks and constant lookup tables are its clearest form.
+      {
+        files: ["packages/core/src/EmailText.ts"],
+        rules: {
+          "effect/imperative-loops": "off",
+          "effect/avoid-native-object-helpers": "off",
+          "effect/no-length-comparison": "off",
+          "effect/prefer-arr-match": "off",
+          "effect/prefer-match-over-switch": "off",
+        },
+      },
       // Each `decode<Channel>Message(input: unknown)` is a boundary decoder:
       // its parameter is unparsed input by definition.
       {
