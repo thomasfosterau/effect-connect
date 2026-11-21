@@ -1,0 +1,74 @@
+{
+  "name": "@thomasfosterau/effect-connect-react-email",
+  "version": "0.0.0",
+  "description": "React Email renderer for @thomasfosterau/effect-connect: an EmailTemplate whose body is a React Email component, with typed data, locales, accessible lang/dir/title defaults and a text part written, derived or rendered by React Email.",
+  "keywords": [
+    "effect",
+    "email",
+    "react",
+    "react-email",
+    "templates",
+    "typescript"
+  ],
+  "homepage": "https://github.com/thomasfosterau/effect-connect#readme",
+  "bugs": {
+    "url": "https://github.com/thomasfosterau/effect-connect/issues"
+  },
+  "license": "MIT",
+  "author": "Thomas Foster <me@thomasfoster.au>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasfosterau/effect-connect.git",
+    "directory": "packages/react-email"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./ReactEmail": "./src/ReactEmail.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./ReactEmail": {
+        "types": "./dist/ReactEmail.d.ts",
+        "default": "./dist/ReactEmail.js"
+      }
+    },
+    "access": "public"
+  },
+  "dependencies": {
+    "@thomasfosterau/effect-connect": "workspace:^"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@react-email/render": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "effect": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@react-email/render": "catalog:react-email-peers",
+    "effect": "catalog:peers",
+    "react": "catalog:react-email-peers",
+    "react-dom": "catalog:react-email-peers"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

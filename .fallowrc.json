@@ -4,6 +4,7 @@
     "packages/core/src/index.ts",
     "packages/resend/src/index.ts",
     "packages/twilio/src/index.ts",
+    "packages/react-email/src/index.ts",
     "packages/alchemy-cloudflare/src/index.ts",
     "packages/*/tests/**/*.test.ts",
     "tests/dist-consumer/src/*.ts",
@@ -22,6 +23,7 @@
     "@thomasfosterau/effect-connect",
     "@thomasfosterau/effect-connect-resend",
     "@thomasfosterau/effect-connect-twilio",
+    "@thomasfosterau/effect-connect-react-email",
     "@thomasfosterau/effect-connect-alchemy-cloudflare",
     "@types/node",
     "@effect/tsgo",
@@ -69,6 +71,10 @@
         "patterns": ["packages/twilio/**"]
       },
       {
+        "name": "react-email",
+        "patterns": ["packages/react-email/**"]
+      },
+      {
         "name": "alchemy-cloudflare",
         "patterns": ["packages/alchemy-cloudflare/src/**"]
       },
@@ -99,6 +105,10 @@
         "allow": ["core"]
       },
       {
+        "from": "react-email",
+        "allow": ["core"]
+      },
+      {
         "from": "alchemy-cloudflare",
         "allow": []
       },
@@ -108,11 +118,11 @@
       },
       {
         "from": "dist-consumer",
-        "allow": ["core", "resend", "twilio", "alchemy-cloudflare"]
+        "allow": ["core", "resend", "twilio", "react-email", "alchemy-cloudflare"]
       },
       {
         "from": "workerd",
-        "allow": ["core", "resend", "twilio"]
+        "allow": ["core", "resend", "twilio", "react-email"]
       }
     ]
   },

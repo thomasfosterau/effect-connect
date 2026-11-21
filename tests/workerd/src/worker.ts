@@ -4,7 +4,8 @@
  * workerd. Every outbound `fetch` is routed to the stub origin (`origin.js`),
  * which answers with the status named in the bearer credential and counts
  * the requests it saw for it. One more renders an email template, whose
- * locale handling leans on `Intl`, which Workers ships its own build of.
+ * locale handling leans on `Intl`, which Workers ships its own build of,
+ * and one renders a React Email component through react-dom's server build.
  */
 
 import * as Effect from "effect/Effect";
@@ -21,6 +22,8 @@ import {
 } from "@thomasfosterau/effect-connect";
 import { resolveTransport } from "@thomasfosterau/effect-connect-resend";
 import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import * as ReactEmail from "@thomasfosterau/effect-connect-react-email";
+import { createElement } from "react";
 
 /** The stub origin, bound as a service so a test can ask it what it saw. */
 interface Origin {
@@ -159,6 +162,28 @@ const rendersTemplate = () =>
     );
   });
 
+const ReactWelcome = ReactEmail.template({
+  data: Schema.Struct({ name: Schema.String }),
+  messages: { en: { hello: "Hello" }, he: { hello: "שלום" } },
+  subject: (_, { t }) => t.hello,
+  component: ({ name }, { t }) =>
+    createElement(
+      "html",
+      null,
+      createElement("body", null, createElement("p", null, `${t.hello} ${name}`)),
+    ),
+});
+
+const rendersReactEmail = () =>
+  Effect.gen(function* () {
+    const content = yield* EmailTemplate.render(ReactWelcome, { name: "<Ada>" }, { locale: "he" });
+    yield* expectThat(
+      content.html.includes('lang="he" dir="rtl"') && content.html.includes("<title>שלום</title>"),
+      "the React Email template did not render a Hebrew, right-to-left document",
+    );
+    yield* expectThat(content.text === "שלום <Ada>", `unexpected derived text: ${content.text}`);
+  });
+
 /** workerd's test controller, which no scenario uses. */
 type TestController = Readonly<Record<string, never>>;
 
@@ -186,3 +211,4 @@ export const smsRedirect302 = scenario((env) => smsRefuses(env, 302));
 export const smsRedirect307 = scenario((env) => smsRefuses(env, 307));
 export const template = scenario(rendersTemplate);
 export const providerTemplate = scenario(sendsProviderTemplate);
+export const reactEmail = scenario(rendersReactEmail);

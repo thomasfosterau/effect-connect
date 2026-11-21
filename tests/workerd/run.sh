@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Bundle the Worker under test (src/worker.ts, with the workspace packages and
-# `effect` inlined: workerd resolves no node_modules) and run its `test`
+# Bundle the Worker under test (vite.config.ts: src/worker.ts with every
+# dependency inlined, since workerd resolves no node_modules) and run its `test`
 # handlers in the real Workers runtime. A missing workerd binary is a failure,
 # never a skip: this is the only gate that runs the packages where the
 # consuming applications deploy them.
@@ -21,5 +21,5 @@ workerd="$(node -p "require('workerd').default" 2>/dev/null)" ||
 [ -x "$workerd" ] || missing "'$workerd' is not executable"
 
 rm -rf .build
-vp pack src/worker.ts --no-config --platform neutral --format esm --out-dir .build --logLevel warn
+vp pack
 "$workerd" test config.capnp --verbose
