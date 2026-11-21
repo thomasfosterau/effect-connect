@@ -346,6 +346,21 @@ describe("toResendPayload", () => {
     });
   });
 
+  test("sends a provider template as Resend's template, with no body", () => {
+    const payload = toResendPayload({
+      from: { email: "noreply@example.test" },
+      to: [{ email: "a@example.test" }],
+      subject: "Welcome",
+      template: { id: "welcome-fr", variables: { NAME: "Ada", COUNT: 3 } },
+    });
+    expect(decodeJson(encodePayload(payload))).toEqual({
+      from: "noreply@example.test",
+      to: ["a@example.test"],
+      subject: "Welcome",
+      template: { id: "welcome-fr", variables: { NAME: "Ada", COUNT: 3 } },
+    });
+  });
+
   test("formatAddress uses the bare address when there is no display name", () => {
     expect(formatAddress({ email: "a@example.test" })).toBe("a@example.test");
     expect(formatAddress({ email: "a@example.test", name: "A B" })).toBe("A B <a@example.test>");

@@ -82,6 +82,9 @@ export default {
 | `subject`, `text`, `html`, `headers` | the same                                   |
 | `attachments`                        | `attachments` (`content_type`)             |
 | `tags`                               | `tags: [{ name: tag, value: tag }]`        |
+| `template`                           | `template: { id, variables }`              |
+
+A message with a `template` sends a published Resend template (by id or alias) instead of a body; its `subject` overrides the template's default, and Resend rejects the send when a variable the template uses is missing.
 
 `toResendPayload(message)` is exported for callers that want to inspect the payload.
 

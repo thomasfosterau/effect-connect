@@ -66,13 +66,36 @@ export const Attachment = Schema.Struct({
 export type Attachment = typeof Attachment.Type;
 
 /**
- * One message to send.
+ * A template stored and rendered at the provider (a Resend or SendGrid
+ * template), referenced by `id` (or a provider alias), with the values for
+ * its variables.
  *
- * At least one of `text` / `html` is expected by every provider; the schema
- * does not enforce it because a template-driven provider send (SendGrid
- * dynamic templates) legitimately carries neither. `headers` are custom
- * headers to set on the outgoing message; `tags` are provider-side labels
- * for analytics (SendGrid categories, Resend tags).
+ * @since 0.4.0
+ */
+export const EmailProviderTemplate = Schema.Struct({
+  id: Schema.NonEmptyString,
+  variables: Schema.optionalKey(
+    Schema.Record(Schema.String, Schema.Union([Schema.String, Schema.Finite])),
+  ),
+});
+/**
+ * The decoded type of the {@link EmailProviderTemplate} schema.
+ *
+ * @since 0.4.0
+ */
+export type EmailProviderTemplate = typeof EmailProviderTemplate.Type;
+
+/**
+ * One message to send: rendered (`text` and / or `html`), or a reference to
+ * a `template` the provider renders, which excludes `text` and `html`.
+ *
+ * Every provider expects one of `text`, `html` or `template`; the schema does
+ * not require one, but it does reject a `template` alongside a body. A
+ * provider that cannot send provider-side templates fails the send before any
+ * request. `headers` are custom headers to set on the outgoing message;
+ * `tags` are provider-side labels for analytics (SendGrid categories, Resend
+ * tags). With a `template`, `subject` overrides the template's own default
+ * where the provider has one.
  *
  * @since 0.1.0
  */
@@ -85,10 +108,24 @@ export const EmailMessage = Schema.Struct({
   subject: Schema.String,
   text: Schema.optionalKey(Schema.String),
   html: Schema.optionalKey(Schema.String),
+  template: Schema.optionalKey(EmailProviderTemplate),
   attachments: Schema.optionalKey(Schema.Array(Attachment)),
   headers: Schema.optionalKey(Schema.Record(Schema.String, Schema.String)),
   tags: Schema.optionalKey(Schema.Array(Schema.String)),
-});
+}).pipe(
+  Schema.check(
+    Schema.makeFilter(
+      (message) =>
+        message.template === undefined ||
+        (message.text === undefined && message.html === undefined),
+      {
+        identifier: "EmailMessageTemplateWithoutBody",
+        title: "EmailMessage",
+        description: "a message with a provider template carries no text or html",
+      },
+    ),
+  ),
+);
 /**
  * The decoded type of the {@link EmailMessage} schema.
  *

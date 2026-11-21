@@ -11,9 +11,10 @@
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import * as P from "effect/Predicate";
 import * as R from "effect/Record";
 import * as Schema from "effect/Schema";
-import type { EmailMessage } from "./Email.ts";
+import type { EmailMessage, EmailProviderTemplate } from "./Email.ts";
 import { document, html, preheader, type Direction, type Html } from "./EmailHtml.ts";
 import { fromHtml } from "./EmailText.ts";
 import { EmailTemplateError } from "./Errors.ts";
@@ -384,8 +385,14 @@ export interface RenderOptions {
   readonly locale?: string | ReadonlyArray<string>;
 }
 
-const negotiate = <S extends Schema.Top, E, R>(
-  template: EmailTemplate<S, E, R>,
+/** What locale negotiation reads of a template. */
+interface Negotiable {
+  readonly locales: ReadonlyArray<string>;
+  readonly defaultLocale: string;
+}
+
+const negotiate = (
+  template: Negotiable,
   requested: ReadonlyArray<string>,
 ): Effect.Effect<Locale, EmailTemplateError> => {
   const chosen = Arr.match(template.locales, {
@@ -410,6 +417,20 @@ const negotiate = <S extends Schema.Top, E, R>(
   );
 };
 
+const decodeData = <S extends Schema.Top>(
+  schema: S,
+  data: S["Encoded"],
+): Effect.Effect<S["Type"], EmailTemplateError, S["DecodingServices"]> =>
+  Schema.decodeUnknownEffect(schema, { errors: "all" })(data).pipe(
+    Effect.mapError(
+      (error) =>
+        new EmailTemplateError({
+          message: "The email template's data is invalid",
+          issues: issueLines(error),
+        }),
+    ),
+  );
+
 /**
  * Render a template: decode `data` against its schema, negotiate the locale
  * and run the renderer. Fails {@link EmailTemplateError} when the data does
@@ -423,19 +444,122 @@ export const render = <S extends Schema.Top, E, R>(
   options: RenderOptions = {},
 ): Effect.Effect<EmailContent, E | EmailTemplateError, R | S["DecodingServices"]> =>
   Effect.gen(function* () {
-    const decoded = yield* Schema.decodeUnknownEffect(template.data, { errors: "all" })(data).pipe(
-      Effect.mapError(
-        (error) =>
-          new EmailTemplateError({
-            message: "The email template's data is invalid",
-            issues: issueLines(error),
-          }),
-      ),
-    );
-    const requested = Arr.ensure(options.locale ?? []);
-    const resolved = yield* negotiate(template, requested);
+    const decoded = yield* decodeData(template.data, data);
+    const resolved = yield* negotiate(template, Arr.ensure(options.locale ?? []));
     return yield* template.renderWith(decoded, resolved);
   });
+
+// --- Provider-side templates ------------------------------------------------
+
+const ProviderTypeId = "~@thomasfosterau/effect-connect/EmailTemplate/Provider" as const;
+
+/**
+ * A template stored and rendered at the provider: {@link toMessage} turns its
+ * data into an `EmailMessage` whose `template` references it, so switching a
+ * message between local and provider rendering changes the template, not the
+ * call site. Build one with {@link provider}.
+ *
+ * @since 0.4.0
+ */
+export interface ProviderTemplate<S extends Schema.Top> {
+  readonly [ProviderTypeId]: typeof ProviderTypeId;
+  readonly data: S;
+  readonly locales: ReadonlyArray<string>;
+  readonly defaultLocale: string;
+  readonly referenceWith: (
+    data: S["Type"],
+    locale: Locale,
+  ) => { readonly subject: string; readonly template: EmailProviderTemplate };
+}
+
+/**
+ * Options for {@link provider}.
+ *
+ * - `data` — the schema the template's data decodes against.
+ * - `id` — the provider's template id or alias: one, or one per locale
+ *   (`{ en: "welcome-en", fr: "welcome-fr" }`), whose keys are then the
+ *   locales the template supports.
+ * - `defaultLocale` — the locale used when none requested matches; default
+ *   the first `id` key, else `"en"`.
+ * - `subject` — the subject, which overrides the provider template's default.
+ * - `variables` — the values for the provider template's variables.
+ *
+ * @since 0.4.0
+ */
+export interface ProviderOptions<S extends Schema.Top> {
+  readonly data: S;
+  readonly id: string | { readonly [locale: string]: string };
+  readonly defaultLocale?: string;
+  readonly subject: (data: S["Type"], context: { readonly locale: Locale }) => string;
+  readonly variables?: (
+    data: S["Type"],
+    context: { readonly locale: Locale },
+  ) => { readonly [name: string]: string | number };
+}
+
+/**
+ * Reference a template the provider renders (a Resend or SendGrid
+ * template), with typed data and per-locale ids.
+ *
+ * @example
+ * ```ts
+ * import * as assert from "node:assert";
+ * import * as Effect from "effect/Effect";
+ * import * as Schema from "effect/Schema";
+ * import { EmailTemplate } from "@thomasfosterau/effect-connect";
+ *
+ * const Welcome = EmailTemplate.provider({
+ *   data: Schema.Struct({ name: Schema.String }),
+ *   id: { en: "welcome-en", fr: "welcome-fr" },
+ *   subject: (_, { locale }) => (locale.tag === "fr" ? "Bienvenue" : "Welcome"),
+ *   variables: ({ name }) => ({ NAME: name }),
+ * });
+ *
+ * const message = Effect.runSync(
+ *   EmailTemplate.toMessage(Welcome, { name: "Ada" }, {
+ *     from: { email: "noreply@example.com" },
+ *     to: [{ email: "ada@example.com" }],
+ *     locale: "fr-CA",
+ *   }),
+ * );
+ * assert.deepStrictEqual(message.template, { id: "welcome-fr", variables: { NAME: "Ada" } });
+ * assert.strictEqual(message.subject, "Bienvenue");
+ * ```
+ *
+ * @since 0.4.0
+ */
+export const provider = <S extends Schema.Top>(
+  options: ProviderOptions<S>,
+): ProviderTemplate<S> => {
+  const ids = P.isString(options.id) ? Option.none() : Option.some(options.id);
+  const locales = Option.match(ids, { onNone: () => [], onSome: R.keys });
+  const idFor = (tag: string): string =>
+    Option.match(ids, {
+      onNone: () => (P.isString(options.id) ? options.id : ""),
+      onSome: (byLocale) => Option.getOrElse(R.get(byLocale, tag), () => ""),
+    });
+  return {
+    [ProviderTypeId]: ProviderTypeId,
+    data: options.data,
+    locales,
+    defaultLocale: options.defaultLocale ?? Option.getOrElse(Arr.head(locales), () => "en"),
+    referenceWith: (data, target) => {
+      const context = { locale: target };
+      const id = idFor(target.tag);
+      return {
+        subject: options.subject(data, context),
+        template: Option.match(Option.fromNullishOr(options.variables), {
+          onNone: () => ({ id }),
+          onSome: (variables) => ({ id, variables: variables(data, context) }),
+        }),
+      };
+    },
+  };
+};
+
+const isProviderTemplate = <S extends Schema.Top, E, R>(
+  template: EmailTemplate<S, E, R> | ProviderTemplate<S>,
+): template is ProviderTemplate<S> => P.hasProperty(template, ProviderTypeId);
 
 /**
  * Everything of an `EmailMessage` but what a template renders, plus the
@@ -443,11 +567,12 @@ export const render = <S extends Schema.Top, E, R>(
  *
  * @since 0.4.0
  */
-export type Envelope = Omit<EmailMessage, "subject" | "text" | "html"> & RenderOptions;
+export type Envelope = Omit<EmailMessage, "subject" | "text" | "html" | "template"> & RenderOptions;
 
 /**
  * Render a template into an `EmailMessage` addressed by `envelope`, ready
- * for `EmailService.send`.
+ * for `EmailService.send`. A {@link ProviderTemplate} becomes a message that
+ * references it, with no `text` or `html`.
  *
  * @example
  * ```ts
@@ -482,14 +607,22 @@ export type Envelope = Omit<EmailMessage, "subject" | "text" | "html"> & RenderO
  *
  * @since 0.4.0
  */
-export const toMessage = <S extends Schema.Top, E, R>(
-  template: EmailTemplate<S, E, R>,
+export const toMessage = <S extends Schema.Top, E = never, R = never>(
+  template: EmailTemplate<S, E, R> | ProviderTemplate<S>,
   data: S["Encoded"],
   envelope: Envelope,
 ): Effect.Effect<EmailMessage, E | EmailTemplateError, R | S["DecodingServices"]> => {
   const { locale: requested, ...address } = envelope;
-  return Effect.map(
-    render(template, data, { locale: requested ?? [] }),
-    (content): EmailMessage => ({ ...address, ...content }),
-  );
+  const locales = Arr.ensure(requested ?? []);
+  if (isProviderTemplate(template)) {
+    return Effect.gen(function* () {
+      const decoded = yield* decodeData(template.data, data);
+      const resolved = yield* negotiate(template, locales);
+      return { ...address, ...template.referenceWith(decoded, resolved) };
+    });
+  }
+  return Effect.map(render(template, data, { locale: locales }), (content): EmailMessage => ({
+    ...address,
+    ...content,
+  }));
 };
