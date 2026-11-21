@@ -5,6 +5,7 @@
     { "path": "packages/core" },
     { "path": "packages/resend" },
     { "path": "packages/twilio" },
+    { "path": "packages/react-email" },
     { "path": "tests/dist-consumer" }
   ]
 }

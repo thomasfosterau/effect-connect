@@ -44,6 +44,11 @@ catalog:
   # `vite` (vite-plus's core under an alias) and `vitest` must equal what
   # vite-plus itself depends on (`npm view vite-plus@<v> dependencies`);
   # `vite` no longer equals vite-plus.
+  # effect-connect-react-email's renderer and its React.
+  "@react-email/render": ^2.3.1
+  "@types/react": ^19.3.0
+  react: ^19.3.1
+  react-dom: ^19.3.1
   vite-plus: 1.7.0
   vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
   vitest: 5.1.0
@@ -57,6 +62,11 @@ catalog:
 catalogs:
   peers:
     effect: ^4.0.0
+  # effect-connect-react-email: React Email's renderer and the React it peers on.
+  react-email-peers:
+    "@react-email/render": ^2.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
   # effect-connect-alchemy-cloudflare: its types are the Cloudflare provider's,
   # which (with `alchemy`) peers on `effect ^4.1.0`.
   alchemy-peers:
