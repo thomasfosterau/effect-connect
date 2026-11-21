@@ -49,7 +49,7 @@ Every change to a published package's behaviour needs a changeset: `vp exec chan
 
 Every external version is in the `pnpm-workspace.yaml` catalog; package.json files use `catalog:`, `catalog:peers` / `catalog:alchemy-peers` or `workspace:`. After editing it, run `vp install` and commit `pnpm-lock.yaml`. `effect` is a peer, never a dependency, and its floor is `^4.0.0` unless a package's own dependency needs more.
 
-Dependabot groups the sets that must move together. On those PRs, by hand:
+Dependabot groups the sets that must move together, but can't make these moves: make them in a PR from a new branch started from its PR's head (never push to a `dependabot/*` branch, which stops it rebasing), and Dependabot closes its own PR once yours merges.
 
 - **Toolchain** (`vite-plus`): run `vp dlx --package=vite-plus@<v> vp migrate --no-interactive` to re-pin `vite` and `vitest`, drop any `minimumReleaseAgeExclude` entries it adds, and move the dev container image tag. `typescript` / `@typescript/native` move only with an `@effect/tsgo` that supports them (see the catalog comment).
 - **Effect**: `@effect/docgen` and `@effect/vitest` must land on the `effect` version.
