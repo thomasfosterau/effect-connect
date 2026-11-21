@@ -49,6 +49,7 @@ Effect.runPromise(sendWelcome("reader@example.com").pipe(Effect.provide(EmailLiv
 | [`@thomasfosterau/effect-connect-resend`](packages/resend) | Resend email provider, a no-op layer and a Worker env resolver. | [resend](docs/resend.md) |
 | [`@thomasfosterau/effect-connect-twilio`](packages/twilio) | Twilio SMS provider, a no-op layer and a Worker env resolver. | [twilio](docs/twilio.md) |
 | [`@thomasfosterau/effect-connect-react-email`](packages/react-email) | React Email components as email templates, with accessible defaults and a derived plain-text part. | [react-email](docs/react-email.md) |
+| [`@thomasfosterau/effect-connect-mjml`](packages/mjml) | MJML email templates, escaped by construction, with accessible defaults; runs on Workers. | [mjml](docs/mjml.md) |
 | [`@thomasfosterau/effect-connect-alchemy-cloudflare`](packages/alchemy-cloudflare) | Deploy-time Worker bindings for Alchemy's Cloudflare provider. | [alchemy-cloudflare](docs/alchemy-cloudflare.md) |
 
 ## More

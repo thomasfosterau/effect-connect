@@ -1,0 +1,69 @@
+{
+  "name": "@thomasfosterau/effect-connect-mjml",
+  "version": "0.0.0",
+  "description": "MJML renderer for @thomasfosterau/effect-connect: an EmailTemplate whose body is MJML, escaped by construction, with typed data, locales, accessible lang/dir/title defaults and a text part derived or written alongside. Runs on Workers through mjml-browser.",
+  "keywords": [
+    "effect",
+    "email",
+    "mjml",
+    "templates",
+    "typescript"
+  ],
+  "homepage": "https://github.com/thomasfosterau/effect-connect#readme",
+  "bugs": {
+    "url": "https://github.com/thomasfosterau/effect-connect/issues"
+  },
+  "license": "MIT",
+  "author": "Thomas Foster <me@thomasfoster.au>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasfosterau/effect-connect.git",
+    "directory": "packages/mjml"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./Mjml": "./src/Mjml.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./Mjml": {
+        "types": "./dist/Mjml.d.ts",
+        "default": "./dist/Mjml.js"
+      }
+    },
+    "access": "public"
+  },
+  "dependencies": {
+    "@thomasfosterau/effect-connect": "workspace:^",
+    "cheerio": "catalog:",
+    "mjml-browser": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@types/mjml-browser": "catalog:",
+    "@types/node": "catalog:",
+    "effect": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "effect": "catalog:peers"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -15,6 +15,7 @@
       "@thomasfosterau/effect-connect-resend",
       "@thomasfosterau/effect-connect-twilio",
       "@thomasfosterau/effect-connect-react-email",
+      "@thomasfosterau/effect-connect-mjml",
       "@thomasfosterau/effect-connect-alchemy-cloudflare"
     ]
   ],

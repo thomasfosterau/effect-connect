@@ -5,7 +5,8 @@
  * which answers with the status named in the bearer credential and counts
  * the requests it saw for it. One more renders an email template, whose
  * locale handling leans on `Intl`, which Workers ships its own build of,
- * and one renders a React Email component through react-dom's server build.
+ * one renders a React Email component through react-dom's server build, and
+ * one compiles MJML through mjml-browser.
  */
 
 import * as Effect from "effect/Effect";
@@ -22,6 +23,7 @@ import {
 } from "@thomasfosterau/effect-connect";
 import { resolveTransport } from "@thomasfosterau/effect-connect-resend";
 import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import * as Mjml from "@thomasfosterau/effect-connect-mjml";
 import * as ReactEmail from "@thomasfosterau/effect-connect-react-email";
 import { createElement } from "react";
 
@@ -184,6 +186,25 @@ const rendersReactEmail = () =>
     yield* expectThat(content.text === "שלום <Ada>", `unexpected derived text: ${content.text}`);
   });
 
+const MjmlWelcome = Mjml.template({
+  data: Schema.Struct({ name: Schema.String }),
+  messages: { en: { hello: "Hello" }, ar: { hello: "مرحبا" } },
+  subject: (_, { t }) => t.hello,
+  mjml: ({ name }, { t }) =>
+    EmailHtml.html`<mjml><mj-body><mj-section><mj-column><mj-text>${t.hello} ${name}</mj-text></mj-column></mj-section></mj-body></mjml>`,
+});
+
+const compilesMjml = () =>
+  Effect.gen(function* () {
+    const content = yield* EmailTemplate.render(MjmlWelcome, { name: "<Ada>" }, { locale: "ar" });
+    yield* expectThat(
+      content.html.includes('<html lang="ar" dir="rtl"') &&
+        content.html.includes("<title>مرحبا</title>"),
+      "the MJML template did not compile an Arabic, right-to-left document",
+    );
+    yield* expectThat(content.text === "مرحبا <Ada>", `unexpected derived text: ${content.text}`);
+  });
+
 /** workerd's test controller, which no scenario uses. */
 type TestController = Readonly<Record<string, never>>;
 
@@ -212,3 +233,4 @@ export const smsRedirect307 = scenario((env) => smsRefuses(env, 307));
 export const template = scenario(rendersTemplate);
 export const providerTemplate = scenario(sendsProviderTemplate);
 export const reactEmail = scenario(rendersReactEmail);
+export const mjml = scenario(compilesMjml);
