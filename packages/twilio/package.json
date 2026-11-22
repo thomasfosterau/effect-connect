@@ -1,6 +1,6 @@
 {
   "name": "@thomasfosterau/effect-connect-twilio",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Twilio provider for @thomasfosterau/effect-connect: the SmsService over Twilio's Messages API with Effect's HttpClient and no SDK, a Redacted auth token, a no-op layer for un-provisioned stages and an env-driven resolver.",
   "keywords": [
     "effect",

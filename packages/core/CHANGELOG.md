@@ -1,5 +1,13 @@
 # @thomasfosterau/effect-connect
 
+## 0.5.0
+
+### Minor Changes
+
+- [#187](https://github.com/thomasfosterau/effect-connect/pull/187) [`8ad9ffb`](https://github.com/thomasfosterau/effect-connect/commit/8ad9ffbc48c0a607a40de1b952e10bf74bb361a3) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - Email templates: `EmailTemplate` renders Schema-typed data into a subject, an accessible HTML document and a plain-text body (written alongside or derived from the HTML), in a locale negotiated by BCP 47 lookup, and `toMessage` turns that into an `EmailMessage`. `EmailHtml` is the escaping `html` tag with URL sanitising, the document shell (`lang`, `dir`, a `<title>` equal to the subject, a hidden preheader) and accessible helpers; `EmailText` has the `text` tag and `fromHtml`. Rendering fails `EmailTemplateError`.
+
+- [#196](https://github.com/thomasfosterau/effect-connect/pull/196) [`a5da9a1`](https://github.com/thomasfosterau/effect-connect/commit/a5da9a166a858b5a15c076b670a596abc5953a3e) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - Provider-side email templates: `EmailMessage` gains an optional `template` (`EmailProviderTemplate`: an id or alias and its variables), which excludes `text` and `html`, and `EmailTemplate.provider` builds one from typed data with per-locale ids through the same `toMessage`. Resend sends it as its `template` payload.
+
 ## 0.3.0
 
 ### Minor Changes
