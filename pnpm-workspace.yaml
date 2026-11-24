@@ -14,7 +14,7 @@ catalog:
   # that rises patch-for-patch, and the `effect` override forces that copy.
   # Runs the examples under `tsx` (below), and type-checks them with the `tsc`
   # on PATH, the patched native one.
-  "@effect/docgen": 4.1.4
+  "@effect/docgen": 4.1.5
   "@effect/language-service": ^0.87.5
   # `effect-tsgo patch --typescript --oxlint --tsrs` (the root `prepare`)
   # supports an explicit set of TypeScript, oxlint and tsrs versions and fails
@@ -27,12 +27,12 @@ catalog:
   # Must equal the vitest vite-plus depends on.
   "@vitest/coverage-istanbul": 5.1.1
   # Pinned exact at the `effect` version.
-  "@effect/vitest": 4.1.4
+  "@effect/vitest": 4.1.5
   # Exact, and moved together: the provider peers on that exact `alchemy`.
   # Move `catalogs.alchemy-peers` with them.
   "@alchemy.run/cloudflare": 2.0.0-beta.87
   alchemy: 2.0.0-beta.87
-  effect: 4.1.4
+  effect: 4.1.5
   fallow: 3.46.0
   # Only for `@effect/docgen`, which spawns it to run the examples.
   tsx: ^4.23.13
