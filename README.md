@@ -1,6 +1,6 @@
 # effect-connect
 
-Effect-native messaging for email, SMS, WhatsApp and chat: one provider-agnostic service per channel, and providers that speak HTTP through `effect/http` with no vendor SDK, so they run on Cloudflare Workers, browsers and Node alike.
+Effect-native messaging for email, SMS and WhatsApp: one provider-agnostic service per channel, and providers that speak HTTP through `effect/http` with no vendor SDK, so they run on Cloudflare Workers, browsers and Node alike.
 
 > [!WARNING]
 > Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. **Not production-ready:** it handles credentials and personal data, and has not been audited.
@@ -41,11 +41,15 @@ const EmailLive = Resend.layer({ apiKey: Redacted.make("re_…") }).pipe(
 Effect.runPromise(sendWelcome("reader@example.com").pipe(Effect.provide(EmailLive)));
 ```
 
+## Chat
+
+Chat isn't a channel here: Effect's own [`effect/chat`](https://github.com/Effect-TS/effect-smol) (effect 4.1.5+) covers it, with the `@effect/chat-slack` and `@effect/chat-discord` adapters. See [core: Chat](docs/core.md#chat).
+
 ## Packages
 
 | Package | What it is | Guide |
 | --- | --- | --- |
-| [`@thomasfosterau/effect-connect`](packages/core) | Message models, the `EmailService` / `SmsService` / `WhatsAppService` / `ChatService` contracts, errors, test layers and shared HTTP transport rules. | [core](docs/core.md) |
+| [`@thomasfosterau/effect-connect`](packages/core) | Message models, the `EmailService` / `SmsService` / `WhatsAppService` contracts, errors, test layers and shared HTTP transport rules. | [core](docs/core.md) |
 | [`@thomasfosterau/effect-connect-resend`](packages/resend) | Resend email provider, a no-op layer and a Worker env resolver. | [resend](docs/resend.md) |
 | [`@thomasfosterau/effect-connect-twilio`](packages/twilio) | Twilio SMS provider, a no-op layer and a Worker env resolver. | [twilio](docs/twilio.md) |
 | [`@thomasfosterau/effect-connect-react-email`](packages/react-email) | React Email components as email templates, with accessible defaults and a derived plain-text part. | [react-email](docs/react-email.md) |
