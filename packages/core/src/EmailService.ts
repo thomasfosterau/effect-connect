@@ -53,17 +53,17 @@ export class EmailService extends Context.Service<
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Option from "effect/Option";
- * import { EmailService, send, type EmailMessage } from "@thomasfosterau/effect-connect";
+ * import { Email, EmailService } from "@thomasfosterau/effect-connect";
  *
- * const sent: Array<EmailMessage> = [];
+ * const sent: Array<Email.EmailMessage> = [];
  *
  * const result = Effect.runSync(
- *   send({
+ *   EmailService.send({
  *     from: { email: "noreply@example.com", name: "Example" },
  *     to: [{ email: "reader@example.com" }],
  *     subject: "Welcome",
  *     text: "Hello!",
- *   }).pipe(Effect.provide(EmailService.layerRecording(sent))),
+ *   }).pipe(Effect.provide(EmailService.EmailService.layerRecording(sent))),
  * );
  *
  * assert.strictEqual(sent.length, 1);

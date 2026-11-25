@@ -3,7 +3,10 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
-import { EmailHtml, EmailTemplate, EmailTemplateError, EmailText } from "../src/index.ts";
+import * as EmailHtml from "../src/EmailHtml.ts";
+import * as EmailTemplate from "../src/EmailTemplate.ts";
+import * as EmailText from "../src/EmailText.ts";
+import { EmailTemplateError } from "../src/Errors.ts";
 
 const { html } = EmailHtml;
 

@@ -15,12 +15,10 @@ import * as R from "effect/Record";
 import type * as Schema from "effect/Schema";
 import { render, toPlainText } from "@react-email/render";
 import type { ReactNode } from "react";
-import {
-  EmailHtml,
-  EmailTemplate,
-  EmailTemplateError,
-  EmailText,
-} from "@thomasfosterau/effect-connect";
+import * as EmailHtml from "@thomasfosterau/effect-connect/EmailHtml";
+import * as EmailTemplate from "@thomasfosterau/effect-connect/EmailTemplate";
+import * as EmailText from "@thomasfosterau/effect-connect/EmailText";
+import { EmailTemplateError } from "@thomasfosterau/effect-connect/Errors";
 
 /**
  * What the component, subject and text functions receive besides the data:
@@ -95,9 +93,9 @@ const htmlTag = /<html\b([^>]*)>/i;
  * @example
  * ```ts
  * import * as assert from "node:assert";
- * import { accessibleDefaults } from "@thomasfosterau/effect-connect-react-email";
+ * import { ReactEmail } from "@thomasfosterau/effect-connect-react-email";
  *
- * const html = accessibleDefaults(
+ * const html = ReactEmail.accessibleDefaults(
  *   "<!DOCTYPE html><html><head></head><body>مرحبا</body></html>",
  *   { tag: "ar", dir: "rtl" },
  *   "مرحبا",
@@ -137,9 +135,9 @@ export const accessibleDefaults = (
  * import * as Schema from "effect/Schema";
  * import { createElement } from "react";
  * import { EmailTemplate } from "@thomasfosterau/effect-connect";
- * import { template } from "@thomasfosterau/effect-connect-react-email";
+ * import { ReactEmail } from "@thomasfosterau/effect-connect-react-email";
  *
- * const Welcome = template({
+ * const Welcome = ReactEmail.template({
  *   data: Schema.Struct({ name: Schema.String }),
  *   messages: { en: { hello: "Hello" }, fr: { hello: "Bonjour" } },
  *   subject: (_, { t }) => t.hello,

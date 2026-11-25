@@ -115,10 +115,10 @@ export type WhatsAppSendResult = typeof WhatsAppSendResult.Type;
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Exit from "effect/Exit";
- * import { decodeWhatsAppMessage } from "@thomasfosterau/effect-connect";
+ * import { WhatsApp } from "@thomasfosterau/effect-connect";
  *
  * const template = Effect.runSyncExit(
- *   decodeWhatsAppMessage({
+ *   WhatsApp.decodeWhatsAppMessage({
  *     _tag: "Template",
  *     to: "+61412345678",
  *     template: { id: "HX0123", variables: { "1": "123456" } },
@@ -127,7 +127,7 @@ export type WhatsAppSendResult = typeof WhatsAppSendResult.Type;
  * assert.ok(Exit.isSuccess(template));
  *
  * const invalid = Effect.runSyncExit(
- *   decodeWhatsAppMessage({ _tag: "Text", to: "0412 345 678", body: "" }),
+ *   WhatsApp.decodeWhatsAppMessage({ _tag: "Text", to: "0412 345 678", body: "" }),
  * );
  * assert.ok(Exit.isFailure(invalid));
  * ```

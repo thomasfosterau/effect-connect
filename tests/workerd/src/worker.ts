@@ -14,17 +14,15 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import {
   EmailHtml,
-  EmailSendError,
   EmailService,
   EmailTemplate,
-  EmailTemplateError,
-  SmsSendError,
+  Errors,
   SmsService,
 } from "@thomasfosterau/effect-connect";
-import { resolveTransport } from "@thomasfosterau/effect-connect-resend";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
-import * as Mjml from "@thomasfosterau/effect-connect-mjml";
-import * as ReactEmail from "@thomasfosterau/effect-connect-react-email";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
+import { Mjml } from "@thomasfosterau/effect-connect-mjml";
+import { ReactEmail } from "@thomasfosterau/effect-connect-react-email";
 import { createElement } from "react";
 
 /** The stub origin, bound as a service so a test can ask it what it saw. */
@@ -47,18 +45,18 @@ const expectThat = (holds: boolean, message: string): Effect.Effect<void, Unexpe
 
 /** One send with a credential that tells the origin which status to answer. */
 const sendAnswered = (status: number) =>
-  Effect.flatMap(EmailService, (email) =>
+  Effect.flatMap(EmailService.EmailService, (email) =>
     email.send({
       from: { email: "noreply@example.test" },
       to: [{ email: "reader@example.test" }],
       subject: "workerd",
       text: "sent from inside workerd",
     }),
-  ).pipe(Effect.provide(resolveTransport({ RESEND_API_KEY: `status-${String(status)}` })));
+  ).pipe(Effect.provide(Resend.resolveTransport({ RESEND_API_KEY: `status-${String(status)}` })));
 
 /** One Twilio send whose auth token tells the origin which status to answer. */
 const smsAnswered = (status: number) =>
-  Effect.flatMap(SmsService, (sms) =>
+  Effect.flatMap(SmsService.SmsService, (sms) =>
     sms.send({ to: "+61412345678", from: "workerd", body: "sent from inside workerd" }),
   ).pipe(
     Effect.provide(
@@ -94,7 +92,10 @@ const refuses = (env: Env, status: number) =>
         () => new Unexpected({ message: `a ${String(status)} was answered as a success` }),
       ),
     );
-    yield* expectThat(error instanceof EmailSendError, "a redirect did not fail as EmailSendError");
+    yield* expectThat(
+      error instanceof Errors.EmailSendError,
+      "a redirect did not fail as EmailSendError",
+    );
     yield* expectThat(
       error.message === `Resend was unreachable: redirect refused (${String(status)})`,
       `unexpected message for a ${String(status)}: ${error.message}`,
@@ -140,7 +141,10 @@ const smsRefuses = (env: Env, status: number) =>
         () => new Unexpected({ message: `an SMS ${String(status)} was answered as a success` }),
       ),
     );
-    yield* expectThat(error instanceof SmsSendError, "a redirect did not fail as SmsSendError");
+    yield* expectThat(
+      error instanceof Errors.SmsSendError,
+      "a redirect did not fail as SmsSendError",
+    );
     yield* expectThat(
       error.message === `Twilio was unreachable: redirect refused (${String(status)})`,
       `unexpected message for an SMS ${String(status)}: ${error.message}`,
@@ -160,14 +164,14 @@ const Welcome = EmailTemplate.make({
 /** A Resend send of a provider template: a JSON body with `template` and no `html` / `text`. */
 const sendsProviderTemplate = (env: Env) =>
   Effect.gen(function* () {
-    const result = yield* Effect.flatMap(EmailService, (email) =>
+    const result = yield* Effect.flatMap(EmailService.EmailService, (email) =>
       email.send({
         from: { email: "noreply@example.test" },
         to: [{ email: "reader@example.test" }],
         subject: "workerd",
         template: { id: "welcome", variables: { NAME: "Ada", COUNT: 1 } },
       }),
-    ).pipe(Effect.provide(resolveTransport({ RESEND_API_KEY: "template-status-200" })));
+    ).pipe(Effect.provide(Resend.resolveTransport({ RESEND_API_KEY: "template-status-200" })));
     yield* expectThat(Option.isSome(result.id), "a template send answered no id");
     const seen = yield* requestsSeen(env, 200, "template-");
     yield* expectThat(seen === "1", `a template send made ${seen} requests, expected 1`);
@@ -238,7 +242,10 @@ type TestController = Readonly<Record<string, never>>;
 const scenario = (
   run: (
     env: Env,
-  ) => Effect.Effect<void, Unexpected | EmailSendError | SmsSendError | EmailTemplateError>,
+  ) => Effect.Effect<
+    void,
+    Unexpected | Errors.EmailSendError | Errors.SmsSendError | Errors.EmailTemplateError
+  >,
 ) => ({
   test: (_controller: TestController, env: Env) => Effect.runPromise(run(env)),
 });

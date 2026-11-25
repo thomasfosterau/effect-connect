@@ -28,17 +28,17 @@
  *
  * @since 0.1.0
  */
-export * from "./Bindings.ts";
+export * as Bindings from "./Bindings.ts";
 /**
  * The Resend bindings (`RESEND_API_KEY`).
  *
  * @since 0.1.0
  */
-export * from "./Resend.ts";
+export * as Resend from "./Resend.ts";
 /**
  * The Twilio bindings (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, optional
  * `TWILIO_FROM` and `TWILIO_MESSAGING_SERVICE_SID`).
  *
  * @since 0.4.0
  */
-export * from "./Twilio.ts";
+export * as Twilio from "./Twilio.ts";

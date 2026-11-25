@@ -3,14 +3,9 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import {
-  EmailService,
-  send,
-  sendBatch,
-  truncateUpstreamBody,
-  UPSTREAM_BODY_LIMIT,
-  type EmailMessage,
-} from "../src/index.ts";
+import { type EmailMessage } from "../src/Email.ts";
+import { EmailService, send, sendBatch } from "../src/EmailService.ts";
+import { truncateUpstreamBody, UPSTREAM_BODY_LIMIT } from "../src/Errors.ts";
 
 const message = (to: string): EmailMessage => ({
   from: { email: "sender@example.com" },

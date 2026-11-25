@@ -13,19 +13,16 @@ import * as R from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
-import {
-  SmsSendError,
-  SmsService,
-  UPSTREAM_BODY_LIMIT,
-  type SmsMessage,
-} from "@thomasfosterau/effect-connect";
+import { SmsSendError, UPSTREAM_BODY_LIMIT } from "@thomasfosterau/effect-connect/Errors";
+import { type SmsMessage } from "@thomasfosterau/effect-connect/Sms";
+import { SmsService } from "@thomasfosterau/effect-connect/SmsService";
 import {
   configFromEnv,
   layer as twilioLayer,
   layerConfig,
   resolveTransport,
   toTwilioPayload,
-} from "../src/index.ts";
+} from "../src/Twilio.ts";
 
 const ACCOUNT_SID = "AC_test_account";
 const AUTH_TOKEN = "test-auth-token";

@@ -21,14 +21,14 @@ import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { FetchHttpClient } from "effect/http";
 import { EmailService } from "@thomasfosterau/effect-connect";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
 
 const EmailLive = Resend.layer({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }).pipe(
   Layer.provide(FetchHttpClient.layer),
 );
 
 const program = Effect.gen(function* () {
-  const email = yield* EmailService;
+  const email = yield* EmailService.EmailService;
   const result = yield* email.send({
     from: { email: "noreply@example.com", name: "Example" },
     to: [{ email: "reader@example.com" }],
@@ -42,16 +42,16 @@ const program = Effect.gen(function* () {
 
 ## Entry points
 
-The package has the single entry point `.`.
+The entry point `.` exports two namespaces, `Resend` and `ResendConfig`, each also a subpath of its own (`./Resend`, `./ResendConfig`).
 
 | Export | Purpose |
 | --- | --- |
-| `layer(config)`, `layerConfig` | The `EmailService` over the `HttpClient` in context, from literal config or from `RESEND_API_KEY` / `RESEND_BASE_URL`. |
-| `resolveTransport(env)`, `apiKeyFromEnv(env)`, `ResendEnv` | Pick the live sender or the no-op from a Worker env. |
-| `noop` | The `EmailService` that succeeds without sending. |
-| `ResendConfig`, `ResendConfigInput`, `DEFAULT_BASE_URL` | The credential and host as a service. |
-| `toResendPayload`, `formatAddress`, `ResendSendPayload` | The core-message to `POST /emails` mapping. |
-| `layerEmailService` | The `EmailService` over a `ResendConfig` and `HttpClient` you provide. |
+| `Resend.layer(config)`, `Resend.layerConfig` | The `EmailService` over the `HttpClient` in context, from literal config or from `RESEND_API_KEY` / `RESEND_BASE_URL`. |
+| `Resend.resolveTransport(env)`, `Resend.apiKeyFromEnv(env)`, `Resend.ResendEnv` | Pick the live sender or the no-op from a Worker env. |
+| `Resend.noop` | The `EmailService` that succeeds without sending. |
+| `ResendConfig.ResendConfig`, `ResendConfig.ResendConfigInput`, `ResendConfig.DEFAULT_BASE_URL` | The credential and host as a service. |
+| `Resend.toResendPayload`, `Resend.formatAddress`, `Resend.ResendSendPayload` | The core-message to `POST /emails` mapping. |
+| `Resend.layerEmailService` | The `EmailService` over a `ResendConfig` and `HttpClient` you provide. |
 
 ## Documentation
 

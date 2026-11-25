@@ -164,10 +164,10 @@ export type EmailSendResult = typeof EmailSendResult.Type;
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Exit from "effect/Exit";
- * import { decodeEmailMessage } from "@thomasfosterau/effect-connect";
+ * import { Email } from "@thomasfosterau/effect-connect";
  *
  * const valid = Effect.runSyncExit(
- *   decodeEmailMessage({
+ *   Email.decodeEmailMessage({
  *     from: { email: "noreply@example.com" },
  *     to: [{ email: "reader@example.com" }],
  *     subject: "Welcome",
@@ -176,7 +176,7 @@ export type EmailSendResult = typeof EmailSendResult.Type;
  * assert.ok(Exit.isSuccess(valid));
  *
  * const invalid = Effect.runSyncExit(
- *   decodeEmailMessage({ from: { email: "not-an-address" }, to: [], subject: "Welcome" }),
+ *   Email.decodeEmailMessage({ from: { email: "not-an-address" }, to: [], subject: "Welcome" }),
  * );
  * assert.ok(Exit.isFailure(invalid));
  * ```

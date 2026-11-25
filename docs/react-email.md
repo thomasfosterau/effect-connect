@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect-react-email`
 
-Detail for the [package README](../packages/react-email/README.md): React Email as a renderer for the [core](./core.md)'s email templates. `template` returns an ordinary `EmailTemplate`, so `EmailTemplate.render`, `toMessage`, `localised` and locale negotiation work exactly as they do for a template built with `EmailTemplate.make`. It runs on Cloudflare Workers (through react-dom's Workers build) as well as on Node.
+Detail for the [package README](../packages/react-email/README.md): React Email as a renderer for the [core](./core.md)'s email templates. The package root exports one namespace, `ReactEmail` (also the `./ReactEmail` subpath); earlier versions exported `template` and `accessibleDefaults` flat, so `import * as ReactEmail from "@thomasfosterau/effect-connect-react-email"` becomes `import { ReactEmail } from "@thomasfosterau/effect-connect-react-email"`. `ReactEmail.template` returns an ordinary `EmailTemplate`, so `EmailTemplate.render`, `toMessage`, `localised` and locale negotiation work exactly as they do for a template built with `EmailTemplate.make`. It runs on Cloudflare Workers (through react-dom's Workers build) as well as on Node.
 
 ## Options
 

@@ -3,7 +3,9 @@
  * (`POST /2010-04-01/Accounts/:sid/Messages.json`, form-encoded), sent over
  * Effect's `HttpClient` with no SDK: a fixed host, Basic auth, redirects
  * refused (the core's `refuseRedirects`), a truncated error body that never
- * holds the token, and no retry.
+ * holds the token, and no retry. Also the provider's layers (from literal
+ * configuration or `effect/Config`), the no-op transport and the Worker env
+ * resolver that picks between them.
  *
  * @module Twilio
  * @since 0.1.0
@@ -18,19 +20,25 @@ import * as Schema from "effect/Schema";
 import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
+import { SmsSendError } from "@thomasfosterau/effect-connect/Errors";
 import {
   describeHttpError,
-  droppingSender,
   httpErrorStatus,
   isSuccessStatus,
   refuseRedirects,
   rejectionMessage,
-  SmsSendError,
-  SmsService,
-  type SmsMessage,
-  type SmsSendResult,
-} from "@thomasfosterau/effect-connect";
-import { TwilioConfig } from "./TwilioConfig.ts";
+} from "@thomasfosterau/effect-connect/Http";
+import { type SmsMessage, type SmsSendResult } from "@thomasfosterau/effect-connect/Sms";
+import { SmsService } from "@thomasfosterau/effect-connect/SmsService";
+import {
+  boundSecret,
+  boundString,
+  droppingSender,
+  selectTransport,
+  type EnvBinding,
+  type EnvSecretBinding,
+} from "@thomasfosterau/effect-connect/Transport";
+import { TwilioConfig, type TwilioConfigInput } from "./TwilioConfig.ts";
 
 /**
  * The form fields Twilio's create-message endpoint takes: `To`, `Body`, and
@@ -59,9 +67,9 @@ interface Senders {
  * ```ts
  * import * as assert from "node:assert";
  * import * as Option from "effect/Option";
- * import { toTwilioPayload } from "@thomasfosterau/effect-connect-twilio";
+ * import { Twilio } from "@thomasfosterau/effect-connect-twilio";
  *
- * const payload = toTwilioPayload(
+ * const payload = Twilio.toTwilioPayload(
  *   { to: "+61412345678", body: "Your code is 123456" },
  *   { from: Option.some("Example"), messagingServiceSid: Option.none() },
  * );
@@ -189,3 +197,93 @@ export const noop: Layer.Layer<SmsService> = Layer.succeed(
     () => "[effect-connect-twilio] no Twilio credentials configured; dropping an SMS",
   ),
 );
+
+/**
+ * The Twilio provider from literal configuration, over the `HttpClient` in
+ * context (provide `FetchHttpClient.layer` on Workers, browsers and Node).
+ *
+ * @since 0.1.0
+ */
+export const layer = (
+  config: TwilioConfigInput,
+): Layer.Layer<SmsService, never, HttpClient.HttpClient> =>
+  layerSmsService.pipe(Layer.provide(TwilioConfig.layer(config)));
+
+/**
+ * The Twilio provider configured through `effect/Config`
+ * (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, optional `TWILIO_FROM`,
+ * `TWILIO_MESSAGING_SERVICE_SID` and `TWILIO_BASE_URL`), over the
+ * `HttpClient` in context. Fails at layer construction with a `ConfigError`
+ * when the SID or token is unset or empty. On a Worker,
+ * {@link resolveTransport} tolerates missing credentials.
+ *
+ * @since 0.1.0
+ */
+export const layerConfig = layerSmsService.pipe(Layer.provide(TwilioConfig.layerConfig));
+
+/**
+ * The env {@link resolveTransport} reads: the Worker's Twilio bindings, if any.
+ *
+ * @since 0.1.0
+ */
+export interface TwilioEnv {
+  readonly TWILIO_ACCOUNT_SID?: EnvBinding;
+  readonly TWILIO_AUTH_TOKEN?: EnvSecretBinding;
+  readonly TWILIO_FROM?: EnvBinding;
+  readonly TWILIO_MESSAGING_SERVICE_SID?: EnvBinding;
+}
+
+/**
+ * The configuration from a Worker env: `none` unless both the account SID
+ * and the auth token are bound and non-blank. A blank `TWILIO_FROM` or
+ * `TWILIO_MESSAGING_SERVICE_SID` counts as unbound.
+ *
+ * @since 0.1.0
+ */
+export const configFromEnv = (env: TwilioEnv): Option.Option<TwilioConfigInput> =>
+  Option.map(
+    Option.all({
+      accountSid: boundString(env.TWILIO_ACCOUNT_SID),
+      authToken: boundSecret(env.TWILIO_AUTH_TOKEN),
+    }),
+    ({ accountSid, authToken }): TwilioConfigInput => ({
+      accountSid,
+      authToken,
+      ...Option.match(boundString(env.TWILIO_FROM), {
+        onNone: () => ({}),
+        onSome: (from) => ({ from }),
+      }),
+      ...Option.match(boundString(env.TWILIO_MESSAGING_SERVICE_SID), {
+        onNone: () => ({}),
+        onSome: (messagingServiceSid) => ({ messagingServiceSid }),
+      }),
+    }),
+  );
+
+/**
+ * Pick the transport for a Worker's environment: the live sender (on the
+ * platform `fetch`, via `FetchHttpClient`) when the account SID and auth
+ * token are bound, the logging {@link noop} when they are not.
+ *
+ * @example
+ * ```ts
+ * import * as assert from "node:assert";
+ * import * as Effect from "effect/Effect";
+ * import * as Option from "effect/Option";
+ * import { SmsService } from "@thomasfosterau/effect-connect";
+ * import { Twilio } from "@thomasfosterau/effect-connect-twilio";
+ *
+ * // No auth token bound: the no-op transport, which succeeds without a network call.
+ * const result = Effect.runSync(
+ *   SmsService.sendSms({ to: "+61412345678", body: "Your code is 123456" }).pipe(
+ *     Effect.provide(Twilio.resolveTransport({ TWILIO_ACCOUNT_SID: "AC123" })),
+ *   ),
+ * );
+ *
+ * assert.ok(Option.isNone(result.id));
+ * ```
+ *
+ * @since 0.1.0
+ */
+export const resolveTransport = (env: TwilioEnv): Layer.Layer<SmsService> =>
+  selectTransport(configFromEnv(env), layer, noop);

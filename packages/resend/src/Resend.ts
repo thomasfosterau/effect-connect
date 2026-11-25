@@ -2,7 +2,9 @@
  * The core `EmailMessage` mapped onto Resend's `POST /emails` (and
  * `/emails/batch`), sent over Effect's `HttpClient` with no SDK: a fixed host,
  * redirects refused (the core's `refuseRedirects`), a truncated error body
- * that never holds the key, and no retry.
+ * that never holds the key, and no retry. Also the provider's layers (from
+ * literal configuration or `effect/Config`), the no-op transport and the
+ * Worker env resolver that picks between them.
  *
  * @module Resend
  * @since 0.1.0
@@ -12,24 +14,32 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
 import {
+  type EmailMessage,
+  type EmailSendResult,
+  type Recipient,
+} from "@thomasfosterau/effect-connect/Email";
+import { EmailService } from "@thomasfosterau/effect-connect/EmailService";
+import { EmailSendError } from "@thomasfosterau/effect-connect/Errors";
+import {
   describeHttpError,
-  droppingSender,
-  EmailSendError,
-  EmailService,
   httpErrorStatus,
   isSuccessStatus,
   refuseRedirects,
   rejectionMessage,
-  type EmailMessage,
-  type EmailSendResult,
-  type Recipient,
-} from "@thomasfosterau/effect-connect";
-import { ResendConfig } from "./ResendConfig.ts";
+} from "@thomasfosterau/effect-connect/Http";
+import {
+  boundSecret,
+  droppingSender,
+  selectTransport,
+  type EnvSecretBinding,
+} from "@thomasfosterau/effect-connect/Transport";
+import { ResendConfig, type ResendConfigInput } from "./ResendConfig.ts";
 
 const ResendAttachment = Schema.Struct({
   filename: Schema.String,
@@ -102,9 +112,9 @@ export const formatAddress = (recipient: Recipient): string =>
  * @example
  * ```ts
  * import * as assert from "node:assert";
- * import { toResendPayload } from "@thomasfosterau/effect-connect-resend";
+ * import { Resend } from "@thomasfosterau/effect-connect-resend";
  *
- * const payload = toResendPayload({
+ * const payload = Resend.toResendPayload({
  *   from: { email: "noreply@example.com", name: "Example" },
  *   to: [{ email: "reader@example.com" }],
  *   replyTo: { email: "support@example.com" },
@@ -253,3 +263,76 @@ export const noop: Layer.Layer<EmailService> = Layer.succeed(
       `[effect-connect-resend] no RESEND_API_KEY configured; dropping "${message.subject}"`,
   ),
 );
+
+/**
+ * The Resend provider from literal configuration, over the `HttpClient` in
+ * context (provide `FetchHttpClient.layer` on Workers, browsers and Node).
+ *
+ * @since 0.1.0
+ */
+export const layer = (
+  config: ResendConfigInput,
+): Layer.Layer<EmailService, never, HttpClient.HttpClient> =>
+  layerEmailService.pipe(Layer.provide(ResendConfig.layer(config)));
+
+/**
+ * The Resend provider configured through `effect/Config` (`RESEND_API_KEY`,
+ * optional `RESEND_BASE_URL`), over the `HttpClient` in context. Fails at
+ * layer construction with a `ConfigError` when `RESEND_API_KEY` is unset or
+ * empty (an empty variable reads as missing); an empty `RESEND_BASE_URL`
+ * falls back to the default host. On a Worker, {@link resolveTransport}
+ * tolerates a missing key.
+ *
+ * @since 0.1.0
+ */
+export const layerConfig = layerEmailService.pipe(Layer.provide(ResendConfig.layerConfig));
+
+/**
+ * The env {@link resolveTransport} reads: the Worker's `RESEND_API_KEY` binding, if any.
+ *
+ * @since 0.1.0
+ */
+export interface ResendEnv {
+  readonly RESEND_API_KEY?: EnvSecretBinding;
+}
+
+/**
+ * The credential from a Worker env: `none` when the binding is absent,
+ * `null` or blank.
+ *
+ * @since 0.1.0
+ */
+export const apiKeyFromEnv = (env: ResendEnv): Option.Option<Redacted.Redacted> =>
+  boundSecret(env.RESEND_API_KEY);
+
+/**
+ * Pick the transport for a Worker's environment: the live sender (on the
+ * platform `fetch`, via `FetchHttpClient`) when `RESEND_API_KEY` is present,
+ * the logging {@link noop} when it is not. One call site per Worker, so the
+ * fallback cannot be forgotten at one of two.
+ *
+ * @example
+ * ```ts
+ * import * as assert from "node:assert";
+ * import * as Effect from "effect/Effect";
+ * import * as Option from "effect/Option";
+ * import { EmailService } from "@thomasfosterau/effect-connect";
+ * import { Resend } from "@thomasfosterau/effect-connect-resend";
+ *
+ * // No `RESEND_API_KEY` bound (a blank one counts as unbound): the no-op
+ * // transport, which logs the subject and succeeds without a network call.
+ * const result = Effect.runSync(
+ *   EmailService.send({
+ *     from: { email: "noreply@example.com" },
+ *     to: [{ email: "reader@example.com" }],
+ *     subject: "Welcome",
+ *   }).pipe(Effect.provide(Resend.resolveTransport({ RESEND_API_KEY: "  " }))),
+ * );
+ *
+ * assert.ok(Option.isNone(result.id));
+ * ```
+ *
+ * @since 0.1.0
+ */
+export const resolveTransport = (env: ResendEnv): Layer.Layer<EmailService> =>
+  selectTransport(apiKeyFromEnv(env), (apiKey) => layer({ apiKey }), noop);

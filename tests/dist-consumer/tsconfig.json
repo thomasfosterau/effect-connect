@@ -2,9 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "types": ["node"],
-    // Resolve the packages to their emitted declarations, not `src/`.
+    // Resolve the packages (and the core's subpaths, which the providers'
+    // declarations import) to their emitted declarations, not `src/`.
     "paths": {
       "@thomasfosterau/effect-connect": ["../../packages/core/dist/index.d.ts"],
+      "@thomasfosterau/effect-connect/*": ["../../packages/core/dist/*.d.ts"],
       "@thomasfosterau/effect-connect-resend": ["../../packages/resend/dist/index.d.ts"],
       "@thomasfosterau/effect-connect-twilio": ["../../packages/twilio/dist/index.d.ts"],
       "@thomasfosterau/effect-connect-alchemy-cloudflare": [

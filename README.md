@@ -13,7 +13,7 @@ pnpm add @thomasfosterau/effect-connect @thomasfosterau/effect-connect-resend ef
 
 ## Usage
 
-Code sends through a channel's service; the edge provides one provider's layer per channel (or `EmailService.layerRecording` in a test).
+Code sends through a channel's service; the edge provides one provider's layer per channel (or `EmailService.EmailService.layerRecording` in a test).
 
 ```ts
 import * as Effect from "effect/Effect";
@@ -21,11 +21,11 @@ import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { FetchHttpClient } from "effect/http";
 import { EmailService } from "@thomasfosterau/effect-connect";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
 
 const sendWelcome = (to: string) =>
   Effect.gen(function* () {
-    const email = yield* EmailService;
+    const email = yield* EmailService.EmailService;
     return yield* email.send({
       from: { email: "noreply@example.com", name: "Example" },
       to: [{ email: to }],

@@ -36,9 +36,9 @@ export interface ResendBindings {
  * ```ts
  * import * as assert from "node:assert";
  * import * as Redacted from "effect/Redacted";
- * import { resendBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+ * import { Resend } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
  *
- * const env = resendBindings({ apiKey: Redacted.make("re_123") });
+ * const env = Resend.resendBindings({ apiKey: Redacted.make("re_123") });
  * assert.strictEqual(Redacted.value(env.RESEND_API_KEY), "re_123");
  * ```
  *
@@ -59,10 +59,10 @@ export const resendBindings = (input: ResendBindingsInput): ResendBindings => ({
  * import * as ConfigProvider from "effect/ConfigProvider";
  * import * as Effect from "effect/Effect";
  * import * as Redacted from "effect/Redacted";
- * import { resendBindingsConfig } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+ * import { Resend } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
  *
  * const env = Effect.runSync(
- *   resendBindingsConfig.parse(ConfigProvider.fromEnv({ env: { RESEND_API_KEY: "re_123" } })),
+ *   Resend.resendBindingsConfig.parse(ConfigProvider.fromEnv({ env: { RESEND_API_KEY: "re_123" } })),
  * );
  * assert.strictEqual(Redacted.value(env.RESEND_API_KEY), "re_123");
  * ```

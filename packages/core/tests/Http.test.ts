@@ -9,6 +9,7 @@ import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientError from "effect/http/HttpClientError";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
+import { UPSTREAM_BODY_LIMIT } from "../src/Errors.ts";
 import {
   describeHttpError,
   describeHttpErrorWithoutUrl,
@@ -18,8 +19,7 @@ import {
   refuseRedirects,
   redactSecrets,
   rejectionMessage,
-  UPSTREAM_BODY_LIMIT,
-} from "../src/index.ts";
+} from "../src/Http.ts";
 
 /** A stand-in for a platform failure (a `fetch` rejection, a stream error). */
 class StubFailure extends Schema.TaggedError<StubFailure, { readonly brand: unique symbol }>()(

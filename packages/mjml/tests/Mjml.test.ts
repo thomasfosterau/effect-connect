@@ -1,8 +1,10 @@
 import { describe, expect, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import { EmailHtml, EmailTemplate, EmailText } from "@thomasfosterau/effect-connect";
-import { accessibleDefaults, template } from "../src/index.ts";
+import * as EmailHtml from "@thomasfosterau/effect-connect/EmailHtml";
+import * as EmailTemplate from "@thomasfosterau/effect-connect/EmailTemplate";
+import * as EmailText from "@thomasfosterau/effect-connect/EmailText";
+import { accessibleDefaults, template } from "../src/Mjml.ts";
 
 const { html } = EmailHtml;
 

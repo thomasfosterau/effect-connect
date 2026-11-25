@@ -2,17 +2,9 @@ import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
-import {
-  decodeSmsMessage,
-  PhoneNumber,
-  sendSms,
-  sendSmsBatch,
-  SmsMessage,
-  SmsSender,
-  SmsSendResult,
-  SmsService,
-  SmsValidationError,
-} from "../src/index.ts";
+import { SmsValidationError } from "../src/Errors.ts";
+import { decodeSmsMessage, PhoneNumber, SmsMessage, SmsSender, SmsSendResult } from "../src/Sms.ts";
+import { sendSms, sendSmsBatch, SmsService } from "../src/SmsService.ts";
 
 const decodePhone = Schema.decodeUnknownSync(PhoneNumber);
 const decodeSender = Schema.decodeUnknownSync(SmsSender);

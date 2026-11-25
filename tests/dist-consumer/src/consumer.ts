@@ -15,30 +15,17 @@ import type * as HttpClientError from "effect/http/HttpClientError";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import type * as HttpClientResponse from "effect/http/HttpClientResponse";
 import {
-  decodeEmailMessage,
-  EmailSendError,
+  Email,
   EmailService,
-  EmailValidationError,
-  decodeSmsMessage,
-  sendSms,
-  SmsSendError,
+  Errors,
+  Http,
+  Sms,
   SmsService,
-  SmsValidationError,
-  type EmailMessage,
-  type EmailSendResult,
-  type SmsMessage,
-  type SmsSendResult,
-  decodeWhatsAppMessage,
-  sendWhatsApp,
-  WhatsAppSendError,
+  WhatsApp,
   WhatsAppService,
-  WhatsAppValidationError,
-  type WhatsAppMessage,
-  type WhatsAppSendResult,
-  refuseRedirects,
 } from "@thomasfosterau/effect-connect";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
 import type * as Cloudflare from "@alchemy.run/cloudflare";
 import * as Alchemy from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
@@ -49,56 +36,61 @@ type Equals<A, B> =
 
 // ── core ──────────────────────────────────────────────────────────────────
 
-const message: EmailMessage = {
+const message: Email.EmailMessage = {
   from: { email: "noreply@example.com", name: "Example" },
   to: [{ email: "reader@example.com" }],
   subject: "Welcome",
   text: "Welcome aboard.",
 };
 
-export const sent = Effect.flatMap(EmailService, (email) => email.send(message));
-export const decoded = decodeEmailMessage({});
-export const recording: Layer.Layer<EmailService> = EmailService.layerRecording([]);
+export const sent = Effect.flatMap(EmailService.EmailService, (email) => email.send(message));
+export const decoded = Email.decodeEmailMessage({});
+export const recording: Layer.Layer<EmailService.EmailService> =
+  EmailService.EmailService.layerRecording([]);
 
-const sms: SmsMessage = { to: "+61412345678", body: "Your code is 123456" };
+const sms: Sms.SmsMessage = { to: "+61412345678", body: "Your code is 123456" };
 
-export const smsSent = sendSms(sms);
-export const smsDecoded = decodeSmsMessage({});
-export const smsRecording: Layer.Layer<SmsService> = SmsService.layerRecording([]);
+export const smsSent = SmsService.sendSms(sms);
+export const smsDecoded = Sms.decodeSmsMessage({});
+export const smsRecording: Layer.Layer<SmsService.SmsService> =
+  SmsService.SmsService.layerRecording([]);
 
-const whatsapp: WhatsAppMessage = {
+const whatsapp: WhatsApp.WhatsAppMessage = {
   _tag: "Template",
   to: "+61412345678",
   template: { id: "HX0123", variables: { "1": "123456" } },
 };
 
-export const whatsappSent = sendWhatsApp(whatsapp);
-export const whatsappDecoded = decodeWhatsAppMessage({});
-export const whatsappRecording: Layer.Layer<WhatsAppService> = WhatsAppService.layerRecording([]);
+export const whatsappSent = WhatsAppService.sendWhatsApp(whatsapp);
+export const whatsappDecoded = WhatsApp.decodeWhatsAppMessage({});
+export const whatsappRecording: Layer.Layer<WhatsAppService.WhatsAppService> =
+  WhatsAppService.WhatsAppService.layerRecording([]);
 
 // ── resend ────────────────────────────────────────────────────────────────
 
-export const resendLayer: Layer.Layer<EmailService, never, HttpClient.HttpClient> = Resend.layer({
-  apiKey: Redacted.make("re_key"),
-});
-export const resolved: Layer.Layer<EmailService> = Resend.resolveTransport({
+export const resendLayer: Layer.Layer<EmailService.EmailService, never, HttpClient.HttpClient> =
+  Resend.layer({
+    apiKey: Redacted.make("re_key"),
+  });
+export const resolved: Layer.Layer<EmailService.EmailService> = Resend.resolveTransport({
   RESEND_API_KEY: "re_key",
 });
-export const noop: Layer.Layer<EmailService> = Resend.noop;
+export const noop: Layer.Layer<EmailService.EmailService> = Resend.noop;
 export const resendPayload: Resend.ResendSendPayload = Resend.toResendPayload(message);
 
 // ── twilio ────────────────────────────────────────────────────────────────
 
-export const twilioLayer: Layer.Layer<SmsService, never, HttpClient.HttpClient> = Twilio.layer({
-  accountSid: "AC123",
-  authToken: Redacted.make("token"),
-  from: "Example",
-});
-export const twilioResolved: Layer.Layer<SmsService> = Twilio.resolveTransport({
+export const twilioLayer: Layer.Layer<SmsService.SmsService, never, HttpClient.HttpClient> =
+  Twilio.layer({
+    accountSid: "AC123",
+    authToken: Redacted.make("token"),
+    from: "Example",
+  });
+export const twilioResolved: Layer.Layer<SmsService.SmsService> = Twilio.resolveTransport({
   TWILIO_ACCOUNT_SID: "AC123",
   TWILIO_AUTH_TOKEN: "token",
 });
-export const twilioNoop: Layer.Layer<SmsService> = Twilio.noop;
+export const twilioNoop: Layer.Layer<SmsService.SmsService> = Twilio.noop;
 export const twilioPayload: Option.Option<Twilio.TwilioSendPayload> = Twilio.toTwilioPayload(
   { to: "+61412345678", body: "Your code is 123456" },
   { from: Option.some("Example"), messagingServiceSid: Option.none() },
@@ -112,25 +104,25 @@ const executed = Effect.flatMap(HttpClient.HttpClient, (http) =>
 );
 
 /** Called directly on a request: the same type 0.2.0 answered. */
-export const refusedDirect = refuseRedirects(executed);
+export const refusedDirect = Http.refuseRedirects(executed);
 
 /** Point-free in a pipe, the shape every provider uses: the response and the error still infer. */
 export const refusedPiped = executed.pipe(
-  refuseRedirects,
+  Http.refuseRedirects,
   Effect.mapError((error) => error.reason._tag),
   Effect.map((response) => response.status),
 );
 
 /** On an effect that answers no response (0.2.0 took any effect): still accepted. */
-export const pinnedOnly = refuseRedirects(Effect.succeed("not a response"));
+export const pinnedOnly = Http.refuseRedirects(Effect.succeed("not a response"));
 
 // ── alchemy-cloudflare ────────────────────────────────────────────────────
 
-export const resendBindings: Alchemy.ResendBindings = Alchemy.resendBindings({
+export const resendBindings: Alchemy.Resend.ResendBindings = Alchemy.Resend.resendBindings({
   apiKey: Redacted.make("re_123"),
 });
 
-export const twilioBindings: Alchemy.TwilioBindings = Alchemy.twilioBindings({
+export const twilioBindings: Alchemy.Twilio.TwilioBindings = Alchemy.Twilio.twilioBindings({
   accountSid: "AC123",
   authToken: Redacted.make("token"),
   from: "+61400000000",
@@ -153,71 +145,88 @@ export type Checks = [
   >,
   /** _refuseRedirectsInfersInAPipe */ Assert<Equals<Effect.Success<typeof refusedPiped>, number>>,
   /** _refuseRedirectsTakesAnyEffect */ Assert<Equals<Effect.Success<typeof pinnedOnly>, string>>,
-  /** _resultIdIsOption */ Assert<Equals<EmailSendResult["id"], Option.Option<string>>>,
-  /** _sendSucceedsWithResult */ Assert<Equals<Effect.Success<typeof sent>, EmailSendResult>>,
-  /** _sendFailsWithSendError */ Assert<Equals<Effect.Error<typeof sent>, EmailSendError>>,
-  /** _sendRequiresService */ Assert<Equals<Effect.Services<typeof sent>, EmailService>>,
+  /** _resultIdIsOption */ Assert<Equals<Email.EmailSendResult["id"], Option.Option<string>>>,
+  /** _sendSucceedsWithResult */ Assert<Equals<Effect.Success<typeof sent>, Email.EmailSendResult>>,
+  /** _sendFailsWithSendError */ Assert<Equals<Effect.Error<typeof sent>, Errors.EmailSendError>>,
+  /** _sendRequiresService */ Assert<
+    Equals<Effect.Services<typeof sent>, EmailService.EmailService>
+  >,
   /** _decodeFailsWithValidation */ Assert<
-    Equals<Effect.Error<typeof decoded>, EmailValidationError>
+    Equals<Effect.Error<typeof decoded>, Errors.EmailValidationError>
   >,
-  /** _sendErrorTag */ Assert<Equals<EmailSendError["_tag"], "EmailSendError">>,
-  /** _sendErrorStatus */ Assert<Equals<EmailSendError["status"], Option.Option<number>>>,
-  /** _smsResultIdIsOption */ Assert<Equals<SmsSendResult["id"], Option.Option<string>>>,
-  /** _smsSendSucceedsWithResult */ Assert<Equals<Effect.Success<typeof smsSent>, SmsSendResult>>,
-  /** _smsSendFailsWithSendError */ Assert<Equals<Effect.Error<typeof smsSent>, SmsSendError>>,
-  /** _smsSendRequiresService */ Assert<Equals<Effect.Services<typeof smsSent>, SmsService>>,
+  /** _sendErrorTag */ Assert<Equals<Errors.EmailSendError["_tag"], "EmailSendError">>,
+  /** _sendErrorStatus */ Assert<Equals<Errors.EmailSendError["status"], Option.Option<number>>>,
+  /** _smsResultIdIsOption */ Assert<Equals<Sms.SmsSendResult["id"], Option.Option<string>>>,
+  /** _smsSendSucceedsWithResult */ Assert<
+    Equals<Effect.Success<typeof smsSent>, Sms.SmsSendResult>
+  >,
+  /** _smsSendFailsWithSendError */ Assert<
+    Equals<Effect.Error<typeof smsSent>, Errors.SmsSendError>
+  >,
+  /** _smsSendRequiresService */ Assert<
+    Equals<Effect.Services<typeof smsSent>, SmsService.SmsService>
+  >,
   /** _smsDecodeFailsWithValidation */ Assert<
-    Equals<Effect.Error<typeof smsDecoded>, SmsValidationError>
+    Equals<Effect.Error<typeof smsDecoded>, Errors.SmsValidationError>
   >,
-  /** _smsSendErrorTag */ Assert<Equals<SmsSendError["_tag"], "SmsSendError">>,
-  /** _whatsappResultIdIsOption */ Assert<Equals<WhatsAppSendResult["id"], Option.Option<string>>>,
+  /** _smsSendErrorTag */ Assert<Equals<Errors.SmsSendError["_tag"], "SmsSendError">>,
+  /** _whatsappResultIdIsOption */ Assert<
+    Equals<WhatsApp.WhatsAppSendResult["id"], Option.Option<string>>
+  >,
   /** _whatsappSendSucceedsWithResult */ Assert<
-    Equals<Effect.Success<typeof whatsappSent>, WhatsAppSendResult>
+    Equals<Effect.Success<typeof whatsappSent>, WhatsApp.WhatsAppSendResult>
   >,
   /** _whatsappSendFailsWithSendError */ Assert<
-    Equals<Effect.Error<typeof whatsappSent>, WhatsAppSendError>
+    Equals<Effect.Error<typeof whatsappSent>, Errors.WhatsAppSendError>
   >,
   /** _whatsappSendRequiresService */ Assert<
-    Equals<Effect.Services<typeof whatsappSent>, WhatsAppService>
+    Equals<Effect.Services<typeof whatsappSent>, WhatsAppService.WhatsAppService>
   >,
   /** _whatsappDecodeFailsWithValidation */ Assert<
-    Equals<Effect.Error<typeof whatsappDecoded>, WhatsAppValidationError>
+    Equals<Effect.Error<typeof whatsappDecoded>, Errors.WhatsAppValidationError>
   >,
-  /** _whatsappSendErrorTag */ Assert<Equals<WhatsAppSendError["_tag"], "WhatsAppSendError">>,
-  /** _whatsappTags */ Assert<Equals<WhatsAppMessage["_tag"], "Text" | "Template">>,
+  /** _whatsappSendErrorTag */ Assert<
+    Equals<Errors.WhatsAppSendError["_tag"], "WhatsAppSendError">
+  >,
+  /** _whatsappTags */ Assert<Equals<WhatsApp.WhatsAppMessage["_tag"], "Text" | "Template">>,
   /** _alchemyResendKeyRedacted */ Assert<
-    Equals<Alchemy.ResendBindings["RESEND_API_KEY"], Redacted.Redacted>
+    Equals<Alchemy.Resend.ResendBindings["RESEND_API_KEY"], Redacted.Redacted>
   >,
   /** _alchemyResendDeployedIsEnv */ Assert<
-    Alchemy.Deployed<Alchemy.ResendBindings> extends Resend.ResendEnv ? true : false
+    Alchemy.Bindings.Deployed<Alchemy.Resend.ResendBindings> extends Resend.ResendEnv ? true : false
   >,
   /** _alchemyDeployedIsInferEnv */ Assert<
     Equals<
-      Alchemy.Deployed<Alchemy.ResendBindings>,
-      Cloudflare.InferEnv<Cloudflare.Worker<Alchemy.ResendBindings>>
+      Alchemy.Bindings.Deployed<Alchemy.Resend.ResendBindings>,
+      Cloudflare.InferEnv<Cloudflare.Worker<Alchemy.Resend.ResendBindings>>
     >
   >,
   /** _alchemyResendDeployedKeyString */ Assert<
-    Equals<Alchemy.Deployed<Alchemy.ResendBindings>, { readonly RESEND_API_KEY: string }>
+    Equals<
+      Alchemy.Bindings.Deployed<Alchemy.Resend.ResendBindings>,
+      { readonly RESEND_API_KEY: string }
+    >
   >,
   /** _alchemyResendIsWorkerBindings */ Assert<
-    Alchemy.ResendBindings extends Alchemy.WorkerBindings<Alchemy.ResendBindings> ? true : false
+    Alchemy.Resend.ResendBindings extends Alchemy.Bindings.WorkerBindings<Alchemy.Resend.ResendBindings>
+      ? true
+      : false
   >,
   /** _alchemyTwilioTokenRedacted */ Assert<
-    Equals<Alchemy.TwilioBindings["TWILIO_AUTH_TOKEN"], Redacted.Redacted>
+    Equals<Alchemy.Twilio.TwilioBindings["TWILIO_AUTH_TOKEN"], Redacted.Redacted>
   >,
   /** _alchemyTwilioDeployedIsEnv */ Assert<
-    Alchemy.Deployed<Alchemy.TwilioBindings> extends Twilio.TwilioEnv ? true : false
+    Alchemy.Bindings.Deployed<Alchemy.Twilio.TwilioBindings> extends Twilio.TwilioEnv ? true : false
   >,
   /** _alchemyTwilioDeployedIsInferEnv */ Assert<
     Equals<
-      Alchemy.Deployed<Alchemy.TwilioBindings>,
-      Cloudflare.InferEnv<Cloudflare.Worker<Alchemy.TwilioBindings>>
+      Alchemy.Bindings.Deployed<Alchemy.Twilio.TwilioBindings>,
+      Cloudflare.InferEnv<Cloudflare.Worker<Alchemy.Twilio.TwilioBindings>>
     >
   >,
   /** _alchemyTwilioDeployedOptionals */ Assert<
     Equals<
-      Alchemy.Deployed<Alchemy.TwilioBindings>,
+      Alchemy.Bindings.Deployed<Alchemy.Twilio.TwilioBindings>,
       {
         readonly TWILIO_ACCOUNT_SID: string;
         readonly TWILIO_AUTH_TOKEN: string;
@@ -227,7 +236,9 @@ export type Checks = [
     >
   >,
   /** _alchemyTwilioIsWorkerBindings */ Assert<
-    Alchemy.TwilioBindings extends Alchemy.WorkerBindings<Alchemy.TwilioBindings> ? true : false
+    Alchemy.Twilio.TwilioBindings extends Alchemy.Bindings.WorkerBindings<Alchemy.Twilio.TwilioBindings>
+      ? true
+      : false
   >,
   /** _resendPayloadTo */ Assert<
     Equals<Resend.ResendSendPayload["to"], readonly [string, ...Array<string>]>

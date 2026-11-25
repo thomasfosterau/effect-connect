@@ -16,7 +16,7 @@ pnpm add @thomasfosterau/effect-connect-mjml @thomasfosterau/effect-connect effe
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { EmailHtml, EmailService, EmailTemplate } from "@thomasfosterau/effect-connect";
-import * as Mjml from "@thomasfosterau/effect-connect-mjml";
+import { Mjml } from "@thomasfosterau/effect-connect-mjml";
 
 const { html, url } = EmailHtml;
 
@@ -42,7 +42,7 @@ const Welcome = Mjml.template({
 });
 
 const program = Effect.gen(function* () {
-  const email = yield* EmailService;
+  const email = yield* EmailService.EmailService;
   const message = yield* EmailTemplate.toMessage(
     Welcome,
     { name: "Ada", start: "https://example.com/start" },
@@ -54,12 +54,12 @@ const program = Effect.gen(function* () {
 
 ## Entry points
 
-The package has the single entry point `.`, plus `./Mjml`.
+The entry point `.` exports one namespace, `Mjml`, which is also the subpath `./Mjml`.
 
 | Export | Purpose |
 | --- | --- |
-| `template(options)`, `TemplateOptions`, `Context`, `TextOption`, `NoMessages` | An `EmailTemplate` from MJML. |
-| `accessibleDefaults(source, locale, subject)` | Add `lang`, `dir` and `<mj-title>` to MJML that lacks them. |
+| `Mjml.template(options)`, `Mjml.TemplateOptions`, `Mjml.Context`, `Mjml.TextOption`, `Mjml.NoMessages` | An `EmailTemplate` from MJML. |
+| `Mjml.accessibleDefaults(source, locale, subject)` | Add `lang`, `dir` and `<mj-title>` to MJML that lacks them. |
 
 ## Documentation
 

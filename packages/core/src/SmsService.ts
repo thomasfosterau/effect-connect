@@ -53,13 +53,13 @@ export class SmsService extends Context.Service<
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Option from "effect/Option";
- * import { SmsService, sendSms, type SmsMessage } from "@thomasfosterau/effect-connect";
+ * import { Sms, SmsService } from "@thomasfosterau/effect-connect";
  *
- * const sent: Array<SmsMessage> = [];
+ * const sent: Array<Sms.SmsMessage> = [];
  *
  * const result = Effect.runSync(
- *   sendSms({ to: "+61412345678", body: "Your code is 123456" }).pipe(
- *     Effect.provide(SmsService.layerRecording(sent)),
+ *   SmsService.sendSms({ to: "+61412345678", body: "Your code is 123456" }).pipe(
+ *     Effect.provide(SmsService.SmsService.layerRecording(sent)),
  *   ),
  * );
  *

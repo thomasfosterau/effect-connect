@@ -50,7 +50,7 @@ export type EnvSecretBinding = string | Redacted.Redacted | null | undefined;
  * ```ts
  * import * as assert from "node:assert";
  * import * as Option from "effect/Option";
- * import { boundString } from "@thomasfosterau/effect-connect";
+ * import { boundString } from "@thomasfosterau/effect-connect/Transport";
  *
  * assert.deepStrictEqual(boundString("+61400000000"), Option.some("+61400000000"));
  * assert.deepStrictEqual(boundString("  "), Option.none());
@@ -71,7 +71,7 @@ export const boundString = (value: EnvBinding): Option.Option<string> =>
  * import * as assert from "node:assert";
  * import * as Option from "effect/Option";
  * import * as Redacted from "effect/Redacted";
- * import { boundSecret } from "@thomasfosterau/effect-connect";
+ * import { boundSecret } from "@thomasfosterau/effect-connect/Transport";
  *
  * assert.deepStrictEqual(Option.map(boundSecret("re_key"), Redacted.value), Option.some("re_key"));
  * assert.ok(Option.isNone(boundSecret(Redacted.make(" "))));
@@ -116,7 +116,8 @@ export const selectTransport = <C, S>(
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Option from "effect/Option";
- * import { droppingSender, type SmsMessage } from "@thomasfosterau/effect-connect";
+ * import type { SmsMessage } from "@thomasfosterau/effect-connect/Sms";
+ * import { droppingSender } from "@thomasfosterau/effect-connect/Transport";
  *
  * const sender = droppingSender<SmsMessage>(() => "[example] no credentials; dropping an SMS");
  * const result = Effect.runSync(sender.send({ to: "+61412345678", body: "Your code is 123456" }));

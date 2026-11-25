@@ -54,20 +54,16 @@ export class WhatsAppService extends Context.Service<
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Option from "effect/Option";
- * import {
- *   WhatsAppService,
- *   sendWhatsApp,
- *   type WhatsAppMessage,
- * } from "@thomasfosterau/effect-connect";
+ * import { WhatsApp, WhatsAppService } from "@thomasfosterau/effect-connect";
  *
- * const sent: Array<WhatsAppMessage> = [];
+ * const sent: Array<WhatsApp.WhatsAppMessage> = [];
  *
  * const result = Effect.runSync(
- *   sendWhatsApp({
+ *   WhatsAppService.sendWhatsApp({
  *     _tag: "Template",
  *     to: "+61412345678",
  *     template: { id: "HX0123", variables: { "1": "123456" } },
- *   }).pipe(Effect.provide(WhatsAppService.layerRecording(sent))),
+ *   }).pipe(Effect.provide(WhatsAppService.WhatsAppService.layerRecording(sent))),
  * );
  *
  * assert.strictEqual(sent.length, 1);
