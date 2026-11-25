@@ -1,6 +1,6 @@
 /**
  * The failures the channel contracts (`EmailService`, `SmsService`,
- * `WhatsAppService`, `ChatService`) admit, and the vendor-body bound every provider applies
+ * `WhatsAppService`) admit, and the vendor-body bound every provider applies
  * to them.
  *
  * All are schema-backed (`Schema.TaggedError`), so they serialise across a
@@ -125,41 +125,6 @@ export class WhatsAppValidationError extends Schema.TaggedError<
   WhatsAppValidationError,
   { readonly brand: unique symbol }
 >()("WhatsAppValidationError", {
-  message: Schema.String,
-  issues: Schema.Array(Schema.String),
-}) {}
-
-/**
- * A chat provider failed to post. The same shape as {@link EmailSendError}:
- * `provider` names which one; `status` is the vendor's HTTP status when it
- * answered at all (`none` for transport failures, and for a send refused
- * before any request was made — a webhook URL that is not the vendor's);
- * `message` is a one-line summary safe to log (never the webhook URL, which
- * is the credential, and never the message text); `cause` is the underlying
- * error for diagnostics, when it carries neither.
- *
- * @since 0.1.0
- */
-export class ChatSendError extends Schema.TaggedError<
-  ChatSendError,
-  { readonly brand: unique symbol }
->()("ChatSendError", {
-  provider: Schema.String,
-  message: Schema.String,
-  status: Schema.OptionFromOptionalKey(Schema.Int),
-  cause: Schema.optionalKey(Schema.Defect()),
-}) {}
-
-/**
- * An untrusted value did not decode as a `ChatMessage`
- * (`decodeChatMessage`). `issues` lists each schema issue as one line.
- *
- * @since 0.1.0
- */
-export class ChatValidationError extends Schema.TaggedError<
-  ChatValidationError,
-  { readonly brand: unique symbol }
->()("ChatValidationError", {
   message: Schema.String,
   issues: Schema.Array(Schema.String),
 }) {}

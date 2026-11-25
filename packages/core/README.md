@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect`
 
-An Effect-native messaging abstraction: one message model and one service contract per channel (email, SMS, WhatsApp, chat), and their errors, provider-agnostic. The Resend (email) and Twilio (SMS) providers ship as sibling packages, [`@thomasfosterau/effect-connect-resend`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/resend#readme) and [`@thomasfosterau/effect-connect-twilio`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/twilio#readme); no first-party provider implements `WhatsAppService` or `ChatService` yet.
+An Effect-native messaging abstraction: one message model and one service contract per channel (email, SMS, WhatsApp), and their errors, provider-agnostic. The Resend (email) and Twilio (SMS) providers ship as sibling packages, [`@thomasfosterau/effect-connect-resend`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/resend#readme) and [`@thomasfosterau/effect-connect-twilio`](https://github.com/thomasfosterau/effect-connect/tree/trunk/packages/twilio#readme); no first-party provider implements `WhatsAppService` yet. For chat, use Effect's own [`effect/chat`](https://github.com/Effect-TS/effect-smol) with `@effect/chat-slack` or `@effect/chat-discord`.
 
 > [!WARNING]
 > Experimental and pre-1.0, largely written with Claude Code; the API may change without notice. Not production-ready.
@@ -47,7 +47,6 @@ Everything is exported from `.`; each module also has its own subpath, such as `
 | `EmailTemplate`, `EmailHtml`, `EmailText` | Typed, localised email templates rendering accessible HTML and matching plain text. |
 | `SmsService`, `sendSms`, `SmsMessage`, `decodeSmsMessage` | The SMS contract, accessors, message model and validation. |
 | `WhatsAppService`, `sendWhatsApp`, `WhatsAppMessage`, `decodeWhatsAppMessage` | The WhatsApp contract, accessors, message model (text or template) and validation. |
-| `ChatService`, `sendChat`, `ChatMessage`, `decodeChatMessage` | The chat contract, accessors, message model and validation. |
 | `*SendError`, `*ValidationError` | Each channel's errors (`Schema.TaggedError`). |
 | `Http` transport rules, `boundSecret`, `selectTransport`, `droppingSender` | Shared helpers every provider applies. |
 | `*Service.layerRecording(sent)` | Test doubles that record what was sent. |

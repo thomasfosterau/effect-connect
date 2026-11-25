@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect`
 
-Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`, `ChatService`), and their errors. [Resend](./resend.md) implements email and [Twilio](./twilio.md) SMS; no provider in this repository implements WhatsApp or chat yet, so provide your own layer for them.
+Detail for the [package README](../packages/core/README.md): one message model and one service per channel (`EmailService`, `SmsService`, `WhatsAppService`), and their errors. [Resend](./resend.md) implements email and [Twilio](./twilio.md) SMS; no provider in this repository implements WhatsApp yet, so provide your own layer for it. Chat is not a channel here: use Effect's own `effect/chat` ([below](#chat)).
 
 ## Usage
 
@@ -55,14 +55,6 @@ import { sendWhatsApp } from "@thomasfosterau/effect-connect";
 
 export const sendCode = (to: string, code: string) =>
   sendWhatsApp({ _tag: "Template", to, template: { id: "HX…", variables: { "1": code } } }); // Effect<WhatsAppSendResult, WhatsAppSendError, WhatsAppService>
-```
-
-And chat, through whichever `ChatService` layer the edge provides:
-
-```ts
-import { sendChat } from "@thomasfosterau/effect-connect";
-
-export const announce = (version: string) => sendChat({ text: `Deployed ${version}` }); // Effect<ChatSendResult, ChatSendError, ChatService>
 ```
 
 ## Multiple channels
@@ -189,16 +181,6 @@ export const sendWelcome = (to: string, locale: string) =>
 | `decodeWhatsAppMessage` | Decode untrusted input into a WhatsApp message, failing `WhatsAppValidationError`. |
 | `WhatsAppSendError`, `WhatsAppValidationError` | The contract's errors (`Schema.TaggedError`), the same shape as the SMS ones. |
 
-### Chat
-
-| Export | What it is |
-| --- | --- |
-| `ChatMessage`, `ChatSendResult` | The chat model, as `effect/Schema` schemas with matching types. `ChatMessage` is `{ text, username? }`: non-empty text and an optional display-name override. The destination is the provider's configured webhook, not part of the message. |
-| `ChatService` | The `Context.Service`: `send(message)` and `sendBatch(messages)` (in order), failing `ChatSendError`. `ChatService.layerRecording(sent)` is the test double. |
-| `sendChat`, `sendChatBatch` | Accessors over the service in context. |
-| `decodeChatMessage` | Decode untrusted input into a chat message, failing `ChatValidationError`. |
-| `ChatSendError`, `ChatValidationError` | The contract's errors (`Schema.TaggedError`), the same shape as the email ones. |
-
 ### Shared
 
 | Export | What it is |
@@ -242,7 +224,27 @@ await Effect.runPromise(
 
 `WhatsAppSendError` and `WhatsAppValidationError` mirror them for WhatsApp; a provider never puts the body or a template's variables in an error message.
 
-`ChatSendError` and `ChatValidationError` mirror them for chat. A chat provider never puts the message text or the webhook URL (the credential) in an error message.
+## Chat
+
+Chat is not a channel of this library. Effect 4.1.5 added `effect/chat`: a `Chat` service that routes each call to the adapter registered for the address's platform, with official adapters in `@effect/chat-slack` and `@effect/chat-discord`, and `ChatTest` as an in-memory adapter for tests. It covers what the old `ChatService` did (posting a message) and much more: threads, history, edits, files, buttons, modals, slash commands and inbound events. Use it directly:
+
+```ts
+import * as Effect from "effect/Effect";
+import * as Chat from "effect/chat/Chat";
+import * as ChatThread from "effect/chat/ChatThread";
+
+export const announce = (version: string) =>
+  Effect.gen(function* () {
+    const chat = yield* Chat.Chat;
+    return yield* chat.post(ChatThread.make("slack", "T1/C1"), {
+      markdown: `Deployed **${version}**`,
+    });
+  }); // Effect<ChatAdapter.Posted, ChatError, Chat>
+```
+
+Provide `Chat.layer` with an adapter layer on top (`SlackChat.layer({ botToken, teamId })` with `Layer.provideMerge(Chat.layer)`, over an `HttpClient`). `effect/chat` is marked unstable upstream.
+
+Moving from the removed `ChatService`: `sendChat({ text })` becomes `chat.post(thread, { markdown: text })`. The thread is part of each call rather than the provider's configuration, the text is standard Markdown that the adapter renders, and there is no `username` (a post is the bot's). `ChatSendError` becomes `effect/chat`'s `ChatError`, whose `reason` says whether a retry is safe. `ChatService.layerRecording` becomes `ChatTest.layer()`.
 
 ## Relationship to effect-auth
 

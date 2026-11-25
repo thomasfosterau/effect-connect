@@ -15,12 +15,6 @@ import type * as HttpClientError from "effect/http/HttpClientError";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import type * as HttpClientResponse from "effect/http/HttpClientResponse";
 import {
-  ChatSendError,
-  ChatService,
-  ChatValidationError,
-  decodeChatMessage,
-  sendChat,
-  sendChatBatch,
   decodeEmailMessage,
   EmailSendError,
   EmailService,
@@ -30,8 +24,6 @@ import {
   SmsSendError,
   SmsService,
   SmsValidationError,
-  type ChatMessage,
-  type ChatSendResult,
   type EmailMessage,
   type EmailSendResult,
   type SmsMessage,
@@ -83,13 +75,6 @@ const whatsapp: WhatsAppMessage = {
 export const whatsappSent = sendWhatsApp(whatsapp);
 export const whatsappDecoded = decodeWhatsAppMessage({});
 export const whatsappRecording: Layer.Layer<WhatsAppService> = WhatsAppService.layerRecording([]);
-
-const chat: ChatMessage = { text: "Deploy finished", username: "CI" };
-
-export const chatSent = sendChat(chat);
-export const chatBatch = sendChatBatch([chat]);
-export const chatDecoded = decodeChatMessage({});
-export const chatRecording: Layer.Layer<ChatService> = ChatService.layerRecording([]);
 
 // ── resend ────────────────────────────────────────────────────────────────
 
@@ -200,21 +185,6 @@ export type Checks = [
   >,
   /** _whatsappSendErrorTag */ Assert<Equals<WhatsAppSendError["_tag"], "WhatsAppSendError">>,
   /** _whatsappTags */ Assert<Equals<WhatsAppMessage["_tag"], "Text" | "Template">>,
-  /** _chatResultIdIsOption */ Assert<Equals<ChatSendResult["id"], Option.Option<string>>>,
-  /** _chatSendSucceedsWithResult */ Assert<
-    Equals<Effect.Success<typeof chatSent>, ChatSendResult>
-  >,
-  /** _chatSendFailsWithSendError */ Assert<Equals<Effect.Error<typeof chatSent>, ChatSendError>>,
-  /** _chatSendRequiresService */ Assert<Equals<Effect.Services<typeof chatSent>, ChatService>>,
-  /** _chatBatchSucceeds */ Assert<
-    Equals<Effect.Success<typeof chatBatch>, ReadonlyArray<ChatSendResult>>
-  >,
-  /** _chatDecodeFailsWithValidation */ Assert<
-    Equals<Effect.Error<typeof chatDecoded>, ChatValidationError>
-  >,
-  /** _chatSendErrorTag */ Assert<Equals<ChatSendError["_tag"], "ChatSendError">>,
-  /** _chatSendErrorStatus */ Assert<Equals<ChatSendError["status"], Option.Option<number>>>,
-  /** _chatUsernameOptional */ Assert<Equals<ChatMessage["username"], string | undefined>>,
   /** _alchemyResendKeyRedacted */ Assert<
     Equals<Alchemy.ResendBindings["RESEND_API_KEY"], Redacted.Redacted>
   >,

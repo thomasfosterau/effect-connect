@@ -1,6 +1,6 @@
 # @thomasfosterau/effect-connect
 
-The provider-agnostic core: one message model and one service per channel (`Email`, `Sms`, `WhatsApp`, `Chat` and their `*Service` modules), their errors (`Errors.ts`), email templates and their renderers (`EmailTemplate`, `EmailHtml`, `EmailText`), the transport rules every provider applies (`Http.ts`) and the Worker-edge helpers (`Transport.ts`). Peer: `effect` only.
+The provider-agnostic core: one message model and one service per channel (`Email`, `Sms`, `WhatsApp` and their `*Service` modules), their errors (`Errors.ts`), email templates and their renderers (`EmailTemplate`, `EmailHtml`, `EmailText`), the transport rules every provider applies (`Http.ts`) and the Worker-edge helpers (`Transport.ts`). Peer: `effect` only.
 
 ## Boundary
 
@@ -8,6 +8,7 @@ Imports nothing from this workspace and names no provider or vendor; providers d
 
 ## Invariants
 
+- **No chat channel**: chat is Effect's own `effect/chat` (with `@effect/chat-slack`, `@effect/chat-discord`), which applications use directly. Don't add a core chat model or service back.
 - **One service per channel**, each `send` + `sendBatch` + `layerRecording`, so a consumer's requirements name exactly its channels. A new channel copies `Sms.ts` / `SmsService.ts`: a model module, a service module, `<Channel>SendError` / `<Channel>ValidationError` in `Errors.ts`, a `decode<Channel>Message` on `internal/issues.ts`, and a `layerRecording` on `internal/recording.ts`.
 - **Every provider request goes through `refuseRedirects`** (`redirect: "manual"`, never `"error"`, which Workers rejects); a non-2xx message comes from `rejectionMessage`, a transport failure's from `describeHttpError`. A provider whose URL is the credential (an incoming webhook) uses `executeWithSecretUrl`, which never names the URL.
 - **A send error's `status` is `Option<number>`**: `none` for transport failures.

@@ -1,7 +1,7 @@
 {
   "name": "@thomasfosterau/effect-connect",
   "version": "0.5.0",
-  "description": "An Effect-native messaging abstraction: per-channel message schemas, the EmailService, SmsService, WhatsAppService and ChatService contracts and their errors, provider-agnostic — the Resend email provider ships as a sibling package.",
+  "description": "An Effect-native messaging abstraction: per-channel message schemas, the EmailService, SmsService, and WhatsAppService contracts and their errors, provider-agnostic — the Resend email provider ships as a sibling package.",
   "keywords": [
     "effect",
     "email",
@@ -31,8 +31,6 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./Chat": "./src/Chat.ts",
-    "./ChatService": "./src/ChatService.ts",
     "./Email": "./src/Email.ts",
     "./EmailHtml": "./src/EmailHtml.ts",
     "./EmailService": "./src/EmailService.ts",
@@ -51,14 +49,6 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      },
-      "./Chat": {
-        "types": "./dist/Chat.d.ts",
-        "default": "./dist/Chat.js"
-      },
-      "./ChatService": {
-        "types": "./dist/ChatService.d.ts",
-        "default": "./dist/ChatService.js"
       },
       "./Email": {
         "types": "./dist/Email.d.ts",

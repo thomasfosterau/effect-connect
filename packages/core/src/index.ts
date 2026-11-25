@@ -1,7 +1,7 @@
 /**
  * `@thomasfosterau/effect-connect` — the provider-agnostic core: one message
- * model and one service contract per channel (email, SMS, WhatsApp, chat),
- * and their errors. Providers (`@thomasfosterau/effect-connect-resend` for email)
+ * model and one service contract per channel (email, SMS, WhatsApp),
+ * and their errors. Chat is `effect/chat`, Effect's own. Providers (`@thomasfosterau/effect-connect-resend` for email)
  * implement a channel's service over `effect/http`, through the shared
  * transport rules in `Http`.
  *
@@ -63,18 +63,6 @@ export * from "./WhatsApp.ts";
  * @since 0.1.0
  */
 export * from "./WhatsAppService.ts";
-/**
- * The chat message model: the message posted through an incoming webhook and the result of a send.
- *
- * @since 0.1.0
- */
-export * from "./Chat.ts";
-/**
- * The `ChatService` contract, its accessors and the recording test double.
- *
- * @since 0.1.0
- */
-export * from "./ChatService.ts";
 /**
  * The transport rules every provider applies over `effect/http`: redirect refusal, bounded error bodies.
  *
