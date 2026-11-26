@@ -26,7 +26,7 @@ export const packageConfig = (modules: ReadonlyArray<string>) =>
         },
         // Type-checks and runs every JSDoc `@example`; writes docs/ (gitignored).
         docgen: {
-          command: "docgen",
+          command: 'PATH="$(cd ../../scripts/bin && pwd):$PATH" docgen',
           cache: false,
         },
         "test:unit": {

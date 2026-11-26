@@ -1,7 +1,7 @@
 {
   "name": "effect-connect",
   // The tag equals the catalog's `vite-plus` pin.
-  "image": "ghcr.io/voidzero-dev/vite-plus:1.7.0",
+  "image": "ghcr.io/voidzero-dev/vite-plus:1.8.0",
   // Pinned: an unpinned feature resolves `latest` through the rate-limited GitHub API.
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": { "version": "2.89.0" },
