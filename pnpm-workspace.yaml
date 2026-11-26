@@ -48,7 +48,7 @@ catalog:
   mjml-browser: ^5.4.1
   # effect-connect-react-email's renderer and its React.
   "@react-email/render": ^2.3.1
-  "@types/react": ^19.3.1
+  "@types/react": ^19.3.3
   react: ^19.3.1
   react-dom: ^19.3.1
   # `vite` (vite-plus's core under an alias) and `vitest` must equal what
