@@ -14,13 +14,14 @@ import * as Effect from "effect/Effect";
 import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as P from "effect/Predicate";
+import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import type * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientError from "effect/http/HttpClientError";
 import type * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
-import { truncateUpstreamBody } from "./Errors.ts";
+import { truncateUpstreamBody, UPSTREAM_BODY_LIMIT } from "./Errors.ts";
 
 /**
  * Whether a response is a redirect that {@link refuseRedirects} refuses: any
@@ -215,11 +216,93 @@ export const describeHttpErrorWithoutUrl = (
   );
 
 /**
+ * How many bytes of an error body {@link rejectionMessage} reads: enough for
+ * `UPSTREAM_BODY_LIMIT` characters plus the longest secret (a secret that
+ * starts inside the bound must be read whole to be redacted), at the 4 bytes
+ * a UTF-8 character can take.
+ */
+const bodyReadBound = (secrets: ReadonlyArray<string>): number =>
+  (UPSTREAM_BODY_LIMIT + Math.max(0, ...secrets.map((secret) => secret.length))) * 4;
+
+/** The body could not be read; the message keeps just the status. */
+class BodyUnreadable extends Schema.TaggedError<
+  BodyUnreadable,
+  { readonly brand: unique symbol }
+>()("BodyUnreadable", {}) {}
+
+/**
+ * Read at most `bound` bytes of a `fetch` body, decoding them as UTF-8 (a
+ * character cut at the bound is dropped, not mangled), then cancel the rest
+ * if any is left, ignoring a cancel that fails.
+ */
+const readStreamPrefix = (
+  body: ReadableStream<Uint8Array>,
+  bound: number,
+): Effect.Effect<string, BodyUnreadable> =>
+  Effect.acquireUseRelease(
+    Effect.try({
+      try: () => ({ reader: body.getReader(), done: false }),
+      catch: () => new BodyUnreadable(),
+    }),
+    (state) => {
+      const decoder = new TextDecoder();
+      const step = (text: string, bytes: number): Effect.Effect<string, BodyUnreadable> =>
+        Effect.flatMap(
+          Effect.tryPromise({ try: () => state.reader.read(), catch: () => new BodyUnreadable() }),
+          (chunk) => {
+            if (chunk.done) {
+              state.done = true;
+              return Effect.succeed(text + decoder.decode());
+            }
+            const room = bound - bytes;
+            return chunk.value.byteLength >= room
+              ? Effect.succeed(
+                  text + decoder.decode(chunk.value.subarray(0, room), { stream: true }),
+                )
+              : step(
+                  text + decoder.decode(chunk.value, { stream: true }),
+                  bytes + chunk.value.byteLength,
+                );
+          },
+        );
+      return step("", 0);
+    },
+    (state) =>
+      state.done
+        ? Effect.sync(() => state.reader.releaseLock())
+        : Effect.ignore(
+            Effect.tryPromise({
+              try: () => state.reader.cancel(),
+              catch: () => new BodyUnreadable(),
+            }),
+          ),
+  );
+
+/**
+ * At most `bound` bytes of a response's body, as text. A `fetch` response is
+ * read from its stream and the rest cancelled, so a huge or endless error
+ * body is never buffered; any other `HttpClient`'s body is read whole. A
+ * response with no body reads as `""`.
+ */
+const readBodyPrefix = (
+  response: HttpClientResponse.HttpClientResponse,
+  bound: number,
+): Effect.Effect<string, BodyUnreadable | HttpClientError.HttpClientError> =>
+  Option.match(HttpClientResponse.toWeb(response), {
+    onNone: () => response.text,
+    onSome: (web) => (P.isNull(web.body) ? Effect.succeed("") : readStreamPrefix(web.body, bound)),
+  });
+
+/**
  * The message for a vendor's non-2xx answer: `<prefix>: <status>`, then the
- * response body **truncated** to `UPSTREAM_BODY_LIMIT` characters. A vendor
- * error response can echo request context back, so the body is bounded
- * before it can reach a log line; a body that cannot be read leaves just the
- * status. Never fails.
+ * response body with each of `secrets` redacted ({@link redactSecrets}) and
+ * **truncated** to `UPSTREAM_BODY_LIMIT` characters. A vendor error response
+ * can echo request context back, so the body is bounded before it can reach
+ * a log line. Only a bounded prefix of a `fetch` body is read, and the rest
+ * is cancelled, so a huge or endless body is never buffered. The prefix is
+ * long enough to hold any secret that starts inside the bound, and redaction
+ * runs before truncating: a secret cut in two would no longer match. A body
+ * that cannot be read leaves just the status. Never fails.
  *
  * @example
  * ```ts
@@ -244,10 +327,11 @@ export const describeHttpErrorWithoutUrl = (
 export const rejectionMessage = (
   response: HttpClientResponse.HttpClientResponse,
   prefix: string,
+  secrets: ReadonlyArray<string> = [],
 ): Effect.Effect<string> =>
-  response.text.pipe(
-    Effect.map(truncateUpstreamBody),
-    Effect.catchTag("HttpClientError", () => Effect.succeed("")),
+  readBodyPrefix(response, bodyReadBound(secrets)).pipe(
+    Effect.map((body) => truncateUpstreamBody(redactSecrets(body, secrets))),
+    Effect.orElseSucceed(() => ""),
     Effect.map((detail) =>
       Str.isEmpty(detail)
         ? `${prefix}: ${response.status}`
@@ -271,11 +355,13 @@ export interface SecretUrlRequestOptions<E> {
 
 /**
  * Execute a request whose URL carries the credential (an incoming webhook,
- * where the token is a path segment), answering the response on a 2xx. A
+ * where the token is a path segment), answering the response on a 2xx with
+ * its body unread: the caller must read or cancel it, since under workerd an
+ * unread body holds the request's I/O open. A
  * redirect is refused ({@link refuseRedirects}); a transport failure fails
  * with {@link describeHttpErrorWithoutUrl}'s line and `none`; a non-2xx
- * fails with {@link rejectionMessage}'s status and truncated body, redacted
- * ({@link redactSecrets}), and the status. Neither message ever names the
+ * fails with {@link rejectionMessage}'s status and body, redacted before it
+ * is truncated, and the status. Neither message ever names the
  * request URL, and `onFailure` is never handed the `HttpClientError`, whose
  * request carries it.
  *
@@ -298,14 +384,8 @@ export const executeWithSecretUrl = <E>(
       (response) => isSuccessStatus(response.status),
       (response) =>
         Effect.flatMap(
-          rejectionMessage(response, `${options.label} rejected the request`),
-          (message) =>
-            Effect.fail(
-              options.onFailure(
-                redactSecrets(message, options.secrets),
-                Option.some(response.status),
-              ),
-            ),
+          rejectionMessage(response, `${options.label} rejected the request`, options.secrets),
+          (message) => Effect.fail(options.onFailure(message, Option.some(response.status))),
         ),
     ),
   );

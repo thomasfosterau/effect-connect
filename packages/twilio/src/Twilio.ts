@@ -15,7 +15,6 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
-import * as Str from "effect/String";
 import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
@@ -24,9 +23,8 @@ import {
   droppingSender,
   httpErrorStatus,
   isSuccessStatus,
-  redactSecrets,
   refuseRedirects,
-  truncateUpstreamBody,
+  rejectionMessage,
   SmsSendError,
   SmsService,
   type SmsMessage,
@@ -126,18 +124,8 @@ export const layerSmsService: Layer.Layer<SmsService, never, TwilioConfig | Http
         Redacted.value(config.authToken),
       ];
 
-      // Redacted before it is truncated, so a cut can never leave part of a
-      // credential behind.
       const rejection = (response: HttpClientResponse.HttpClientResponse) =>
-        response.text.pipe(
-          Effect.map((body) => truncateUpstreamBody(redactSecrets(body, secrets))),
-          Effect.orElseSucceed(() => ""),
-          Effect.map((detail) =>
-            Str.isEmpty(detail)
-              ? `Twilio rejected the send: ${response.status}`
-              : `Twilio rejected the send: ${response.status} ${detail}`,
-          ),
-        );
+        rejectionMessage(response, "Twilio rejected the send", secrets);
 
       const send = Effect.fn("Twilio.send")(function* (message: SmsMessage) {
         const payload = yield* Effect.fromOption(toTwilioPayload(message, config)).pipe(
