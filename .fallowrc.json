@@ -40,7 +40,6 @@
     "workerd",
     "@changesets/changelog-github",
     "@effect/docgen",
-    "tsx",
     "@vitest/coverage-istanbul",
     "fallow"
   ],
