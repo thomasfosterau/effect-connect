@@ -54,7 +54,7 @@ catalog:
   # `vite` no longer equals vite-plus.
   vite-plus: 1.8.0
   vite: npm:@voidzero-dev/vite-plus-core@8.3.8001
-  vitest: 5.1.1
+  vitest: 5.1.2
   # For tests/workerd. Pinned at the version `@alchemy.run/cloudflare` brings,
   # so the tree holds one copy.
   workerd: 1.20261125.1
