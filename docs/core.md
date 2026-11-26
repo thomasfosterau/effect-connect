@@ -187,12 +187,12 @@ export const sendWelcome = (to: string, locale: string) =>
 | --- | --- |
 | `truncateUpstreamBody`, `UPSTREAM_BODY_LIMIT` | The bound a provider applies to a vendor error body before it can reach a log line. |
 | `refuseRedirects` | Run a request with redirects refused, so a 3xx never replays the credential to another host: `redirect: "manual"` is pinned on the underlying `fetch`, layered over your own `FetchHttpClient.RequestInit`, and a 3xx (or opaque redirect) answer fails as a `StatusCodeError` described `redirect refused`, after one request, with its body and `Location` unread; the response that error keeps has the status and no headers. Works on Cloudflare Workers, which rejects `redirect: "error"`. |
-| `rejectionMessage(response, prefix, secrets?)` | A vendor's non-2xx as one loggable line: the status and the body, with each of `secrets` redacted and then truncated (just the status when the body can't be read). |
+| `rejectionMessage(response, prefix, secrets?)` | A vendor's non-2xx as one loggable line: the status and the body, with each of `secrets` redacted and then truncated (just the status when the body can't be read). Only a bounded prefix of the body is read; the rest is cancelled. |
 | `describeHttpError`, `httpErrorStatus`, `isSuccessStatus` | A failed request's one-line description and its status (`none` for a transport failure); whether a status is 2xx. |
 | `boundString`, `boundSecret`, `EnvBinding`, `EnvSecretBinding` | Read a Worker `env` binding: `some` when present and non-blank, a secret as `Redacted` whether it arrives plain or already redacted. |
 | `selectTransport(config, live, fallback)` | The live layer on the platform `fetch` when `config` is `some`, else the fallback (a provider's no-op): the body of every provider's `resolveTransport(env)`. |
 | `droppingSender(line)` | A `send` / `sendBatch` pair that succeeds without sending and logs `line(message)` once per message: the body of every provider's `noop`. |
-| `executeWithSecretUrl(http, request, options)`, `SecretUrlRequestOptions` | For a provider whose URL is the credential (an incoming webhook): execute with redirects refused, answering a 2xx and failing anything else with a message that never names the URL. |
+| `executeWithSecretUrl(http, request, options)`, `SecretUrlRequestOptions` | For a provider whose URL is the credential (an incoming webhook): execute with redirects refused, answering a 2xx with its body unread (read or cancel it: under workerd an unread body holds the request's I/O open) and failing anything else with a message that never names the URL. |
 | `describeHttpErrorWithoutUrl(error, secrets)`, `redactSecrets(text, secrets)` | The parts it is built from: a failed request described without the request URL (Effect's own message names it), and any text with the given secrets replaced by `[redacted]`. |
 
 ## Testing a consumer
