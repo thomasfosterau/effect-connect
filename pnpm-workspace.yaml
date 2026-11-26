@@ -23,7 +23,7 @@ catalog:
   # node_modules/@effect/tsgo/dist/effect-tsgo.cjs before bumping any of them.
   "@effect/tsgo": 0.73.4
   "@enfect/oxlint": 0.10.0
-  "@types/node": ^26.6.7
+  "@types/node": ^26.6.10
   # Must equal the vitest vite-plus depends on.
   "@vitest/coverage-istanbul": 5.1.1
   # Pinned exact at the `effect` version.
