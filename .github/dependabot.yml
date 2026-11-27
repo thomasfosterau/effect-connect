@@ -27,6 +27,12 @@ updates:
       - dependency-name: "vite"
       - dependency-name: "vitest"
       - dependency-name: "@vitest/*"
+      # The TypeScript compilers move with `@effect/tsgo`, and `workerd` with
+      # `@alchemy.run/cloudflare`; a lone bump of either breaks the install or
+      # leaves two copies in the tree.
+      - dependency-name: "typescript"
+      - dependency-name: "@typescript/*"
+      - dependency-name: "workerd"
     # A dependency joins the first group it matches, so the named sets come
     # first and `toolchain` takes every other development dependency.
     # Production dependencies outside a named set get a PR each.
