@@ -1,6 +1,6 @@
 {
   "name": "@thomasfosterau/effect-connect-mjml",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "MJML renderer for @thomasfosterau/effect-connect: an EmailTemplate whose body is MJML, escaped by construction, with typed data, locales, accessible lang/dir/title defaults and a text part derived or written alongside. Runs on Workers through mjml-browser.",
   "keywords": [
     "effect",

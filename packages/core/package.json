@@ -1,6 +1,6 @@
 {
   "name": "@thomasfosterau/effect-connect",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "An Effect-native messaging abstraction: per-channel message schemas, the EmailService, SmsService, and WhatsAppService contracts and their errors, provider-agnostic — the Resend email provider ships as a sibling package.",
   "keywords": [
     "effect",

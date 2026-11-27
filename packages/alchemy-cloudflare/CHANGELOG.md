@@ -1,5 +1,13 @@
 # @thomasfosterau/effect-connect-alchemy-cloudflare
 
+## 0.6.0
+
+### Minor Changes
+
+- [#225](https://github.com/thomasfosterau/effect-connect/pull/225) [`929d1dd`](https://github.com/thomasfosterau/effect-connect/commit/929d1dd5cc6ba7619bf9f7e550107e4799b654df) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - The package root now exports three namespaces, `Bindings`, `Resend` and `Twilio`, instead of their members flat. The subpaths are unchanged.
+  
+  Migration: `resendBindings`, `resendBindingsConfig`, `ResendBindings` and `ResendBindingsInput` are `Resend.*`; the Twilio builders and types are `Twilio.*`; `WorkerBindings` and `Deployed` are `Bindings.*`. Or keep the named imports and take them from `./Resend`, `./Twilio` or `./Bindings`. Alias one `Resend` (or `Twilio`) when a module imports this package's and the provider's.
+
 ## 0.4.0
 
 ### Minor Changes
