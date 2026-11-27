@@ -1,5 +1,19 @@
 # @thomasfosterau/effect-connect-resend
 
+## 0.6.0
+
+### Minor Changes
+
+- [#225](https://github.com/thomasfosterau/effect-connect/pull/225) [`929d1dd`](https://github.com/thomasfosterau/effect-connect/commit/929d1dd5cc6ba7619bf9f7e550107e4799b654df) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - The package root now exports two namespaces, `Resend` and `ResendConfig`, instead of their members flat. `layer`, `layerConfig`, `resolveTransport`, `apiKeyFromEnv` and `ResendEnv`, which were defined on the root alone, move into the `Resend` module (and so the `./Resend` subpath).
+  
+  Migration: `import * as Resend from "@thomasfosterau/effect-connect-resend"` becomes `import { Resend } from "@thomasfosterau/effect-connect-resend"`; `Resend.layer`, `Resend.resolveTransport`, `Resend.noop` and `Resend.toResendPayload` read as before. A named root import such as `import { resolveTransport } from "@thomasfosterau/effect-connect-resend"` becomes `Resend.resolveTransport`, or the same named import from `@thomasfosterau/effect-connect-resend/Resend`. `ResendConfig`, `ResendConfigInput` and `DEFAULT_BASE_URL` are `ResendConfig.*`.
+
+### Patch Changes
+
+- [#185](https://github.com/thomasfosterau/effect-connect/pull/185) [`ec80a94`](https://github.com/thomasfosterau/effect-connect/commit/ec80a94f90d9580f2d7abda8999bf3643a73d7ce) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - `rejectionMessage` now reads only a bounded prefix of a vendor's error body and cancels the rest, so a huge or never-ending error body is no longer buffered whole before it is truncated. The message is unchanged: the status, then at most 200 characters with any secrets redacted. A failed read or cancel still leaves the status.
+- Updated dependencies [[`ec80a94`](https://github.com/thomasfosterau/effect-connect/commit/ec80a94f90d9580f2d7abda8999bf3643a73d7ce), [`929d1dd`](https://github.com/thomasfosterau/effect-connect/commit/929d1dd5cc6ba7619bf9f7e550107e4799b654df), [`23ecaa8`](https://github.com/thomasfosterau/effect-connect/commit/23ecaa86e1e18aa47d1057faec5e6ad198a7c489), [`8ad498f`](https://github.com/thomasfosterau/effect-connect/commit/8ad498f982daaf7ef367ea617e047902c98f3e2c)]:
+  - @thomasfosterau/effect-connect@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes

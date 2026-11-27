@@ -1,5 +1,26 @@
 # @thomasfosterau/effect-connect
 
+## 0.6.0
+
+### Minor Changes
+
+- [#225](https://github.com/thomasfosterau/effect-connect/pull/225) [`929d1dd`](https://github.com/thomasfosterau/effect-connect/commit/929d1dd5cc6ba7619bf9f7e550107e4799b654df) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - The package root now exports each module as a namespace, as Effect does, instead of re-exporting every module's members flat: `Email`, `EmailService`, `Sms`, `SmsService`, `WhatsApp`, `WhatsAppService`, `Errors`, `Http` and `Transport` join `EmailHtml`, `EmailText` and `EmailTemplate`. The subpaths (`./Email`, `./EmailService`, …) are unchanged.
+  
+  Migration: prefix each root import with its module, or import it from the module's subpath unchanged.
+  
+  - `import { EmailService, send } from "@thomasfosterau/effect-connect"` becomes `import { EmailService } from "@thomasfosterau/effect-connect"`, with `yield* EmailService.EmailService`, `EmailService.send(…)` and `EmailService.EmailService.layerRecording(sent)`; or `import { EmailService, send } from "@thomasfosterau/effect-connect/EmailService"`.
+  - The email model (`EmailMessage`, `Recipient`, …), `decodeEmailMessage` and `recipientAddresses` → `Email.*`; `SmsMessage`, `decodeSmsMessage` → `Sms.*`; `sendSms`, `sendSmsBatch` → `SmsService.*`; the WhatsApp names likewise under `WhatsApp` and `WhatsAppService`.
+  - `EmailSendError`, `SmsSendError`, `WhatsAppSendError`, the `*ValidationError`s, `EmailTemplateError`, `truncateUpstreamBody` and `UPSTREAM_BODY_LIMIT` → `Errors.*`.
+  - `refuseRedirects`, `rejectionMessage`, `describeHttpError` and the other transport rules → `Http.*`; `boundString`, `boundSecret`, `selectTransport`, `droppingSender` and the `Env*Binding` types → `Transport.*`.
+
+- [#195](https://github.com/thomasfosterau/effect-connect/pull/195) [`8ad498f`](https://github.com/thomasfosterau/effect-connect/commit/8ad498f982daaf7ef367ea617e047902c98f3e2c) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - Remove the chat channel in favour of Effect's own `effect/chat` (effect 4.1.5+). `ChatMessage`, `ChatSendResult`, `ChatService`, `sendChat`, `sendChatBatch`, `decodeChatMessage`, `ChatSendError`, `ChatValidationError` and the `./Chat` and `./ChatService` subpaths are gone. Post through `Chat.Chat` instead: `sendChat({ text })` becomes `chat.post(thread, { markdown: text })`, with `@effect/chat-slack` or `@effect/chat-discord` as the adapter and `ChatTest.layer()` in tests. See the Chat section of docs/core.md.
+
+### Patch Changes
+
+- [#185](https://github.com/thomasfosterau/effect-connect/pull/185) [`ec80a94`](https://github.com/thomasfosterau/effect-connect/commit/ec80a94f90d9580f2d7abda8999bf3643a73d7ce) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - `rejectionMessage` now reads only a bounded prefix of a vendor's error body and cancels the rest, so a huge or never-ending error body is no longer buffered whole before it is truncated. The message is unchanged: the status, then at most 200 characters with any secrets redacted. A failed read or cancel still leaves the status.
+
+- [#183](https://github.com/thomasfosterau/effect-connect/pull/183) [`23ecaa8`](https://github.com/thomasfosterau/effect-connect/commit/23ecaa86e1e18aa47d1057faec5e6ad198a7c489) Thanks [@thomasfosterau](https://github.com/thomasfosterau)! - `executeWithSecretUrl` now redacts a vendor error body before truncating it, so a secret that straddles the 200-character bound can no longer leave its leading part in the error message. `rejectionMessage` takes an optional `secrets` list and applies the same order; the Twilio provider uses it instead of its own copy.
+
 ## 0.5.0
 
 ### Minor Changes
