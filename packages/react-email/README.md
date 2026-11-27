@@ -17,7 +17,7 @@ import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { Body, Button, Heading, Html } from "@react-email/components";
 import { EmailService, EmailTemplate } from "@thomasfosterau/effect-connect";
-import * as ReactEmail from "@thomasfosterau/effect-connect-react-email";
+import { ReactEmail } from "@thomasfosterau/effect-connect-react-email";
 
 const Welcome = ReactEmail.template({
   data: Schema.Struct({ name: Schema.String, url: Schema.String }),
@@ -37,7 +37,7 @@ const Welcome = ReactEmail.template({
 });
 
 const program = Effect.gen(function* () {
-  const email = yield* EmailService;
+  const email = yield* EmailService.EmailService;
   const message = yield* EmailTemplate.toMessage(
     Welcome,
     { name: "Ada", url: "https://example.com/start" },
@@ -49,12 +49,12 @@ const program = Effect.gen(function* () {
 
 ## Entry points
 
-The package has the single entry point `.`, plus `./ReactEmail`.
+The entry point `.` exports one namespace, `ReactEmail`, which is also the subpath `./ReactEmail`.
 
 | Export | Purpose |
 | --- | --- |
-| `template(options)`, `TemplateOptions`, `Context`, `TextOption`, `NoMessages` | An `EmailTemplate` from a React Email component. |
-| `accessibleDefaults(html, locale, subject)` | Add `lang`, `dir` and `<title>` to a rendered document that lacks them. |
+| `ReactEmail.template(options)`, `ReactEmail.TemplateOptions`, `ReactEmail.Context`, `ReactEmail.TextOption`, `ReactEmail.NoMessages` | An `EmailTemplate` from a React Email component. |
+| `ReactEmail.accessibleDefaults(html, locale, subject)` | Add `lang`, `dir` and `<title>` to a rendered document that lacks them. |
 
 ## Documentation
 

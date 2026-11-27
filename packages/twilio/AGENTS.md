@@ -8,6 +8,7 @@ Imports the core only; never another provider.
 
 ## Invariants
 
+- **`index.ts` only re-exports modules as namespaces**: the layers, `noop` and the Worker resolver live in the provider module itself, beside the payload mapping.
 - **A fixed literal host** (`DEFAULT_BASE_URL`); `baseUrl` is for test stubs, never request input. The account SID is path-encoded.
 - **Basic auth** (`HttpClientRequest.basicAuth`, account SID and `Redacted` token); no Node global, so it runs on Workers.
 - **Redirects are refused** through the core's `refuseRedirects`, after one request, with the body and `Location` unread. `tests/workerd` proves it under the real runtime.

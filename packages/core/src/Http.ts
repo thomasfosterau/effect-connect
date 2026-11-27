@@ -169,7 +169,7 @@ const describeStatus = (reason: HttpClientError.StatusCodeError): string =>
  * @example
  * ```ts
  * import * as assert from "node:assert";
- * import { redactSecrets } from "@thomasfosterau/effect-connect";
+ * import { redactSecrets } from "@thomasfosterau/effect-connect/Http";
  *
  * assert.strictEqual(
  *   redactSecrets("POST https://hooks.example.test/s3cr3t failed", ["s3cr3t", ""]),
@@ -310,7 +310,7 @@ const readBodyPrefix = (
  * import * as Effect from "effect/Effect";
  * import * as HttpClientRequest from "effect/http/HttpClientRequest";
  * import * as HttpClientResponse from "effect/http/HttpClientResponse";
- * import { rejectionMessage } from "@thomasfosterau/effect-connect";
+ * import { rejectionMessage } from "@thomasfosterau/effect-connect/Http";
  *
  * const response = HttpClientResponse.fromWeb(
  *   HttpClientRequest.get("https://api.example.test/send"),

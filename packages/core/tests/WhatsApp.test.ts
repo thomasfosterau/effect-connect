@@ -2,15 +2,9 @@ import { describe, describeWrapped, expect, layer, test } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
-import {
-  decodeWhatsAppMessage,
-  sendWhatsApp,
-  sendWhatsAppBatch,
-  WhatsAppMessage,
-  WhatsAppSendResult,
-  WhatsAppService,
-  WhatsAppValidationError,
-} from "../src/index.ts";
+import { WhatsAppValidationError } from "../src/Errors.ts";
+import { decodeWhatsAppMessage, WhatsAppMessage, WhatsAppSendResult } from "../src/WhatsApp.ts";
+import { sendWhatsApp, sendWhatsAppBatch, WhatsAppService } from "../src/WhatsAppService.ts";
 
 const decodeMessage = Schema.decodeUnknownSync(WhatsAppMessage);
 const TO = "+61412345678";

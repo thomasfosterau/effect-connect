@@ -11,4 +11,4 @@
  *
  * @since 0.1.0
  */
-export * from "./ReactEmail.ts";
+export * as ReactEmail from "./ReactEmail.ts";

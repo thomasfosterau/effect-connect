@@ -10,7 +10,7 @@ import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { FetchHttpClient } from "effect/http";
 import { SmsService } from "@thomasfosterau/effect-connect";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
 
 const SmsLive = Twilio.layer({
   accountSid: process.env.TWILIO_ACCOUNT_SID!,
@@ -19,28 +19,30 @@ const SmsLive = Twilio.layer({
 }).pipe(Layer.provide(FetchHttpClient.layer));
 
 const program = Effect.gen(function* () {
-  const sms = yield* SmsService;
+  const sms = yield* SmsService.SmsService;
   const result = yield* sms.send({ to: "+61412345678", body: "Your code is 123456" });
   // result.id is Twilio's message SID (`SM…`), as an Option (always `some` here)
 });
 ```
 
-`Twilio.layerConfig` reads `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (redacted) and the optional `TWILIO_FROM`, `TWILIO_MESSAGING_SERVICE_SID` and `TWILIO_BASE_URL` through `effect/Config` instead. It fails at layer construction with a `ConfigError` when the SID or token is unset or empty; an empty optional value counts as unset. On a Worker whose stages may lack the credentials, use `resolveTransport(env)` below.
+`Twilio.layerConfig` reads `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (redacted) and the optional `TWILIO_FROM`, `TWILIO_MESSAGING_SERVICE_SID` and `TWILIO_BASE_URL` through `effect/Config` instead. It fails at layer construction with a `ConfigError` when the SID or token is unset or empty; an empty optional value counts as unset. On a Worker whose stages may lack the credentials, use `Twilio.resolveTransport(env)` below.
+
+The package root exports two namespaces, `Twilio` (the layers, `noop`, `resolveTransport`, `configFromEnv`, `TwilioEnv` and the payload mapping) and `TwilioConfig`; each is also a subpath (`@thomasfosterau/effect-connect-twilio/Twilio`). Earlier versions exported their members flat from the root: `import * as Twilio from "@thomasfosterau/effect-connect-twilio"` becomes `import { Twilio } from "@thomasfosterau/effect-connect-twilio"`.
 
 ## Senders
 
 A send goes out from the message's own `from`, else the configured `from`, else the configured Messaging Service (`MessagingServiceSid`). With none of the three, it fails with an `SmsSendError` (`status: none`) before any request is made.
 
-## On a Worker: `resolveTransport(env)`
+## On a Worker: `Twilio.resolveTransport(env)`
 
-`resolveTransport(env)` is the one call a Worker makes: the live sender on the platform `fetch` when `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` are both bound and non-blank (the token as a string or a `Redacted`), the logging no-op otherwise.
+`Twilio.resolveTransport(env)` is the one call a Worker makes: the live sender on the platform `fetch` when `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` are both bound and non-blank (the token as a string or a `Redacted`), the logging no-op otherwise.
 
 ```ts
 import * as Effect from "effect/Effect";
 import type { SmsService } from "@thomasfosterau/effect-connect";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
 
-declare const handle: (request: Request) => Effect.Effect<Response, never, SmsService>;
+declare const handle: (request: Request) => Effect.Effect<Response, never, SmsService.SmsService>;
 
 export default {
   fetch: (request: Request, env: Twilio.TwilioEnv) =>
@@ -64,4 +66,4 @@ Twilio has no batch endpoint, so `sendBatch(messages)` sends each message, at mo
 
 ## Testing a consumer
 
-Provide `SmsService.layerRecording(sent)` from the core. To exercise this package's own transport, provide `FetchHttpClient.layer` with a stub `Fetch`, as the [Resend reference](./resend.md#testing-a-consumer) shows.
+Provide `SmsService.SmsService.layerRecording(sent)` from the core. To exercise this package's own transport, provide `FetchHttpClient.layer` with a stub `Fetch`, as the [Resend reference](./resend.md#testing-a-consumer) shows.

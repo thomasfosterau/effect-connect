@@ -17,10 +17,10 @@ import type * as Cloudflare from "@alchemy.run/cloudflare";
  *
  * @example
  * ```ts
- * import type { ResendBindings, WorkerBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+ * import type { Bindings, Resend } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
  *
- * const check = <B extends WorkerBindings<B>>(bindings: B): B => bindings;
- * const accept = (bindings: ResendBindings): ResendBindings => check(bindings);
+ * const check = <B extends Bindings.WorkerBindings<B>>(bindings: B): B => bindings;
+ * const accept = (bindings: Resend.ResendBindings): Resend.ResendBindings => check(bindings);
  * console.log(typeof accept); // "function"
  * ```
  *
@@ -41,9 +41,9 @@ export type WorkerBindings<B> = {
  *
  * @example
  * ```ts
- * import type { Deployed, ResendBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+ * import type { Bindings, Resend } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
  *
- * const env: Deployed<ResendBindings> = { RESEND_API_KEY: "re_123" };
+ * const env: Bindings.Deployed<Resend.ResendBindings> = { RESEND_API_KEY: "re_123" };
  * console.log(env.RESEND_API_KEY); // "re_123"
  * ```
  *

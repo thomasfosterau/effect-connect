@@ -10,14 +10,14 @@ import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { FetchHttpClient } from "effect/http";
 import { EmailService } from "@thomasfosterau/effect-connect";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
 
 const EmailLive = Resend.layer({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }).pipe(
   Layer.provide(FetchHttpClient.layer),
 );
 
 const program = Effect.gen(function* () {
-  const email = yield* EmailService;
+  const email = yield* EmailService.EmailService;
   const result = yield* email.send({
     from: { email: "noreply@example.com", name: "Example" },
     to: [{ email: "reader@example.com" }],
@@ -29,30 +29,34 @@ const program = Effect.gen(function* () {
 });
 ```
 
-`Resend.layerConfig` reads `RESEND_API_KEY` (and an optional `RESEND_BASE_URL`) through `effect/Config` instead. It fails at layer construction with a `ConfigError` when `RESEND_API_KEY` is unset or empty (an empty variable counts as missing); an empty `RESEND_BASE_URL` falls back to the default host. On a Worker whose stages may lack the key, use `resolveTransport(env)` below.
+`Resend.layerConfig` reads `RESEND_API_KEY` (and an optional `RESEND_BASE_URL`) through `effect/Config` instead. It fails at layer construction with a `ConfigError` when `RESEND_API_KEY` is unset or empty (an empty variable counts as missing); an empty `RESEND_BASE_URL` falls back to the default host. On a Worker whose stages may lack the key, use `Resend.resolveTransport(env)` below.
 
 ## API
 
+The package root exports two namespaces, `Resend` and `ResendConfig`; each is also a subpath (`@thomasfosterau/effect-connect-resend/Resend`). Earlier versions exported their members flat from the root, and `layer`, `layerConfig`, `resolveTransport`, `apiKeyFromEnv` and `ResendEnv` from the root alone: they are now in `Resend`, so `import * as Resend from "@thomasfosterau/effect-connect-resend"` becomes `import { Resend } from "@thomasfosterau/effect-connect-resend"`.
+
 | Export | What it is |
 | --- | --- |
-| `layer(config)`, `layerConfig` | The `EmailService` over the `HttpClient` in context, from literal config or from `RESEND_API_KEY` / `RESEND_BASE_URL`. |
-| `resolveTransport(env)`, `apiKeyFromEnv(env)`, `ResendEnv` | Pick the live sender or the no-op from a Worker env; needs no `HttpClient`. |
-| `noop` | The `EmailService` that succeeds without sending and logs the subject only. |
-| `ResendConfig`, `ResendConfigInput`, `DEFAULT_BASE_URL` | The credential and host as a service. |
-| `toResendPayload`, `formatAddress`, `ResendSendPayload` | The core-message → `POST /emails` mapping. |
-| `layerEmailService` | The `EmailService` over a `ResendConfig` and `HttpClient` you provide yourself. |
+| `Resend.layer(config)`, `Resend.layerConfig` | The `EmailService` over the `HttpClient` in context, from literal config or from `RESEND_API_KEY` / `RESEND_BASE_URL`. |
+| `Resend.resolveTransport(env)`, `Resend.apiKeyFromEnv(env)`, `Resend.ResendEnv` | Pick the live sender or the no-op from a Worker env; needs no `HttpClient`. |
+| `Resend.noop` | The `EmailService` that succeeds without sending and logs the subject only. |
+| `ResendConfig.ResendConfig`, `ResendConfig.ResendConfigInput`, `ResendConfig.DEFAULT_BASE_URL` | The credential and host as a service. |
+| `Resend.toResendPayload`, `Resend.formatAddress`, `Resend.ResendSendPayload` | The core-message → `POST /emails` mapping. |
+| `Resend.layerEmailService` | The `EmailService` over a `ResendConfig` and `HttpClient` you provide yourself. |
 
-## On a Worker: `resolveTransport(env)`
+## On a Worker: `Resend.resolveTransport(env)`
 
-For stages deployed without the credential, `resolveTransport` is the one call a Worker makes: the live sender on the platform `fetch` when `RESEND_API_KEY` is bound and non-blank (as a string or a `Redacted`), the logging no-op otherwise, so the fallback cannot be forgotten.
+For stages deployed without the credential, `Resend.resolveTransport` is the one call a Worker makes: the live sender on the platform `fetch` when `RESEND_API_KEY` is bound and non-blank (as a string or a `Redacted`), the logging no-op otherwise, so the fallback cannot be forgotten.
 
 ```ts
 import * as Effect from "effect/Effect";
 import type { EmailService } from "@thomasfosterau/effect-connect";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
 
 // Your request handler; it sends through the EmailService in context.
-declare const handle: (request: Request) => Effect.Effect<Response, never, EmailService>;
+declare const handle: (
+  request: Request,
+) => Effect.Effect<Response, never, EmailService.EmailService>;
 
 export default {
   fetch: (request: Request, env: Resend.ResendEnv) =>
@@ -86,17 +90,17 @@ export default {
 
 A message with a `template` sends a published Resend template (by id or alias) instead of a body; its `subject` overrides the template's default, and Resend rejects the send when a variable the template uses is missing.
 
-`toResendPayload(message)` is exported for callers that want to inspect the payload.
+`Resend.toResendPayload(message)` is exported for callers that want to inspect the payload.
 
 ## Testing a consumer
 
-Provide `EmailService.layerRecording(sent)` from the core. To exercise this package's own transport, provide `FetchHttpClient.layer` with a stub `Fetch`:
+Provide `EmailService.EmailService.layerRecording(sent)` from the core. To exercise this package's own transport, provide `FetchHttpClient.layer` with a stub `Fetch`:
 
 ```ts
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { FetchHttpClient } from "effect/http";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
 
 // Your stand-in for the platform fetch: return canned Responses.
 declare const stubFetch: typeof globalThis.fetch;

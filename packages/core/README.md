@@ -19,9 +19,9 @@ A consumer sends through a channel's service and provides one provider's layer a
 
 ```ts
 import * as Effect from "effect/Effect";
-import { EmailService, type EmailMessage } from "@thomasfosterau/effect-connect";
+import { type Email, EmailService } from "@thomasfosterau/effect-connect";
 
-const welcome = (to: string): EmailMessage => ({
+const welcome = (to: string): Email.EmailMessage => ({
   from: { email: "noreply@example.com", name: "Example" },
   to: [{ email: to }],
   subject: "Welcome",
@@ -31,7 +31,7 @@ const welcome = (to: string): EmailMessage => ({
 
 export const sendWelcome = (to: string) =>
   Effect.gen(function* () {
-    const email = yield* EmailService;
+    const email = yield* EmailService.EmailService;
     const result = yield* email.send(welcome(to));
     yield* Effect.log("sent", { id: result.id });
   });
@@ -39,17 +39,17 @@ export const sendWelcome = (to: string) =>
 
 ## Entry points
 
-Everything is exported from `.`; each module also has its own subpath, such as `./EmailTemplate`.
+The entry point `.` exports each module as a namespace (`import { EmailService } from "@thomasfosterau/effect-connect"`, then `EmailService.send`), and each module is also a subpath of its own, such as `./EmailTemplate`.
 
 | Export | Purpose |
 | --- | --- |
-| `EmailService`, `send`, `sendBatch`, `EmailMessage`, `decodeEmailMessage` | The email contract, accessors, message model and validation. |
+| `EmailService` (`EmailService`, `send`, `sendBatch`), `Email` (`EmailMessage`, `decodeEmailMessage`) | The email contract, accessors, message model and validation. |
 | `EmailTemplate`, `EmailHtml`, `EmailText` | Typed, localised email templates rendering accessible HTML and matching plain text. |
-| `SmsService`, `sendSms`, `SmsMessage`, `decodeSmsMessage` | The SMS contract, accessors, message model and validation. |
-| `WhatsAppService`, `sendWhatsApp`, `WhatsAppMessage`, `decodeWhatsAppMessage` | The WhatsApp contract, accessors, message model (text or template) and validation. |
-| `*SendError`, `*ValidationError` | Each channel's errors (`Schema.TaggedError`). |
-| `Http` transport rules, `boundSecret`, `selectTransport`, `droppingSender` | Shared helpers every provider applies. |
-| `*Service.layerRecording(sent)` | Test doubles that record what was sent. |
+| `SmsService` (`SmsService`, `sendSms`), `Sms` (`SmsMessage`, `decodeSmsMessage`) | The SMS contract, accessors, message model and validation. |
+| `WhatsAppService` (`WhatsAppService`, `sendWhatsApp`), `WhatsApp` (`WhatsAppMessage`, `decodeWhatsAppMessage`) | The WhatsApp contract, accessors, message model (text or template) and validation. |
+| `Errors` (`*SendError`, `*ValidationError`) | Each channel's errors (`Schema.TaggedError`). |
+| `Http` (the transport rules), `Transport` (`boundSecret`, `selectTransport`, `droppingSender`) | Shared helpers every provider applies. |
+| `EmailService.EmailService.layerRecording(sent)`, and the same on each `*Service` | Test doubles that record what was sent. |
 
 ## Documentation
 

@@ -8,10 +8,10 @@ import {
   EmailAddress,
   EmailMessage,
   EmailSendResult,
-  EmailValidationError,
   Recipient,
   recipientAddresses,
-} from "../src/index.ts";
+} from "../src/Email.ts";
+import { EmailValidationError } from "../src/Errors.ts";
 
 const decodeAddress = Schema.decodeUnknownSync(EmailAddress);
 const decodeRecipient = Schema.decodeUnknownSync(Recipient);

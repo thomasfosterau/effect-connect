@@ -2,8 +2,9 @@ import { describe, expect, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { createElement } from "react";
-import { EmailTemplate, EmailText } from "@thomasfosterau/effect-connect";
-import { accessibleDefaults, template } from "../src/index.ts";
+import * as EmailTemplate from "@thomasfosterau/effect-connect/EmailTemplate";
+import * as EmailText from "@thomasfosterau/effect-connect/EmailText";
+import { accessibleDefaults, template } from "../src/ReactEmail.ts";
 
 const email = (...children: Parameters<typeof createElement>[2][]) =>
   createElement("html", null, createElement("body", null, ...children));

@@ -72,9 +72,9 @@ const bindings = (
  * ```ts
  * import * as assert from "node:assert";
  * import * as Redacted from "effect/Redacted";
- * import { twilioBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+ * import { Twilio } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
  *
- * const env = twilioBindings({
+ * const env = Twilio.twilioBindings({
  *   accountSid: "AC123",
  *   authToken: Redacted.make("token"),
  *   from: "+61400000000",
@@ -108,10 +108,10 @@ export const twilioBindings = (input: TwilioBindingsInput): TwilioBindings =>
  * import * as ConfigProvider from "effect/ConfigProvider";
  * import * as Effect from "effect/Effect";
  * import * as Redacted from "effect/Redacted";
- * import { twilioBindingsConfig } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+ * import { Twilio } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
  *
  * const env = Effect.runSync(
- *   twilioBindingsConfig.parse(
+ *   Twilio.twilioBindingsConfig.parse(
  *     ConfigProvider.fromEnv({
  *       env: { TWILIO_ACCOUNT_SID: "AC123", TWILIO_AUTH_TOKEN: "token" },
  *     }),

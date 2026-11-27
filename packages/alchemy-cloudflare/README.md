@@ -19,11 +19,11 @@ On the deploy machine, build the bindings and pass them into the Worker's `env`:
 
 ```ts skip-type-checking
 import * as Redacted from "effect/Redacted";
-import { resendBindings, twilioBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+import { Resend, Twilio } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
 const env = {
-  ...resendBindings({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }),
-  ...twilioBindings({
+  ...Resend.resendBindings({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }),
+  ...Twilio.twilioBindings({
     accountSid: process.env.TWILIO_ACCOUNT_SID!,
     authToken: Redacted.make(process.env.TWILIO_AUTH_TOKEN!),
     from: process.env.TWILIO_FROM,
@@ -34,14 +34,14 @@ const env = {
 
 ## Entry points
 
-The package's main entry point `.` re-exports everything; `./Bindings`, `./Resend` and `./Twilio` are subpaths of their own.
+The entry point `.` exports each module as a namespace (`Bindings`, `Resend`, `Twilio`), and each is also a subpath of its own (`./Bindings`, `./Resend`, `./Twilio`).
 
 | Export | Purpose |
 | --- | --- |
-| `resendBindings`, `resendBindingsConfig`, `ResendBindings`, `ResendBindingsInput` | The `RESEND_API_KEY` secret binding, from a value or from `effect/Config`. |
-| `twilioBindings`, `twilioBindingsConfig`, `TwilioBindings`, `TwilioBindingsInput` | `TWILIO_ACCOUNT_SID`, the `TWILIO_AUTH_TOKEN` secret, and `TWILIO_FROM` / `TWILIO_MESSAGING_SERVICE_SID` when set, from values or from `effect/Config`. |
-| `WorkerBindings<B>` | The constraint every bindings record meets. |
-| `Deployed<B>` | `Cloudflare.InferEnv<B>`: the `env` a Worker receives for a bindings record. |
+| `Resend.resendBindings`, `Resend.resendBindingsConfig`, `Resend.ResendBindings`, `Resend.ResendBindingsInput` | The `RESEND_API_KEY` secret binding, from a value or from `effect/Config`. |
+| `Twilio.twilioBindings`, `Twilio.twilioBindingsConfig`, `Twilio.TwilioBindings`, `Twilio.TwilioBindingsInput` | `TWILIO_ACCOUNT_SID`, the `TWILIO_AUTH_TOKEN` secret, and `TWILIO_FROM` / `TWILIO_MESSAGING_SERVICE_SID` when set, from values or from `effect/Config`. |
+| `Bindings.WorkerBindings<B>` | The constraint every bindings record meets. |
+| `Bindings.Deployed<B>` | `Cloudflare.InferEnv<B>`: the `env` a Worker receives for a bindings record. |
 
 ## Documentation
 

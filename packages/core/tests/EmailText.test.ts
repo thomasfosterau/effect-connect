@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import * as Option from "effect/Option";
-import { EmailHtml, EmailText } from "../src/index.ts";
+import * as EmailHtml from "../src/EmailHtml.ts";
+import * as EmailText from "../src/EmailText.ts";
 
 const { fromHtml, text } = EmailText;
 

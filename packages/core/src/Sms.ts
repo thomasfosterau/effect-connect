@@ -103,14 +103,14 @@ export type SmsSendResult = typeof SmsSendResult.Type;
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Exit from "effect/Exit";
- * import { decodeSmsMessage } from "@thomasfosterau/effect-connect";
+ * import { Sms } from "@thomasfosterau/effect-connect";
  *
  * const valid = Effect.runSyncExit(
- *   decodeSmsMessage({ to: "+61412345678", from: "Example", body: "Your code is 123456" }),
+ *   Sms.decodeSmsMessage({ to: "+61412345678", from: "Example", body: "Your code is 123456" }),
  * );
  * assert.ok(Exit.isSuccess(valid));
  *
- * const invalid = Effect.runSyncExit(decodeSmsMessage({ to: "0412 345 678", body: "" }));
+ * const invalid = Effect.runSyncExit(Sms.decodeSmsMessage({ to: "0412 345 678", body: "" }));
  * assert.ok(Exit.isFailure(invalid));
  * ```
  *

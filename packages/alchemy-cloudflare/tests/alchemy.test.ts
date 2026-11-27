@@ -16,18 +16,22 @@ import * as Option from "effect/Option";
 import * as R from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
-import * as Resend from "@thomasfosterau/effect-connect-resend";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
+import {
+  type Deployed,
+  type WorkerBindings,
+} from "@thomasfosterau/effect-connect-alchemy-cloudflare/Bindings";
 import {
   resendBindings,
   resendBindingsConfig,
+  type ResendBindings,
+} from "@thomasfosterau/effect-connect-alchemy-cloudflare/Resend";
+import {
   twilioBindings,
   twilioBindingsConfig,
-  type Deployed,
-  type ResendBindings,
   type TwilioBindings,
-  type WorkerBindings,
-} from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+} from "@thomasfosterau/effect-connect-alchemy-cloudflare/Twilio";
 
 // What a Worker reads back: Alchemy deploys a `Redacted` as a secret binding,
 // which arrives as a plain string, and a string as a plain one; every other

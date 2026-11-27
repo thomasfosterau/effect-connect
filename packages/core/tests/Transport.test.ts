@@ -7,14 +7,9 @@ import * as Redacted from "effect/Redacted";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientRequest from "effect/http/HttpClientRequest";
-import {
-  boundSecret,
-  boundString,
-  droppingSender,
-  selectTransport,
-  SmsService,
-  type SmsMessage,
-} from "../src/index.ts";
+import { type SmsMessage } from "../src/Sms.ts";
+import { SmsService } from "../src/SmsService.ts";
+import { boundSecret, boundString, droppingSender, selectTransport } from "../src/Transport.ts";
 
 describe("boundString", () => {
   test("is some for a non-blank value, none for absent, null, empty or blank", () => {

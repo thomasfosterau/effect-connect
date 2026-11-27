@@ -11,12 +11,9 @@ import * as P from "effect/Predicate";
 import * as Redacted from "effect/Redacted";
 import * as Schema from "effect/Schema";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
-import {
-  EmailSendError,
-  EmailService,
-  UPSTREAM_BODY_LIMIT,
-  type EmailMessage,
-} from "@thomasfosterau/effect-connect";
+import { type EmailMessage } from "@thomasfosterau/effect-connect/Email";
+import { EmailService } from "@thomasfosterau/effect-connect/EmailService";
+import { EmailSendError, UPSTREAM_BODY_LIMIT } from "@thomasfosterau/effect-connect/Errors";
 import {
   apiKeyFromEnv,
   formatAddress,
@@ -26,7 +23,7 @@ import {
   resolveTransport,
   toResendPayload,
   type ResendEnv,
-} from "../src/index.ts";
+} from "../src/Resend.ts";
 
 const VERIFY_URL = "https://example.test/api/auth/verify-email?token=secret-token-value";
 

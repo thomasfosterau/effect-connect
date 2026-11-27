@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect-alchemy-cloudflare`
 
-Detail for the [package README](../packages/alchemy-cloudflare/README.md). Each builder returns the record of Worker `env` bindings one provider reads, under its own keys (`RESEND_API_KEY` for Resend, `TWILIO_*` for Twilio). Secrets are `Redacted`, which Alchemy deploys as secret bindings. Spread the record into your Worker's `env`, and the provider's `resolveTransport(env)` (or `layerConfig`) finds its credentials at runtime.
+Detail for the [package README](../packages/alchemy-cloudflare/README.md). Each builder returns the record of Worker `env` bindings one provider reads, under its own keys (`RESEND_API_KEY` for Resend, `TWILIO_*` for Twilio). Secrets are `Redacted`, which Alchemy deploys as secret bindings. Spread the record into your Worker's `env`, and the provider's `Resend.resolveTransport(env)` or `Twilio.resolveTransport(env)` (or `layerConfig`) finds its credentials at runtime.
 
 It binds credentials only and provisions nothing on the vendor's side. It runs on the deploy machine, inside your `alchemy.run.ts`, never in the Worker. Its peers `@alchemy.run/cloudflare` and `alchemy` are pinned to one exact beta (the provider peers on that exact `alchemy`), with `effect ^4.1.0`.
 
@@ -10,11 +10,11 @@ On the deploy machine, build the bindings and pass them into the Worker's `env`:
 
 ```ts skip-type-checking
 import * as Redacted from "effect/Redacted";
-import { resendBindings, twilioBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+import { Resend, Twilio } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
 const env = {
-  ...resendBindings({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }),
-  ...twilioBindings({
+  ...Resend.resendBindings({ apiKey: Redacted.make(process.env.RESEND_API_KEY!) }),
+  ...Twilio.twilioBindings({
     accountSid: process.env.TWILIO_ACCOUNT_SID!,
     authToken: Redacted.make(process.env.TWILIO_AUTH_TOKEN!),
     from: process.env.TWILIO_FROM,
@@ -27,21 +27,18 @@ Or read the same names through `effect/Config` on the deploy machine, with the `
 
 ```ts skip-type-checking
 import * as Effect from "effect/Effect";
-import {
-  resendBindingsConfig,
-  twilioBindingsConfig,
-} from "@thomasfosterau/effect-connect-alchemy-cloudflare";
+import { Resend, Twilio } from "@thomasfosterau/effect-connect-alchemy-cloudflare";
 
 const env = Effect.gen(function* () {
-  return { ...(yield* resendBindingsConfig), ...(yield* twilioBindingsConfig) };
+  return { ...(yield* Resend.resendBindingsConfig), ...(yield* Twilio.twilioBindingsConfig) };
 });
 ```
 
 In the Worker, the provider reads them back:
 
 ```ts skip-type-checking
-import * as Resend from "@thomasfosterau/effect-connect-resend";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import { Resend } from "@thomasfosterau/effect-connect-resend";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
 
 const EmailLive = Resend.resolveTransport(env); // the live sender: RESEND_API_KEY is bound
 const SmsLive = Twilio.resolveTransport(env); // the live sender: the SID and token are bound
@@ -49,12 +46,14 @@ const SmsLive = Twilio.resolveTransport(env); // the live sender: the SID and to
 
 ## API
 
+The package root exports three namespaces, `Bindings`, `Resend` and `Twilio`, each also a subpath (`@thomasfosterau/effect-connect-alchemy-cloudflare/Resend`). Earlier versions exported their members flat from the root: `resendBindings` is now `Resend.resendBindings`, `Deployed` is `Bindings.Deployed`. Alias one side when a module imports both this package's `Resend` and the provider's (`import { Resend as ResendBindings } from "@thomasfosterau/effect-connect-alchemy-cloudflare"`).
+
 | Export | Binds | Read at runtime by |
 | --- | --- | --- |
-| `resendBindings`, `resendBindingsConfig`, `ResendBindings`, `ResendBindingsInput` | `RESEND_API_KEY` (secret) | `effect-connect-resend`'s `resolveTransport(env)` (`ResendEnv`) |
-| `twilioBindings`, `twilioBindingsConfig`, `TwilioBindings`, `TwilioBindingsInput` | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (secret), `TWILIO_FROM` and `TWILIO_MESSAGING_SERVICE_SID` (only when set and non-blank) | `effect-connect-twilio`'s `resolveTransport(env)` (`TwilioEnv`) |
-| `WorkerBindings<B>` | — | The constraint every bindings record meets: each value a `Cloudflare.WorkerBindingResource`, so the record spreads into a `Cloudflare.Worker`'s `env`. |
-| `Deployed<B>` | — | `Cloudflare.InferEnv<B>`: the `env` a Worker receives for a bindings record `B`, every value a plain string. Each provider's env type accepts it. |
+| `Resend.resendBindings`, `Resend.resendBindingsConfig`, `Resend.ResendBindings`, `Resend.ResendBindingsInput` | `RESEND_API_KEY` (secret) | `effect-connect-resend`'s `Resend.resolveTransport(env)` (`Resend.ResendEnv`) |
+| `Twilio.twilioBindings`, `Twilio.twilioBindingsConfig`, `Twilio.TwilioBindings`, `Twilio.TwilioBindingsInput` | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (secret), `TWILIO_FROM` and `TWILIO_MESSAGING_SERVICE_SID` (only when set and non-blank) | `effect-connect-twilio`'s `Twilio.resolveTransport(env)` (`Twilio.TwilioEnv`) |
+| `Bindings.WorkerBindings<B>` | — | The constraint every bindings record meets: each value a `Cloudflare.WorkerBindingResource`, so the record spreads into a `Cloudflare.Worker`'s `env`. |
+| `Bindings.Deployed<B>` | — | `Cloudflare.InferEnv<B>`: the `env` a Worker receives for a bindings record `B`, every value a plain string. Each provider's env type accepts it. |
 
 `Deployed<B>` is the provider's own `Cloudflare.InferEnv<B>`, so a Worker typed with it is checked against the env Alchemy actually deploys.
 

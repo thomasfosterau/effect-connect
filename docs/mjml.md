@@ -1,6 +1,6 @@
 # `@thomasfosterau/effect-connect-mjml`
 
-Detail for the [package README](../packages/mjml/README.md): MJML as a renderer for the [core](./core.md)'s email templates. `template` returns an ordinary `EmailTemplate`, so `EmailTemplate.render`, `toMessage`, `localised` and locale negotiation work exactly as they do for a template built with `EmailTemplate.make`.
+Detail for the [package README](../packages/mjml/README.md): MJML as a renderer for the [core](./core.md)'s email templates. The package root exports one namespace, `Mjml` (also the `./Mjml` subpath); earlier versions exported `template` and `accessibleDefaults` flat, so `import * as Mjml from "@thomasfosterau/effect-connect-mjml"` becomes `import { Mjml } from "@thomasfosterau/effect-connect-mjml"`. `Mjml.template` returns an ordinary `EmailTemplate`, so `EmailTemplate.render`, `toMessage`, `localised` and locale negotiation work exactly as they do for a template built with `EmailTemplate.make`.
 
 ## Options
 

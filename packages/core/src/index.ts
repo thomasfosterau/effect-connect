@@ -14,13 +14,13 @@
  *
  * @since 0.1.0
  */
-export * from "./Email.ts";
+export * as Email from "./Email.ts";
 /**
  * The `EmailService` contract, its accessors and the recording test double.
  *
  * @since 0.1.0
  */
-export * from "./EmailService.ts";
+export * as EmailService from "./EmailService.ts";
 /**
  * HTML for email bodies, escaped by construction, with accessible helpers and the document shell.
  *
@@ -44,40 +44,40 @@ export * as EmailTemplate from "./EmailTemplate.ts";
  *
  * @since 0.1.0
  */
-export * from "./Sms.ts";
+export * as Sms from "./Sms.ts";
 /**
  * The `SmsService` contract, its accessors and the recording test double.
  *
  * @since 0.1.0
  */
-export * from "./SmsService.ts";
+export * as SmsService from "./SmsService.ts";
 /**
  * The WhatsApp message model: free-form text and pre-approved template messages, and the result of a send.
  *
  * @since 0.1.0
  */
-export * from "./WhatsApp.ts";
+export * as WhatsApp from "./WhatsApp.ts";
 /**
  * The `WhatsAppService` contract, its accessors and the recording test double.
  *
  * @since 0.1.0
  */
-export * from "./WhatsAppService.ts";
+export * as WhatsAppService from "./WhatsAppService.ts";
 /**
  * The transport rules every provider applies over `effect/http`: redirect refusal, bounded error bodies.
  *
  * @since 0.1.0
  */
-export * from "./Http.ts";
+export * as Http from "./Http.ts";
 /**
  * Choosing a transport at a Worker's edge: env bindings, the live-or-no-op switch and the no-op sender.
  *
  * @since 0.1.0
  */
-export * from "./Transport.ts";
+export * as Transport from "./Transport.ts";
 /**
  * The failures the channel contracts admit, and the vendor-body bound.
  *
  * @since 0.1.0
  */
-export * from "./Errors.ts";
+export * as Errors from "./Errors.ts";

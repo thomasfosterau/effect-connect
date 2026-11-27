@@ -15,12 +15,10 @@ import * as P from "effect/Predicate";
 import * as R from "effect/Record";
 import type * as Schema from "effect/Schema";
 import mjml2html from "mjml-browser";
-import {
-  EmailHtml,
-  EmailTemplate,
-  EmailTemplateError,
-  EmailText,
-} from "@thomasfosterau/effect-connect";
+import * as EmailHtml from "@thomasfosterau/effect-connect/EmailHtml";
+import * as EmailTemplate from "@thomasfosterau/effect-connect/EmailTemplate";
+import * as EmailText from "@thomasfosterau/effect-connect/EmailText";
+import { EmailTemplateError } from "@thomasfosterau/effect-connect/Errors";
 
 /**
  * What the markup, subject and text functions receive besides the data: the
@@ -97,9 +95,9 @@ const headTag = /<mj-head\b[^>]*>/i;
  * @example
  * ```ts
  * import * as assert from "node:assert";
- * import { accessibleDefaults } from "@thomasfosterau/effect-connect-mjml";
+ * import { Mjml } from "@thomasfosterau/effect-connect-mjml";
  *
- * const source = accessibleDefaults(
+ * const source = Mjml.accessibleDefaults(
  *   "<mjml><mj-body></mj-body></mjml>",
  *   { tag: "ar", dir: "rtl" },
  *   "مرحبا",
@@ -165,9 +163,9 @@ const compile = (
  * import * as Effect from "effect/Effect";
  * import * as Schema from "effect/Schema";
  * import { EmailHtml, EmailTemplate } from "@thomasfosterau/effect-connect";
- * import { template } from "@thomasfosterau/effect-connect-mjml";
+ * import { Mjml } from "@thomasfosterau/effect-connect-mjml";
  *
- * const Welcome = template({
+ * const Welcome = Mjml.template({
  *   data: Schema.Struct({ name: Schema.String }),
  *   messages: { en: { hello: "Hello" }, fr: { hello: "Bonjour" } },
  *   subject: (_, { t }) => t.hello,

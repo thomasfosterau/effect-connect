@@ -579,13 +579,7 @@ export type Envelope = Omit<EmailMessage, "subject" | "text" | "html" | "templat
  * import * as assert from "node:assert";
  * import * as Effect from "effect/Effect";
  * import * as Schema from "effect/Schema";
- * import {
- *   EmailHtml,
- *   EmailService,
- *   EmailTemplate,
- *   send,
- *   type EmailMessage,
- * } from "@thomasfosterau/effect-connect";
+ * import { Email, EmailHtml, EmailService, EmailTemplate } from "@thomasfosterau/effect-connect";
  *
  * const Reset = EmailTemplate.make({
  *   data: Schema.Struct({ url: Schema.String }),
@@ -594,13 +588,16 @@ export type Envelope = Omit<EmailMessage, "subject" | "text" | "html" | "templat
  *     EmailHtml.html`<p>${EmailHtml.button({ href: url, label: "Reset your password" })}</p>`,
  * });
  *
- * const sent: Array<EmailMessage> = [];
+ * const sent: Array<Email.EmailMessage> = [];
  * Effect.runSync(
  *   EmailTemplate.toMessage(
  *     Reset,
  *     { url: "https://example.com/reset" },
  *     { from: { email: "noreply@example.com" }, to: [{ email: "reader@example.com" }] },
- *   ).pipe(Effect.flatMap(send), Effect.provide(EmailService.layerRecording(sent))),
+ *   ).pipe(
+ *     Effect.flatMap(EmailService.send),
+ *     Effect.provide(EmailService.EmailService.layerRecording(sent)),
+ *   ),
  * );
  * assert.strictEqual(sent[0]?.text, "Reset your password (https://example.com/reset)");
  * ```

@@ -18,7 +18,7 @@ import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { FetchHttpClient } from "effect/http";
 import { SmsService } from "@thomasfosterau/effect-connect";
-import * as Twilio from "@thomasfosterau/effect-connect-twilio";
+import { Twilio } from "@thomasfosterau/effect-connect-twilio";
 
 const SmsLive = Twilio.layer({
   accountSid: process.env.TWILIO_ACCOUNT_SID!,
@@ -27,7 +27,7 @@ const SmsLive = Twilio.layer({
 }).pipe(Layer.provide(FetchHttpClient.layer));
 
 const program = Effect.gen(function* () {
-  const sms = yield* SmsService;
+  const sms = yield* SmsService.SmsService;
   const result = yield* sms.send({ to: "+61412345678", body: "Your code is 123456" });
   // result.id is Twilio's message SID, as an Option (always `some` here)
 });
@@ -35,16 +35,16 @@ const program = Effect.gen(function* () {
 
 ## Entry points
 
-The package has the single entry point `.`, plus a subpath per module (`./Twilio`, `./TwilioConfig`).
+The entry point `.` exports two namespaces, `Twilio` and `TwilioConfig`, each also a subpath of its own (`./Twilio`, `./TwilioConfig`).
 
 | Export | Purpose |
 | --- | --- |
-| `layer(config)`, `layerConfig` | The `SmsService` over the `HttpClient` in context, from literal config or from `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM` / `TWILIO_MESSAGING_SERVICE_SID` / `TWILIO_BASE_URL`. |
-| `resolveTransport(env)`, `configFromEnv(env)`, `TwilioEnv` | Pick the live sender or the no-op from a Worker env. |
-| `noop` | The `SmsService` that succeeds without sending. |
-| `TwilioConfig`, `TwilioConfigInput`, `DEFAULT_BASE_URL` | The account, credential, default sender and host as a service. |
-| `toTwilioPayload`, `TwilioSendPayload` | The core-message to form-fields mapping. |
-| `layerSmsService` | The `SmsService` over a `TwilioConfig` and `HttpClient` you provide. |
+| `Twilio.layer(config)`, `Twilio.layerConfig` | The `SmsService` over the `HttpClient` in context, from literal config or from `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM` / `TWILIO_MESSAGING_SERVICE_SID` / `TWILIO_BASE_URL`. |
+| `Twilio.resolveTransport(env)`, `Twilio.configFromEnv(env)`, `Twilio.TwilioEnv` | Pick the live sender or the no-op from a Worker env. |
+| `Twilio.noop` | The `SmsService` that succeeds without sending. |
+| `TwilioConfig.TwilioConfig`, `TwilioConfig.TwilioConfigInput`, `TwilioConfig.DEFAULT_BASE_URL` | The account, credential, default sender and host as a service. |
+| `Twilio.toTwilioPayload`, `Twilio.TwilioSendPayload` | The core-message to form-fields mapping. |
+| `Twilio.layerSmsService` | The `SmsService` over a `TwilioConfig` and `HttpClient` you provide. |
 
 ## Documentation
 
